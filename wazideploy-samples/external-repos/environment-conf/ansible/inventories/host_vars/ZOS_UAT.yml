@@ -8,7 +8,7 @@
 #*******************************************************************************
 ---
 
-hlq: 'NAZARE.WDEPLOY.ANSIBLE.SIT'
+hlq: 'NAZARE.WDEPLOY.ANSIBLE.UAT'
 db2_sys_def:
    sdsnload: DSN.V12R1M0.SDSNLOAD
    subsys: DBC1

@@ -59,8 +59,8 @@ environment_vars:
 #
 # Note, PYZ and ZOAU environment variables must be configured.
 ################################################################################
-PYZ: "/usr/lpp/IBM/cyp/v3r12/pyz"
-ZOAU: "/usr/lpp/IBM/zoautil"
+PYZ: "/var/imsapp/python/usr/lpp/IBM/cyp/v3r12/pyz"
+ZOAU: "/var/usr/lpp/IBM/zoautil/v1.2.5.4"
 
 
 ################################################################################
