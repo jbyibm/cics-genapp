@@ -195,18 +195,6 @@ pipeline {
                             then
                               exit $rc
                             fi
-                            CMD="${PYTHON_INTERPRETER}\
-                                ${WORKSPACE}/${APP_NAME}/wazideploy-samples/python/dbb/dbb_update_manifest_fingerprints.py\
-                               --dbbBuildResult ${WORKSPACE}/BUILD-${BUILD_NUMBER}/${BUILD_OUTPUT_FOLDER}/BuildReport.json\
-                               --sourceFolder ${WORKSPACE}/${APP_NAME}\
-                               --manifest ${WORKSPACE}/${APP_NAME}/wazideploy-samples/application-manifest/application-manifest.yml"
-                            echo $CMD
-                            $CMD
-                            rc=$?
-                            if [ $rc -ne 0 ]
-                            then
-                              exit $rc
-                            fi
                         ''')
                         if ( rc != 0 )
                             error("Uploading Package failed!!!")
