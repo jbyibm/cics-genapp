@@ -104,6 +104,9 @@ pipeline {
                                --deploymentMethod  ${WORKSPACE}/${APP_NAME}/wazideploy-samples/external-repos/deployment-method/dynamic-beta-deployment-method.yml\
                                --manifests ${WORKSPACE}/${APP_NAME}/wazideploy-samples/application-manifest/application-manifest.yml\
                                --deploymentPlan ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deployment-plan.yml\
+                               --deploymentPlanVersion "${RELEASE_VERSION}.${BUILD_NUMBER}"\
+                               --deploymentPlanName "${APP_NAME}"\
+                               --deploymentPlanDescription "${APP_NAME}"\
                                --deploymentPlanReport ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deployment-plan-report.html\
                                --deploymentState ${WORKSPACE}/BUILD-${BUILD_NUMBER}/merged_deployment-state.yml\
                                ${CURRENT_DEPLOYMENT_STATE}\
