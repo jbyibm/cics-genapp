@@ -8,7 +8,17 @@
 #*******************************************************************************
 all:
   hosts:
-    zos_tivlp02:
+    ZOS_SIT:
+      ansible_host: 9.30.222.103
+      ansible_user: JENKINS
+      ansible_ssh_port: 222
+      
+    ZOS_UAT:
+      ansible_host: 9.30.222.103
+      ansible_user: JENKINS
+      ansible_ssh_port: 222
+      
+    ZOS_PROD:
       ansible_host: 9.30.222.103
       ansible_user: JENKINS
       ansible_ssh_port: 222

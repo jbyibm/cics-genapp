@@ -134,7 +134,7 @@ pipeline {
                         CMD="ansible-playbook deploy.yml -i inventories\
                                 -e wd_deployment_plan_file=${WORKSPACE}/BUILD-${BUILD_NUMBER}/deployment-plan.yml\
                                 -e wd_package_file=${WORKSPACE}/BUILD-${BUILD_NUMBER}/package.tar\
-                                ${ANSIBLE_PLAYBOOK_OPTS} ${ANSIBLE_VERBOSE_OPTS}"
+                                --limit ${TARGET_ENVIRONMENT} ${ANSIBLE_PLAYBOOK_OPTS} ${ANSIBLE_VERBOSE_OPTS}"
                         echo $CMD
                         $CMD
                         rc=$?

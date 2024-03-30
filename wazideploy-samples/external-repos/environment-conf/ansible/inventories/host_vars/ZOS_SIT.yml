@@ -1,0 +1,37 @@
+#*******************************************************************************
+# Licensed Materials - Property of IBM
+# (c) Copyright IBM Corp. 2024. All Rights Reserved.
+#
+# Note to U.S. Government Users Restricted Rights:
+# Use, duplication or disclosure restricted by GSA ADP Schedule
+# Contract with IBM Corp.
+#*******************************************************************************
+---
+
+hlq: 'NAZARE.WDEPLOY.ANSIBLE.SIT'
+db2_sys_def:
+   sdsnload: DSN.V12R1M0.SDSNLOAD
+   subsys: DBC1
+   qualifier: GENADB0
+   package: GENASA1
+   plan: GENAONE
+   sqlid: "{{default_db2_user}}"
+   package_jobcard: "{{default_package_jobcard}}"
+   plan_jobcard: "{{default_plan_jobcard}}"
+   package_action: "{{default_db2_action}}"
+   plan_action: "{{default_db2_action}}"
+   package_job_max_rc: 4
+   plan_job_max_rc: 4
+   plan_pklist: '*.GENASA1.*'
+  
+default_cics_cmci_action: 'PHASEIN'
+cics_sys_def:
+   cmci_host: "{{ ansible_host }}"
+   cmci_port: 1490
+   cmci_user: "{{ansible_user}}"
+   cmci_password: "{{ansible_password if ansible_password is defined else None}}"
+   context: CICS01
+   scheme: http
+   insecure: true
+   csd_group: GENASAP
+

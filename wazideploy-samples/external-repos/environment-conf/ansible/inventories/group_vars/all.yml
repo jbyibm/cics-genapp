@@ -1,3 +1,4 @@
+#*******************************************************************************
 # Licensed Materials - Property of IBM
 # (c) Copyright IBM Corp. 2023. All Rights Reserved.
 #
@@ -10,39 +11,6 @@
 # Enviroment variables for all z/OS managed nodes (target) that do not need
 # further configuration.
 ################################################################################
-environment_vars:
-  _BPXK_AUTOCVT: "ON"
-  ZOAU_HOME: "{{ ZOAU }}"
-  PYTHONSTDINENCODING: "cp1047" 
-  LIBPATH: "{{ ZOAU }}/lib:{{ PYZ }}/lib:/lib:/usr/lib:/lib"
-  PATH: "{{ ZOAU }}/bin:{{ PYZ }}/bin:/bin:/var/bin"
-  _CEE_RUNOPTS: "FILETAG(AUTOCVT,AUTOTAG) POSIX(ON)"
-  _TAG_REDIR_ERR: "txt"
-  _TAG_REDIR_IN: "txt"
-  _TAG_REDIR_OUT: "txt"
-  LANG: "C"
-  
-
-################################################################################
-# Description of the properties used in this configuration:
-# - Property `PYZ` is the python installation home path on the z/OS managed node (target),
-#    e.g, pyz: "/usr/lpp/IBM/cyp/v3r12/pyz"
-# - Property `ZOAU` is the ZOAU installation home on the z/OS managed node (target),
-#    e.g, zoau: "/usr/lpp/IBM/zoautil"
-# - property `ansible_python_interpreter` is the z/OS managed node (target) Python
-#    binary installation path, e.g, ansible_python_interpreter: "{{PYZ}}/bin/python3.8"
-#
-# Note, PYZ and ZOAU environment variables must be configured.
-################################################################################
-PYZ: "/usr/lpp/IBM/cyp/v3r12/pyz"
-ZOAU: "/usr/lpp/IBM/zoautil"
-
-  
-################################################################################
-# Do not configure, variable substituion will correctly set the
-# variable`ansible_python_interpreter`
-################################################################################
-ansible_python_interpreter: "{{ PYZ }}/bin/python3"  
 
 ################################################################################
 # Description of the properties used in this configuration:
@@ -66,8 +34,45 @@ ansible_python_interpreter: "{{ PYZ }}/bin/python3"
 # - Property LANG is the name of the default locale; value
 #   C specifies the POSIX locale; for example: ``LANG: "C"``.
 ################################################################################
+environment_vars:
+  _BPXK_AUTOCVT: "ON"
+  ZOAU_HOME: "{{ ZOAU }}"
+  PYTHONSTDINENCODING: "cp1047" 
+  LIBPATH: "{{ ZOAU }}/lib:{{ PYZ }}/lib:/lib:/usr/lib:/lib"
+  PATH: "{{ ZOAU }}/bin:{{ PYZ }}/bin:/bin:/var/bin"
+  _CEE_RUNOPTS: "FILETAG(AUTOCVT,AUTOTAG) POSIX(ON)"
+  _TAG_REDIR_ERR: "txt"
+  _TAG_REDIR_IN: "txt"
+  _TAG_REDIR_OUT: "txt"
+  LANG: "C"
+  DEPLOY_FAST_COPY: True
 
-# Deploy specific variables
+
+################################################################################
+# Description of the properties used in this configuration:
+# - Property `PYZ` is the python installation home path on the z/OS managed node (target),
+#    e.g, pyz: "/usr/lpp/IBM/cyp/v3r12/pyz"
+# - Property `ZOAU` is the ZOAU installation home on the z/OS managed node (target),
+#    e.g, zoau: "/usr/lpp/IBM/zoautil"
+# - property `ansible_python_interpreter` is the z/OS managed node (target) Python
+#    binary installation path, e.g, ansible_python_interpreter: "{{PYZ}}/bin/python3.8"
+#
+# Note, PYZ and ZOAU environment variables must be configured.
+################################################################################
+PYZ: "/usr/lpp/IBM/cyp/v3r12/pyz"
+ZOAU: "/usr/lpp/IBM/zoautil"
+
+
+################################################################################
+# Do not configure, variable substituion will correctly set the
+# variable`ansible_python_interpreter`
+################################################################################
+ansible_python_interpreter: "{{ PYZ }}/bin/python3"  
+
+
+################################################################################
+# Wazi Deploy specific variables
+################################################################################
 common_pds_load_spec:
   type: LIBRARY
   space_primary: 10
@@ -91,13 +96,13 @@ common_pds_text_spec:
   space_type: CYL
   record_format: FB
   record_length: 80
-  
-hlq: 'NAZARE.WDEPLOY.ANSIBLE'
 
 default_package_jobcard: "BINDPKG JOB 'WD-PKGBIND',MSGLEVEL=(1,1),MSGCLASS=R,NOTIFY=&SYSUID"
 default_plan_jobcard: "BINDPLA JOB 'WD-PLANBIND',MSGLEVEL=(1,1),MSGCLASS=R,NOTIFY=&SYSUID"
 default_db2_user: "{{ansible_user}}"
 default_db2_action: "REPLACE"
+
+hlq: 'NAZARE.WDEPLOY.ANSIBLE'
 db2_sys_def:
    sdsnload: DSN.V12R1M0.SDSNLOAD
    subsys: DBC1
@@ -117,13 +122,10 @@ default_cics_cmci_action: 'PHASEIN'
 cics_sys_def:
    cmci_host: "{{ ansible_host }}"
    cmci_port: 1490
-#   cmci_cert: 
-#   cmci_key: 
    cmci_user: "{{ansible_user}}"
    cmci_password: "{{ansible_password if ansible_password is defined else None}}"
    context: CICS01
    scheme: http
-#   scope: 
    insecure: true
    csd_group: GENASAP
 
