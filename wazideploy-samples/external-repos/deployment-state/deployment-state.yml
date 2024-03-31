@@ -3,8 +3,9 @@ kind: DeploymentState
 metadata:
   name: cics-genapp
   description: cics-genapp
+  version: 1.0.20
   annotations:
-    creation_timestamp: 20240331.094921.558
+    creation_timestamp: 20240331.133731.405
 manifests:
 - name: cics-genapp
   description: cics-genapp
