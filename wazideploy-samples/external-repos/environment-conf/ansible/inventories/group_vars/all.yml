@@ -39,13 +39,13 @@ environment_vars:
   ZOAU_HOME: "{{ ZOAU }}"
   PYTHONSTDINENCODING: "cp1047" 
   LIBPATH: "{{ ZOAU }}/lib:{{ PYZ }}/lib:/lib:/usr/lib:/lib"
-  PATH: "{{ ZOAU }}/bin:{{ PYZ }}/bin:/bin:/var/bin"
+  VIRTUAL_ENV: "/u/jenkins/python_wazideploy/beta/env"
+  PATH: "{{ VIRTUAL_ENV/bin }}:{{ ZOAU }}/bin:{{ PYZ }}/bin:/bin:/var/bin"
   _CEE_RUNOPTS: "FILETAG(AUTOCVT,AUTOTAG) POSIX(ON)"
   _TAG_REDIR_ERR: "txt"
   _TAG_REDIR_IN: "txt"
   _TAG_REDIR_OUT: "txt"
   LANG: "C"
-  DEPLOY_FAST_COPY: True
 
 
 ################################################################################
