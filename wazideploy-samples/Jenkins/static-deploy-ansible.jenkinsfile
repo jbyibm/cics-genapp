@@ -105,7 +105,7 @@ pipeline {
                                --manifests ${WORKSPACE}/${APP_NAME}/wazideploy-samples/application-manifest/application-manifest.yml\
                                --deploymentPlan ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deployment-plan.yml\
                                --deploymentPlanReport ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deployment-plan-report.html\
-                               --deploymentState ${WORKSPACE}/BUILD-${BUILD_NUMBER}/merged_deployment-state.yml\
+                               --packageOutputFile ${WORKSPACE}/BUILD-${BUILD_NUMBER}/package.tar\
                                --configFile ${WORKSPACE}/BUILD-${BUILD_NUMBER}/config.yml"
                         echo $CMD
                         $CMD
