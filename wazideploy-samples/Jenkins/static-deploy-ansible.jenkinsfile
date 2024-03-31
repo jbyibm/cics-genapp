@@ -236,7 +236,7 @@ pipeline {
                               --output=${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy/reports/environment-deployed-component-version.html\
                               r\
                               renderer=${WORKSPACE}/${APP_NAME}/wazideploy-samples/evidences/renderers/environment-deployed-component-version.html\
-                              environment_name=zos_host_01"
+                              environment_name=${TARGET_ENVIRONMENT}"
                             echo $CMD
                             $CMD 
                             rc=$? 
