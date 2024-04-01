@@ -3,14 +3,14 @@ kind: ManifestState
 metadata:
   name: cics-genapp
   description: cics-genapp
-  version: 1.0.8
+  version: 1.0.9
   annotations:
-    creation_timestamp: 20240331.212958.070
+    creation_timestamp: 20240401.074851.822
     scm:
       type: git
       uri: git@github.com:jbyibm/cics-genapp.git
       branch: DIT
-      short_commit: 661ea792
+      short_commit: 6c3224fd
     package:
       name: sys-wazi-deploy-team/cics-genapp-wazideploy-static-build
       properties:
@@ -21,8 +21,8 @@ metadata:
       - key: build_name
         value: sys-wazi-deploy-team/cics-genapp-wazideploy-static-build
       - key: build_number
-        value: '245'
-      uri: https://na.artifactory.swg-devops.com/ui/builds/sys-wazi-deploy-team%2Fcics-genapp-wazideploy-static-build/245
+        value: '246'
+      uri: https://na.artifactory.swg-devops.com/ui/builds/sys-wazi-deploy-team%2Fcics-genapp-wazideploy-static-build/246
       type: ARTIFACTORY
       is_archive: true
 artifacts:
@@ -32,15 +32,15 @@ artifacts:
   - key: path
     value: NAZARE.WDEPLOY.DBBBUILD.GENAPP.DBRM/LGACDB02.DBRM
   - key: fingerprint
-    value: c486e599862f10823b37a974508951758a22a85b3f841832906fa1381b0d1f70
+    value: 476c80899a91adc84544a8b62faaa8d594a9e2eb0a4f2ba7a201fd49f22ce826
   type: DBRM
-  hash: c486e599862f10823b37a974508951758a22a85b3f841832906fa1381b0d1f70
+  hash: 476c80899a91adc84544a8b62faaa8d594a9e2eb0a4f2ba7a201fd49f22ce826
 - name: LGACDB02
   description: LGACDB02.CICSLOAD
   properties:
   - key: path
     value: NAZARE.WDEPLOY.DBBBUILD.GENAPP.LOAD/LGACDB02.CICSLOAD
   - key: fingerprint
-    value: 5695PMB01 02042024091172952
+    value: 5695PMB01 02042024092034844
   type: CICSLOAD
-  hash: d6f15e04f2443ed9a327ec32d72a22109434d56ecb8894d2a6a7e6a27761052f
+  hash: 66758372cb01cf100c857633565bdafaae3a328ecf89e908b204df313ba62fa6
