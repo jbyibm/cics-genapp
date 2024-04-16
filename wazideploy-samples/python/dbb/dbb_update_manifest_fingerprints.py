@@ -173,31 +173,33 @@ def dbb_update_manifest(**kwargs):
         member_name = parts[1]
         pds_name = parts[0]
         
-        for artifact in manifest_dic['artifacts']:
-            if artifact['name'] == member_name:
-                path_prop = list(filter(lambda prop: ('path' == prop['key']), artifact['properties']))
-                if len(path_prop) > 0:
-                    path = path_prop[0]['value']
-                    parts = re.split('/',path)
-                
-                if parts[0] == pds_name:
-                    copyMode = DBBUtilities.get_copy_mode(artifact['type'], **kwargs)
-                        
-                    if copyMode == 'LOAD':
-                        fingerprint = Utilities.get_loadmodule_idrb(f"{pds_name}({artifact['name']})")
-                    else:
-                        fingerprint = artifact['hash']
-                    
-                    msgstr = f"** Register fingerprint for '{pds_name}({artifact['name']})':  {fingerprint}"
-                    print(msgstr)
-                    
-                    fingerprint_prop = list(filter(lambda prop: ('fingerprint' == prop['key']), artifact['properties']))
-                    if len(fingerprint_prop) > 0:
-                        fingerprint_prop[0]['value'] = f"{fingerprint}"
-                    else:
-                        artifact['properties'].append(
-                            {"key": "fingerprint",
-                             "value": f"{fingerprint}"})
+        #=======================================================================
+        # for artifact in manifest_dic['artifacts']:
+        #     if artifact['name'] == member_name:
+        #         path_prop = list(filter(lambda prop: ('path' == prop['key']), artifact['properties']))
+        #         if len(path_prop) > 0:
+        #             path = path_prop[0]['value']
+        #             parts = re.split('/',path)
+        #         
+        #         if parts[0] == pds_name:
+        #             copyMode = DBBUtilities.get_copy_mode(artifact['type'], **kwargs)
+        #                 
+        #             if copyMode == 'LOAD':
+        #                 fingerprint = Utilities.get_loadmodule_idrb(f"{pds_name}({artifact['name']})")
+        #             else:
+        #                 fingerprint = artifact['hash']
+        #             
+        #             msgstr = f"** Register fingerprint for '{pds_name}({artifact['name']})':  {fingerprint}"
+        #             print(msgstr)
+        #             
+        #             fingerprint_prop = list(filter(lambda prop: ('fingerprint' == prop['key']), artifact['properties']))
+        #             if len(fingerprint_prop) > 0:
+        #                 fingerprint_prop[0]['value'] = f"{fingerprint}"
+        #             else:
+        #                 artifact['properties'].append(
+        #                     {"key": "fingerprint",
+        #                      "value": f"{fingerprint}"})
+        #=======================================================================
 
     Utilities.dump_to_yaml_file(manifest_dic, manifest_file)
 
