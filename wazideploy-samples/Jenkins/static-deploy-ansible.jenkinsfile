@@ -27,7 +27,6 @@ pipeline {
      }
      
      parameters {
-       booleanParam(defaultValue: false, description: 'Full Deployment', name: 'FULL_DEPLOY')
        booleanParam(defaultValue: false, description: 'Display verbose output', name: 'VERBOSE')
     }
 
