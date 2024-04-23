@@ -6,7 +6,7 @@
       *                    ADD Customer Details                        *
       *                                                                *
       *   To add customer's name, address and date of birth to the     *
-      *  DB2 customer table creating a new customer entry. PREDEMO     *
+      *  DB2 customer table creating a new customer entry. DEMO        *
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
