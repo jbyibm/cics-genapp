@@ -154,3 +154,17 @@ activities:
       - name: 'MAPLOAD'
       - name: 'JCL'
     is_artifact: True
+
+  - name: BUILD_SDOM
+    description: |
+      This activity build de Wazi Deploy SDOM File
+    actions:
+        - name: BUILD_SDOM
+          description: |
+            This action build de Wazi Deploy SDOM File
+          steps:
+          - name: BUILD_SDOM
+            description: |
+              This step build de Wazi Deploy SDOM File
+    tags:
+    - build_sdom
