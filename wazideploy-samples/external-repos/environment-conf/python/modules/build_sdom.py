@@ -113,4 +113,4 @@ class IncludeVars (PythonModule):
             dict_from_file=json.load(infile)
         print(f"*** Generate SBOM to {os.path.abspath('sdom.yml')}")
         with open('sdom.yml','w') as outfile:
-            yaml.dump(dict_from_file, outfile)
+            yaml.dump(dict_from_file, outfile, sort_keys=False)
