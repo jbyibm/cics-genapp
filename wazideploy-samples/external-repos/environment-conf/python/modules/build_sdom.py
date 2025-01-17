@@ -15,7 +15,7 @@ import json
 import yaml
 from datetime import datetime, timezone
 
-class IncludeVars (PythonModule):
+class BuildSdom (PythonModule):
     '''
     IncludeVars module reads the variables that are contained in external .yml files
     and adds these variables to the environment variables file that is used by the Wazi Deploy building blocks.

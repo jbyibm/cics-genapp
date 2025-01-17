@@ -319,7 +319,7 @@ pipeline {
                 always {
                     dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
                         archiveArtifacts allowEmptyArchive: true,
-                                        artifacts: '**/deployment-plan.yml,**/deployment-plan-report.html,**/evidence.yml',
+                                        artifacts: '**/deployment-plan.yml,**/sdom.*,**/deployment-plan-report.html,**/evidence.yml',
                                         onlyIfSuccessful: false
                     }
                 }
@@ -366,6 +366,7 @@ pipeline {
                               exit $rc
                             fi
                             chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy/deployment-report.html
+                            mv ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy/deployment-report.html ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deployment-report.html
                       ''')
                       if ( rc != 0 )
                           error("Excecution Of Deployment Report Failed!!!")
