@@ -15,7 +15,7 @@ import json
 import yaml
 from datetime import datetime, timezone
 
-class BuildSdom (PythonModule):
+class IncludeVars (PythonModule):
     '''
     IncludeVars module reads the variables that are contained in external .yml files
     and adds these variables to the environment variables file that is used by the Wazi Deploy building blocks.
@@ -106,9 +106,11 @@ class BuildSdom (PythonModule):
                 }
             sdom["components"].append(component)
         # Hard Coded but file can be in the environment file
+        print(f"*** Generate SBOM to {os.path.abspath('sdom.json')}")
         with open('sdom.json','w') as outfile:
             json.dump(sdom,outfile,indent=4)
         with open('sdom.json','r') as infile:
             dict_from_file=json.load(infile)
+        print(f"*** Generate SBOM to {os.path.abspath('sdom.yml')}")
         with open('sdom.yml','w') as outfile:
             yaml.dump(dict_from_file, outfile)
