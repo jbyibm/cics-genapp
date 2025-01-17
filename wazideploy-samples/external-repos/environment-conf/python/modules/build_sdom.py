@@ -77,7 +77,7 @@ class IncludeVars (PythonModule):
               "bomFormat": "ConcertDef",
               "specVersion": environment['metadata']['version'],
               "metadata": {
-                "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3],
+                "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                 "type": "deploy",
                 "environment": environment['metadata']['name'],
                 "component": {
@@ -87,7 +87,9 @@ class IncludeVars (PythonModule):
                   "version": "1.0.0"
                 }
               },
-              "components": []
+              "components": [],
+              "runtime-components": [],
+              "dependencies": []
             }
 
         deployed_artifacts = []
