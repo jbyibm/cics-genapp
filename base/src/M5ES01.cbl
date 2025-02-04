@@ -21,7 +21,7 @@ sqihm *> Historique des modifications :
 sqihm *>
 sqihm *> Date        User      Motif
 sqihm *> ----------  --------  -----------------------------------------
-      *> 2024-06-06  J070515   Création du programme
+      *> 2024-06-06  J070515   Création du programme!
       *>>>>>   remplacement I52X par H501
       *>   I52X        H501
       *>   ------      --------
