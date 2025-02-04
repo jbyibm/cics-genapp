@@ -1,4 +1,4 @@
-      * CBL SERVICE('CEH60 P38059 2024-06-12 19:18:52 J070515')
+       CBL SERVICE('CEH60 P38059 2024-06-12 19:18:52 J070515')
 sqi    IDENTIFICATION DIVISION.
 sqi    PROGRAM-ID. M5ES01.
       *> ***************************************************************
