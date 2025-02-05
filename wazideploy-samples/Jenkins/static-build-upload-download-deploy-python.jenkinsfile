@@ -109,17 +109,21 @@ pipeline {
                     if ( env.DBB_BUILD_TYPE == null )
                         env.DBB_BUILD_TYPE = "--fullBuild"
                     rc = sh (returnStatus: true, script: '''#!/bin/sh
-                            CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
-                                ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
-                                --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
-                                ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
-                                --application ${APP_NAME} --sourceDir ${WORKSPACE}"
-                            echo $CMD
-                            $CMD
+                            #CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
+                            #    ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
+                            #    --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
+                            #    ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
+                            #    --application ${APP_NAME} --sourceDir ${WORKSPACE}"
+                            set -x
+                            export DBB_BUILD=${WORKSPACE}/${APP_NAME}
+                            dbb build impact --log-encoding UTF-8 --hlq ${DBB_HLQ} --config $DBB_BUILD/dbb-app.yaml
                             rc=$?
+                            mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.logs
+                            c$ logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.logs
                             $DBB_HOME/bin/groovyz /tmp/zcodescan/dbb/Pipeline/RunIDZCodeReview/RunCodeReview.groovy \
                                -w ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.*\
                                -cr /tmp/zcodescan/rules.dat -p | grep "L=COBOL" | sed "s/^..//" > /tmp/zcodescan/list.txt
+                            set +x
                             exit $rc
                         ''')
                     if ( rc != 0 )
