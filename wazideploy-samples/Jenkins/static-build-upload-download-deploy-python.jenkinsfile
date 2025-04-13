@@ -109,6 +109,7 @@ pipeline {
                     if ( env.DBB_BUILD_TYPE == null )
                         env.DBB_BUILD_TYPE = "--fullBuild"
                     rc = sh (returnStatus: true, script: '''#!/bin/sh
+                            cd ${WORKSPACE}
                             if [[ $DBB_BUILD_TYPE == *Build ]]
                             then
                                 export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
@@ -133,6 +134,18 @@ pipeline {
                                 $CMD
                                 rc=$?
                                 mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                            fi
+                            if [ $rc -eq 0 ]
+                            then
+                              . /u/jenkins/python_wazideploy/beta/env/bin/activate
+                              export CLIENT_PORT=1234
+                              export PATH=/var/gitlab/J17.0_64/bin:$PATH
+                              zcodescan \
+                                -sfl $PWD/cics-genapp/logs/buildList.txt \
+                                -if $PWD/cics-genapp/base\
+                                -rf cics-genapp/zcodescan-rules.yml\
+                                -of export.yml
+                              rc=$?
                             fi
                             exit $rc
                         ''')
