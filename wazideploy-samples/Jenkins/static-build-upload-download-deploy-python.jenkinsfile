@@ -137,6 +137,7 @@ pipeline {
                             fi
                             if [ $rc -eq 0 ]
                             then
+                              cd ${WORKSPACE}
                               . /u/jenkins/python_wazideploy/beta/env/bin/activate
                               export CLIENT_PORT=1234
                               export PATH=/var/gitlab/J17.0_64/bin:$PATH
