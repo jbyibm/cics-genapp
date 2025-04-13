@@ -144,7 +144,7 @@ pipeline {
                               zcodescan \
                                 -sfl $PWD/cics-genapp/logs/buildList.txt \
                                 -if $PWD/cics-genapp/base\
-                                -rf cics-genapp/zcodescan-rules.yml\
+                                -rf ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-rules.yml\
                                 -of export.yml
                               rc=$?
                             fi
