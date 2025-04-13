@@ -145,7 +145,7 @@ pipeline {
                                 -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                 -if $PWD/cics-genapp/base\
                                 -rf cics-genapp/zcodescan-rules.yml\
-                                -of zcodescan-cics-genapp.yml -et sonarqube - ef zcodescan-cics-genapp-sonarqube.json
+                                -of zcodescan-cics-genapp.yml -et sonarqube -ef zcodescan-cics-genapp-sonarqube.json
                               rc=$?
                             fi
                             exit $rc
