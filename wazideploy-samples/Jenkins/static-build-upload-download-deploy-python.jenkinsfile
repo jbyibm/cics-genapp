@@ -141,6 +141,7 @@ pipeline {
                               . /u/jenkins/python_wazideploy/beta/env/bin/activate
                               export CLIENT_PORT=1234
                               export PATH=/var/gitlab/J17.0_64/bin:$PATH
+                              kill -9 $(cat /tmp/lspsocketserver.pid) 2>dev/null
                               zcodescan \
                                 -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                 -if $PWD/cics-genapp/base\
@@ -148,6 +149,7 @@ pipeline {
                                 -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
                                 -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
                               rc=$?
+                              kill -9 $(cat /tmp/lspsocketserver.pid) 2>dev/null
                             fi
                             exit $rc
                         ''')
