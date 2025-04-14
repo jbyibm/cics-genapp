@@ -152,6 +152,12 @@ pipeline {
                               kill -9 $(cat /tmp/lspsocketserver.pid) 2> /dev/null
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
+                              if [ $rc -gt 3 ]
+                              then
+                                exit 1
+                              else
+                                rc=0
+                              fi
                             fi
                             exit $rc
                         ''')
