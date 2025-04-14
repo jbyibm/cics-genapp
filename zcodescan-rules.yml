@@ -1,7 +1,6 @@
 rules:
   - id: zcodescan.cobol.rules.ProgramId
-    severity: INFO # Can be BLOCKER|HIGH|MEDIUM|LOW|INFO
-    software_quality: SECURITY # Can be MAINTAINABILITY|RELIABILITY|SECURITY
+    severity: BLOCKER # Can be BLOCKER|HIGH|MEDIUM|LOW|INFO
 #    variables:
 #         - name: "MyVar"
 #           value: "MyValue"
