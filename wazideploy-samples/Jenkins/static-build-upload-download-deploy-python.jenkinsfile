@@ -150,6 +150,8 @@ pipeline {
                                 -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
                               rc=$?
                               kill -9 $(cat /tmp/lspsocketserver.pid) 2> /dev/null
+                              chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
+                              chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
                             fi
                             exit $rc
                         ''')
