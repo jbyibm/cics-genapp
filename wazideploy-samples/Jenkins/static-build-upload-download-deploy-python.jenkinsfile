@@ -154,7 +154,7 @@ pipeline {
                               kill -9 $(cat /tmp/lspsocketserver.pid) 2> /dev/null
                               chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
                               export JAVA_HOME=/var/gitlab/J17.0_64
-                              /u/jenkins/sonar/sonar-scanner-5.0.0.2966/bin/sonar-scanner \
+                              CMD="/u/jenkins/sonar/sonar-scanner-5.0.0.2966/bin/sonar-scanner \
                                     -Dsonar.projectKey=genapp \
                                     -Dsonar.sources=. \
                                     -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000\
@@ -162,7 +162,9 @@ pipeline {
                                     -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json\
                                     -Dsonar.sourceEncoding=IBM-1047\
                                     -Dsonar.scanner.os=linux\
-                                     -Dsonar.scanner.arch=x64  
+                                     -Dsonar.scanner.arch=x64"
+                              echo "$CMD"
+                              $CMD
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
                               if [ $rc -gt 3 ]
