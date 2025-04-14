@@ -165,8 +165,7 @@ pipeline {
                 always {
                     dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
                         archiveArtifacts allowEmptyArchive: true,
-                                        artifacts: '**/*.log,**/*.json,**/*.html',
-                                        excludes: '**/*clist',
+                                        artifacts: '**/zcodescan-cics*',
                                         onlyIfSuccessful: false
                     }
                 }
