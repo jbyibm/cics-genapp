@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGACDB0.
+       PROGRAM-ID. LGA.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
