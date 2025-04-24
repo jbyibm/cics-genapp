@@ -1,6 +1,5 @@
 rules:
   - id: zcodescan.cobol.rules.ProgramId
-    severity: BLOCKER # Can be BLOCKER|HIGH|MEDIUM|LOW|INFO
-#    variables:
-#         - name: "MyVar"
-#           value: "MyValue"
+    severity: INFO # Can be BLOCKER|HIGH|MEDIUM|LOW|INFO
+  - id: zcodescan.cobol.rules.CallSyntaxRule
+    severity: INFO

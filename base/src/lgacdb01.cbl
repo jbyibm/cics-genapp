@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGA.
+       PROGRAM-ID. Lss.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -193,7 +193,8 @@
            IF CA-RETURN-CODE NOT EQUAL 0
              EXEC CICS RETURN END-EXEC
            END-IF
-
+           CALL "TOTO"
+           CALL "TOTO"
       *    Return to caller
            EXEC CICS RETURN END-EXEC.
 
@@ -216,7 +217,7 @@
              Move LastCustNum  To DB2-CUSTOMERNUM-INT
            End-If.
 
-
+           
       *================================================================*
        INSERT-CUSTOMER.
       *================================================================*
