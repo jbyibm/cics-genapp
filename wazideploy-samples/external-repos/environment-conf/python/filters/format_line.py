@@ -1,8 +1,8 @@
-## format a line and ensure continuation char atcolumn 72.
+## format a line and ensure continuation char at column 72.
 ## line is the statement to be formatted.
 ## max_line_length is the maximum length of a line.
 ## start_text_at is the length of the indentation.
-## last_line indicates if the statement is the last oneof a group of
+## last_line indicates if the statement is the last one of a group of
 ## parameters. The last one does not need the continuation character.
 ## $suffix is the continuation character.
 def format_line(line, max_line_length, start_text_at, last_line, prefix = '', suffix = ''):
@@ -20,15 +20,17 @@ def format_line(line, max_line_length, start_text_at, last_line, prefix = '', su
         formatted_str = make_indent(line, max_line_length, start_text_at, last_line, prefix, suffix)
     return formatted_str
 
-## handle indentation if JCL statement does notfit in 71 chars
+## handle indentation if JCL statement does not fit in 71 chars
 ## line is the statement to be formatted
 ## max_line_length is the maximum length of a line.
 ## start_text_at is the length of the indentation.
-## last_line indicates if the statement is the last oneof a group of
+## last_line indicates if the statement is the last one of a group of
 ## parameters. The last one does not need the continuation character.
 ## suffix is the continuation character.
+## if len(line) < max_line_length: Change less than (<) to less than or equal (<=) to fix error when 
+##                                 PATH= statements end at column 71 exactly.
 def make_indent(line, max_line_length, start_text_at, last_line, prefix, suffix):
-    if len(line) < max_line_length:
+	if len(line) <= max_line_length:
         formatted_str = '{line: <{max_len}}'.format(line=line, max_len=max_line_length)
         if not last_line:
             formatted_str += suffix
