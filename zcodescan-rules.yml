@@ -2,4 +2,4 @@ rules:
   - id: zcodescan.cobol.rules.ProgramId
     severity: INFO # Can be BLOCKER|HIGH|MEDIUM|LOW|INFO
   - id: zcodescan.cobol.rules.CallSyntaxRule
-    severity: INFO
+    severity: HIGH
