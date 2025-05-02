@@ -8,7 +8,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGACV01.
+       PROGRAM-ID. LGACVS01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
