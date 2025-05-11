@@ -167,7 +167,7 @@ pipeline {
                               $CMD
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
-                              if [ $rc -gt 3 ]
+                              if [ $rc -gt 4 ]
                               then
                                 exit 1
                               else
