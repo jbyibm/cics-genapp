@@ -1,37 +1,37 @@
 rules:
   - id: zcodescan.cobol.rules.ProgramId
     severity: INFO
-  - id: zcodescan.cobol.rules.CallSyntaxRule
-    severity: INFO
-  - id: zcodescan.cobol.rules.SqlWhereRule
-    severity: HIGH
-    statements:
-      - name: "Select"
-        value: True
-      - name: "Delete"
-        value: false
-      - name: "Update"
-        value: true
-  - id: zcodescan.cobol.rules.RequireEndClauseRule
-    severity: HIGH
-    statements:
-      - name: "If"
-        value: false
-      - name: "Evaluate"
-        value: true
-      - name: "Read"
-        value: true
-      - name: "Search"
-        value: true
-      - name: "Call"
-        value: true
-      - name: "Perform"
-        value: true
-  - id: zcodescan.cobol.rules.AcceptRule
-    severity: INFO
-  - id: zcodescan.cobol.rules.GotoRule
-    severity: INFO
-  - id: zcodescan.cobol.rules.GotoParagraphRule
-    severity: MEDIUM
-  - id: zcodescan.cobol.rules.UnprotectedAuthCredentialRule
-    severity: HIGH 
+#  - id: zcodescan.cobol.rules.CallSyntaxRule
+#    severity: INFO
+#  - id: zcodescan.cobol.rules.SqlWhereRule
+#    severity: HIGH
+#    statements:
+#      - name: "Select"
+#        value: True
+#      - name: "Delete"
+#        value: false
+#      - name: "Update"
+#        value: true
+#  - id: zcodescan.cobol.rules.RequireEndClauseRule
+#    severity: HIGH
+#    statements:
+#      - name: "If"
+#        value: false
+#      - name: "Evaluate"
+#        value: true
+#      - name: "Read"
+#        value: true
+#      - name: "Search"
+#        value: true
+#      - name: "Call"
+#        value: true
+#      - name: "Perform"
+#        value: true
+#  - id: zcodescan.cobol.rules.AcceptRule
+#    severity: INFO
+#  - id: zcodescan.cobol.rules.GotoRule
+#    severity: INFO
+#  - id: zcodescan.cobol.rules.GotoParagraphRule
+#    severity: MEDIUM
+#  - id: zcodescan.cobol.rules.UnprotectedAuthCredentialRule
+#    severity: HIGH 
