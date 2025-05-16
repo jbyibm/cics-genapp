@@ -158,7 +158,7 @@ pipeline {
                                     -Dsonar.projectKey=genapp \
                                     -Dsonar.sources=. \
                                     -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000\
-                                    -Dsonar.token=sqp_e0a0ccbb520f398f8b7b45cc9d2964ff3807dd36 \
+                                    -Dsonar.token=sqp_11ab88abd7c94612c145c378773c376aded94e1d \
                                     -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json\
                                     -Dsonar.sourceEncoding=IBM-1047\
                                     -Dsonar.scanner.os=linux\
