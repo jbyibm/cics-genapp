@@ -157,8 +157,8 @@ pipeline {
                               CMD="/u/jenkins/sonar/sonar-scanner-5.0.0.2966/bin/sonar-scanner \
                                     -Dsonar.projectKey=genapp \
                                     -Dsonar.sources=. \
-                                    -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000\
-                                    -Dsonar.token=sqp_11ab88abd7c94612c145c378773c376aded94e1d \
+                                    -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
+                                    -Dsonar.token=sqp_8128509d8e33ddd60479d8838777f1e6d5e16bfc \
                                     -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json\
                                     -Dsonar.sourceEncoding=IBM-1047\
                                     -Dsonar.scanner.os=linux\
