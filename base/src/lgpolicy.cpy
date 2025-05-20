@@ -100,8 +100,8 @@
 
        01  DB2-CLAIM.
            03 DB2-C-Num                PIC 9(10).
-           03 DB2-C-Date               PIC X(10) VALUE 'PASSWORDD'.
+           03 DB2-C-Date               PIC X(10).
            03 DB2-C-Paid               PIC 9(8).
-           03 DB2-C-Value              PIC X(10) VALUE 'PASSWORDD'.
+           03 DB2-C-Value              PIC X(10).
            03 DB2-C-Cause              PIC X(255).
            03 DB2-C-Observations       PIC X(255).
