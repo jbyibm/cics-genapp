@@ -1,5 +1,5 @@
 rules:
-  - id: zcodescan.cobol.rules.ProgramId
+  - id: zcodescan.cobol.rules.ProgramIdRule
     severity: INFO
   - id: zcodescan.cobol.rules.CallSyntaxRule
     severity: INFO
@@ -24,8 +24,6 @@ rules:
       - name: "Search"
         value: true
       - name: "Call"
-        value: true
-      - name: "Perform"
         value: true
   - id: zcodescan.cobol.rules.AcceptRule
     severity: INFO
