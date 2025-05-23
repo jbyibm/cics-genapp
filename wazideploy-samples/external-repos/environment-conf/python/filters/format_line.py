@@ -30,7 +30,7 @@ def format_line(line, max_line_length, start_text_at, last_line, prefix = '', su
 ## if len(line) < max_line_length: Change less than (<) to less than or equal (<=) to fix error when 
 ##                                 PATH= statements end at column 71 exactly.
 def make_indent(line, max_line_length, start_text_at, last_line, prefix, suffix):
-	if len(line) <= max_line_length:
+    if len(line) <= max_line_length:
         formatted_str = '{line: <{max_len}}'.format(line=line, max_len=max_line_length)
         if not last_line:
             formatted_str += suffix
