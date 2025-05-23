@@ -14,7 +14,7 @@ application:
     - task: MetadataInit
       variables: 
         - name: type # Type of metadata store. Valid values are "file" or "db2".
-          value: db2 #  Default is "file".
+          value: file #  Default is "file" or "db2"
         - name: db2Url # Db2 URL for JDBC connection to Db2 server.
           value: "jdbc:db2://zdevops-demo1.fyre.ibm.com:50000/DBB"
 
