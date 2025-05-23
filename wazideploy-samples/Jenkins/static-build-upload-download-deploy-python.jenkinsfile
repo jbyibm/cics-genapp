@@ -108,7 +108,7 @@ pipeline {
                     // DBB Build
                     if ( env.DBB_BUILD_TYPE == null )
                         env.DBB_BUILD_TYPE = "--fullBuild"
-                    rc = sh (returnStatus: true, script: '''#!/bin/sh
+                    def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             if [[ $DBB_BUILD_TYPE == *Build ]]
                             then
                                 export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
@@ -182,7 +182,7 @@ pipeline {
 
                         if ( env.RELEASE_VERSION == null )
                             env.RELEASE_VERSION = "1.0.0"
-                        rc = sh (returnStatus: true, script: '''#!/bin/sh
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             if [ "$PYTHON_VIRTUAL_ENV_COMMAND" != "" ]
                             then
                                echo "Use a virtual env $PYTHON_VIRTUAL_ENV_COMMAND"
@@ -241,7 +241,7 @@ pipeline {
             steps {
                 script {
                     if ( hasBuildFiles ) {
-                        rc = sh (returnStatus: true, script: '''#!/bin/sh
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             if [ "$PYTHON_VIRTUAL_ENV_COMMAND" != "" ]
                             then
                                echo "Use a virtual env $PYTHON_VIRTUAL_ENV_COMMAND"
@@ -281,7 +281,7 @@ pipeline {
                     if ( hasBuildFiles ) {
                         if ( env.WD_DEPLOY_ENV_FILE == null )
                            env.WD_DEPLOY_ENV_FILE = "environment-zos.yml"
-                        rc = sh (returnStatus: true, script: '''#!/bin/sh
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             export ZOAU_HOME=${ZOAU_HOME}
                             export PATH=${ZOAU_HOME}/bin:$PATH
                             export LIBPATH=${ZOAU_HOME}/lib:${LIBPATH}
@@ -341,7 +341,7 @@ pipeline {
             steps {
                 script {
                     if ( hasBuildFiles ) {
-                        rc = sh (returnStatus: true, script: '''#!/bin/sh
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             if [ "$PYTHON_VIRTUAL_ENV_COMMAND" != "" ]
                             then
                                echo "Use a virtual env $PYTHON_VIRTUAL_ENV_COMMAND"
