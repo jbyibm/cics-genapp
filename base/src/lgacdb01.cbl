@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGACDB0.
+       PROGRAM-ID. LGACDB01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -29,7 +29,7 @@
            03 WS-TERMID                PIC X(4).
            03 WS-TASKNUM               PIC 9(7).
            03 WS-FILLER                PIC X.
-           03 WS-ADDR-DFHCOMMAREA      USAGE is POINTER.
+           03 WS-ADDR-DFHCOMMAREA      PIC X.
            03 WS-CALEN                 PIC S9(4) COMP.
 
       *
