@@ -144,6 +144,7 @@ pipeline {
                               export PATH=/var/gitlab/J17.0_64/bin:$PATH
                               kill -9 $(cat /tmp/lspsocketserver.pid) 2> /dev/null
                               # FIXME: generate -sfl -sfi with BuildReport.json
+                              export JAVA_HOME=/var/gitlab/J17.0_64
                               CMD="zcodescan \
                                 -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                 -if $PWD\
@@ -156,7 +157,6 @@ pipeline {
                               rc=$?
                               kill -9 $(cat /tmp/lspsocketserver.pid) 2> /dev/null
                               chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
-                              export JAVA_HOME=/var/gitlab/J17.0_64
                               CMD="/u/jenkins/sonar/sonar-scanner-5.0.0.2966/bin/sonar-scanner \
                                     -Dsonar.projectKey=genapp \
                                     -Dsonar.sources=. \
