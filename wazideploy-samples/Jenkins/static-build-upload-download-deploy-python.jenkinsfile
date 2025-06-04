@@ -99,7 +99,7 @@ pipeline {
             }
         }
 
-        stage('Static Scan - zCodeScan') {
+        stage('COBOL Static Scan - ZCodeScan') {
             when {
                 expression { rollingBack == false } 
             }
