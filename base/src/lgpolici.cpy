@@ -26,5 +26,4 @@
            03 WS-FULL-MOTOR-LEN        PIC S9(4) COMP VALUE +137.
            03 WS-FULL-COMM-LEN         PIC S9(4) COMP VALUE +1174.
            03 WS-FULL-CLAIM-LEN        PIC S9(4) COMP VALUE +618.
-           03 WS-SUMRY-ENDOW-LEN       PIC S9(4) COMP VALUE +25 
-                 VALUE 'PASSWORD'.
+           03 WS-SUMRY-ENDOW-LEN       PIC S9(4) COMP VALUE +25.

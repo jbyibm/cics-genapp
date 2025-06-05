@@ -16,7 +16,7 @@
            COPY LGPOLICI.
            
        01  DB2-CUSTOMER.
-           03 DB2-FIRSTNAME            PIC X(10) VALUE 'PASSWORD'.
+           03 DB2-FIRSTNAME            PIC X(10).
            03 DB2-LASTNAME             PIC X(20).
            03 DB2-DATEOFBIRTH          PIC X(10).
            03 DB2-HOUSENAME            PIC X(20).
