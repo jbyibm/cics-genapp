@@ -145,7 +145,7 @@ pipeline {
                               # FIXME: generate -sfl -sfi with BuildReport.json
                               export JAVA_HOME=/var/gitlab/J17.0_64
                               CMD="zcodescan \
-                                -encoding IBM-1047 \
+                                -e IBM-1047 \
                                 -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                 -if $PWD\
                                 -rf cics-genapp/zcodescan-rules.yaml\
@@ -172,7 +172,9 @@ pipeline {
                               chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
                               if [ $rc -gt 4 ]
                               then
-                                exit 1
+                                exit $rc
+                              elif [ $rc -lt 0 ]
+                                exit $rc
                               else
                                 rc=0
                               fi
