@@ -43,7 +43,6 @@ pipeline {
      parameters {
        string(defaultValue: "1.0", description: 'Release Version.', name: 'RELEASE_VERSION')
        choice(choices: ["impact", "full", "--impactBuild", "--fullBuild"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
-       booleanParam(defaultValue: false, description: 'Rolling back the prevouis deployment', name: 'ROLLING_BACK')
        booleanParam(defaultValue: false, description: 'Display verbose output', name: 'VERBOSE')
     }
 
@@ -146,6 +145,7 @@ pipeline {
                               # FIXME: generate -sfl -sfi with BuildReport.json
                               export JAVA_HOME=/var/gitlab/J17.0_64
                               CMD="zcodescan \
+                                -encoding IBM-1047 \
                                 -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                 -if $PWD\
                                 -rf cics-genapp/zcodescan-rules.yaml\
