@@ -53,9 +53,7 @@ pipeline {
             steps {
                 script {
                     verbose = env.VERBOSE && env.VERBOSE == 'true' ? true : false
-                    rollingBack = env.ROLLING_BACK && env.ROLLING_BACK == 'true' ? true : false
                     env.BUILD_VERBOSE = verbose ? '-v' : ''
-                    env.ROLLING_BACK = rollingBack ? 'True' : ''
                     if ( verbose ) {
                         echo sh(script: 'env|sort', returnStdout: true)
                     }
