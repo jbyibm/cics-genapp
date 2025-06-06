@@ -12,7 +12,6 @@ def gitCredId = 'git_hub_cred'
 // Private
 def appName="cics-genapp"
 def verbose = false
-def rollingBack = false
 def hasBuildFiles = true
 def srcGitRepo =  null
 def srcGitBranch = null
@@ -31,13 +30,13 @@ pipeline {
         GROOVYZ_BUILD_EXTRA_OPTS = "${env.GROOVYZ_BUILD_EXTRA_OPTS ? env.GROOVYZ_BUILD_EXTRA_OPTS : ''}"
         DBB_BUILD_EXTRA_OPTS = "${env.DBB_BUILD_EXTRA_OPTS ? env.DBB_BUILD_EXTRA_OPTS : ''}"
         PYTHON_INTERPRETER = "${env.PYTHON_INTERPRETER ? env.PYTHON_INTERPRETER : '/usr/lpp/IBM/cyp/v3r10/pyz/bin/python3'}"
-        ZOAU_HOME ="${env.ZOAU_HOME ? env.ZOAU_HOME : '/var/usr/lpp/IBM/zoautil/v1.3.4.0'}"
         ARTIFACTORY_URL  = "${env.ARTIFACTORY_URL  ? env.ARTIFACTORY_URL : 'https://example.com/artifactory'}"
         ARTIFACTORY_CRED_ID = "${env.ARTIFACTORY_CRED_ID ? env.ARTIFACTORY_CRED_ID : 'artifactory_id'}"
         ARTIFACTORY_REPO = "${env.ARTIFACTORY_REPO  ? env.ARTIFACTORY_REPO : 'repository'}"
         ARTIFACTORY_REPO_PATH = "${env.ARTIFACTORY_REPO_PATH ? env.ARTIFACTORY_REPO_PATH : 'wazideploy/static' + appName}"
         ARTIFACTORY_STATIC_BUILD_NAME = "${env.ARTIFACTORY_STATIC_BUILD_NAME ? env.ARTIFACTORY_STATIC_BUILD_NAME : appName + '-wazideploy-static-build'}"
         PYTHON_VIRTUAL_ENV_COMMAND = "${env.PYTHON_VIRTUAL_ENV_COMMAND ? env.PYTHON_VIRTUAL_ENV_COMMAND : ''}"
+        SONARQ_CRED_ID = "${env.SONARQ_CRED_ID ? env.SONARQ_CRED_ID : 'sonarqube_id'}"
      }
      
      parameters {
@@ -61,9 +60,6 @@ pipeline {
             }
         }
         stage('Git Clone/Refresh') {
-            when {
-                expression { rollingBack == false } 
-            }
             steps {
                 script {
 
@@ -96,9 +92,9 @@ pipeline {
             }
         }
 
-        stage('COBOL Static Scan - ZCodeScan') {
-            when {
-                expression { rollingBack == false } 
+        stage('ZCodeScan COBOL Static Scan') {
+           environment {
+              SONARQ_CREDS = credentials("$SONARQ_CRED_ID")
             }
             steps {
                 script{
@@ -159,7 +155,7 @@ pipeline {
                                     -Dsonar.projectKey=genapp \
                                     -Dsonar.sources=. \
                                     -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
-                                    -Dsonar.token=sqp_8128509d8e33ddd60479d8838777f1e6d5e16bfc \
+                                    -Dsonar.token=${SONARQ_CREDS_PSW} \
                                     -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json\
                                     -Dsonar.sourceEncoding=IBM-1047\
                                     -Dsonar.scanner.os=linux\
@@ -200,9 +196,6 @@ pipeline {
         }
         
         stage('DBB Build') {
-            when {
-                expression { rollingBack == false } 
-            }
             steps {
                 script{
                     // DBB Build
@@ -257,9 +250,6 @@ pipeline {
         }
 
         stage('Package & Artifactory Upload') {
-            when {
-                expression { rollingBack == false } 
-            }
            environment {
               ARTI_CREDS = credentials("$ARTIFACTORY_CRED_ID")
             }
