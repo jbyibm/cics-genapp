@@ -1,7 +1,7 @@
        PROCESS SQL
       ******************************************************************
       *                                                                *
-      * (C) Copyright IBM Corp. 2011, 2025                             *
+      * (C) Copyright IBM Corp. 2011, 2024                             *
       *                                                                *
       *                    ADD Customer Details                        *
       *                                                                *
@@ -29,7 +29,7 @@
            03 WS-TERMID                PIC X(4).
            03 WS-TASKNUM               PIC 9(7).
            03 WS-FILLER                PIC X.
-           03 WS-ADDR-DFHCOMMAREA      PIC X.
+           03 WS-ADDR-DFHCOMMAREA      USAGE is POINTER.
            03 WS-CALEN                 PIC S9(4) COMP.
 
       *
@@ -193,6 +193,7 @@
            IF CA-RETURN-CODE NOT EQUAL 0
              EXEC CICS RETURN END-EXEC
            END-IF
+
       *    Return to caller
            EXEC CICS RETURN END-EXEC.
 
@@ -215,7 +216,7 @@
              Move LastCustNum  To DB2-CUSTOMERNUM-INT
            End-If.
 
-           
+
       *================================================================*
        INSERT-CUSTOMER.
       *================================================================*
