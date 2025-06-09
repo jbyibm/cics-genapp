@@ -28,8 +28,6 @@ rules:
   - id: zcodescan.cobol.rules.AcceptRule
     severity: INFO
   - id: zcodescan.cobol.rules.GotoRule
-    severity: INFO
-  - id: zcodescan.cobol.rules.GotoParagraphRule
-    severity: MEDIUM
+    severity: HIGH
   - id: zcodescan.cobol.rules.UnprotectedAuthCredentialRule
     severity: HIGH 
