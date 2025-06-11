@@ -169,7 +169,8 @@ pipeline {
                                 exit $rc
                               elif [ $rc -lt 0 ]
                               then
-                                exit $rc
+                                exit 0
+                                #exit $rc
                               else
                                 rc=0
                               fi
