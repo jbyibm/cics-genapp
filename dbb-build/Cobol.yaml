@@ -90,7 +90,7 @@ tasks:
               - source: "**/*"
                 dataset: ${HLQ}.COPY
                 
-      # COBOL compile step          
+      # COBOL compile step
       - step: compile
         type: mvs
         pgm: IGYCRCTL
@@ -137,7 +137,7 @@ tasks:
         type: mvs
         pgm: IEWBLINK
         parm: ${linkEditParms}
-        condition: ${doLinkEdit}
+        condition: "${doLinkEdit} && (${compile} <= 8)"
         maxRC: 0
         dds:
           - { name: "SYSLIN", dsn: "${HLQ}.OBJ(${MEMBER})", options: "shr" }
@@ -150,7 +150,7 @@ tasks:
           - {                 dsn: "${SDFHLOAD}", condition: "${IS_CICS}", options: "shr" }
           - {                 dsn: "${SDSNLOAD}", condition: "${IS_SQL}", options: "shr" }
           
-      # Copy log file to LISTING dataset
+      # Copy log file to from dataset to USS
       - step: copyListing
         type: copy
         source: //'${HLQ}.LISTING(${MEMBER})'
