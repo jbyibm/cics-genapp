@@ -95,7 +95,7 @@ tasks:
         type: mvs
         pgm: IGYCRCTL
         parm: ${compileParms}
-        maxRC: 8
+        #maxRC: 8
         dds:
           - { name: "SYSIN", dsn: "${HLQ}.COBOL(${MEMBER})", options: "shr", input: true }
           - { name: "SYSLIN", dsn: "${HLQ}.OBJ(${MEMBER})", options: "shr", output: true }
@@ -165,6 +165,7 @@ tasks:
         type: mvs
         pgm: IDILANGX
         parm: "(COBOL ERROR LOUD"
+        condition: "${compile} <= 8"
         maxRC: 0
         dds:
           - { name: "LISTING",  dsn: "${HLQ}.LISTING(${MEMBER})", options: "shr" }
