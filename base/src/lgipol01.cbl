@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGIPOL01.
+       PROGRAM-ID. LGIPL01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
