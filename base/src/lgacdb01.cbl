@@ -16,7 +16,7 @@
       *
        DATA DIVISION.
 
-       WORKING-STORAGE SECION.
+       WORKING-STORAGE SECTION.
 
       *----------------------------------------------------------------*
       * Common defintions                                              *
