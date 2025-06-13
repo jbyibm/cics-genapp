@@ -16,7 +16,7 @@
       *
        DATA DIVISION.
 
-       WORKING-STORAGE SECTION.
+       WORKING-STORAGE SECION.
 
       *----------------------------------------------------------------*
       * Common defintions                                              *
@@ -197,8 +197,7 @@
       *    Return to caller
            EXEC CICS RETURN END-EXEC.
 
-       MAINLINE-EXIT.
-           EXIT.
+
       *----------------------------------------------------------------*
 
 
