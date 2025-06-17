@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGIPL01.
+       PROGRAM-ID. LGIPOL01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -53,7 +53,7 @@
              05 EM-SQLRC               PIC +9(5) USAGE DISPLAY.
 
        01  CA-ERROR-MSG.
-           03 FILLER                   PIC X(9)  VALUE 'password'.
+           03 FILLER                   PIC X(9)  VALUE 'COMMAREA='.
            03 CA-DATA                  PIC X(90) VALUE SPACES.
       *----------------------------------------------------------------*
        01 MINUS-ONE                    PIC S9(4) COMP VALUE -1.
