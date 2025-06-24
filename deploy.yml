@@ -21,6 +21,7 @@
           #!/bin/bash
           python3 -V
           env
+          ansible --version
           ls -l $ANSIBLE_CALLBACK_PLUGINS
         delegate_to: localhost
       - name: Install Wazi Deploy
