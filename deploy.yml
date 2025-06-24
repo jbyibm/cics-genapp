@@ -20,8 +20,9 @@
         shell: |
           #!/bin/bash
           python3 -V
-          env
+          export ANSIBLE_CONFIG=/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg
           ansible --version
+          env
           ls -l $ANSIBLE_CALLBACK_PLUGINS
         delegate_to: localhost
       - name: Install Wazi Deploy
