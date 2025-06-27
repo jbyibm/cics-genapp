@@ -25,8 +25,9 @@
       - name: Print Python Version
         shell: |
           #!/bin/bash
+          env > /runner/project/wazideploy.log 2>&1
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/ > /runner/project/wazideploy.log 2>&1
+          ansible-playbook deploy.yml -i inventories/ >> /runner/project/wazideploy.log 2>&1
           cat /runner/project/wazideploy.log
         delegate_to: localhost
         ignore_errors: True
