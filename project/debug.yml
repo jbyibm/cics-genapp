@@ -1,0 +1,10 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+
+  vars:
+    msg: 'hello world'
+
+  tasks:
+    - debug: var=msg
