@@ -20,11 +20,10 @@
       - name: Print Python Version
         shell: |
           #!/bin/bash
-          env > /runner/project/wazideploy.log 2>&1
-          unset ANSIBLE_FORCE_COLOR
+          env
+          echo "####################### Start WD ####################################"
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/ >> /runner/project/wazideploy.log 2>&1
-          cat /runner/project/wazideploy.log
+          ansible-playbook deploy.yml -i inventories/
         delegate_to: localhost
         ignore_errors: True
         register: ansible_playbook
@@ -35,7 +34,6 @@
           ANSIBLE_CALLBACK_PLUGINS: ''  
           ANSIBLE_NOCOLOR: True
           ANSIBLE_FORCE_COLOR: False
-          NO_COLOR: True
       - name: Print Wazi Deploy Log
         debug:
           msg: "{{ ansible_playbook.stdout | regex_replace('\"', '`') | split('\n') }}"        
