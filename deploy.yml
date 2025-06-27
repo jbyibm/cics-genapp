@@ -25,10 +25,19 @@
           #!/bin/bash
           #python3 -V
           export ANSIBLE_CONFIG=/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg
+          export ANSIBLE_NOCOLOR=True
+          export NO_COLOR=True
           #ansible --version
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/
+          ansible-playbook deploy.yml -i inventories/ 2>&1
         delegate_to: localhost
+        ignore_errors: True
+        register: ansible-playbook
+        
+      - debug:
+          msg: "{{ item }}"
+        with_items: "{{ansible-playbook.stdout_lines}}"  
+        
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
 #          name: /runner/project/wazideploy-3.0.4.tar.gz
