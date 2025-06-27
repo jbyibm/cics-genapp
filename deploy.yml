@@ -44,7 +44,7 @@
       
       - name: Examine the joined string
         debug:
-          msg: "{{ my_joined_list }}"
+          msg: "{{ my_joined_list.split('\n')  }}"
 
         
 #      - name: Install Wazi Deploy
