@@ -44,7 +44,7 @@
       
       - name: Examine the joined string
         debug:
-          msg: "{{ my_joined_list.split('\n')  }}"
+          msg: "{{ ansible_playbook.stdout.replace('\\u001b[0;31', '').split('\n')  }}"
 
         
 #      - name: Install Wazi Deploy
