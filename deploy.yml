@@ -32,11 +32,11 @@
           ansible-playbook deploy.yml -i inventories/ 2>&1
         delegate_to: localhost
         ignore_errors: True
-        register: ansible-playbook
+        register: ansible_playbook
         
       - debug:
           msg: "{{ item }}"
-        with_items: "{{ansible-playbook.stdout_lines}}"  
+        with_items: "{{ansible_playbook.stdout_lines}}"  
         
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
