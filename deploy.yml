@@ -33,10 +33,10 @@
         delegate_to: localhost
         ignore_errors: True
         register: ansible_playbook
+        no_log: True
         
       - debug:
-          msg: "{{ item }}"
-        with_items: "{{ansible_playbook.stdout_lines}}"  
+          msg: "{{ ansible_playbook.stdout_lines | join('\n') }}"
         
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
