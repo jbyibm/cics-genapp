@@ -26,7 +26,8 @@
         shell: |
           #!/bin/bash
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/ 2>&1 | tee /runner/project/wazideploy.log
+          ansible-playbook deploy.yml -i inventories/ > /runner/project/wazideploy.log 2>&1
+          cat /runner/project/wazideploy.log
         delegate_to: localhost
         ignore_errors: True
         register: ansible_playbook
