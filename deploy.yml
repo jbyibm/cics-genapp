@@ -35,8 +35,17 @@
         register: ansible_playbook
         no_log: True
         
-      - debug:
-          msg: "{{ ansible_playbook.stdout_lines | join('\n') }}"
+      - name: Concatenate the public keys
+        set_fact:
+          my_joined_list: |
+            {% for item in ansible_playbook.stdout_lines %}
+            {{ item }}
+            {% endfor %}
+      
+      - name: Examine the joined string
+        debug:
+          msg: "{{ my_joined_list }}"
+
         
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
