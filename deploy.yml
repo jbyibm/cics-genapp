@@ -10,12 +10,7 @@
 - hosts: "{{ wd_hosts if wd_hosts is defined else 'all' }}"
   gather_facts: "{{ wd_gather_facts if wd_gather_facts is defined else 'no' }}"
   serial: "{{ wd_serial if wd_serial is defined else 5 }}"
-  environment:
-    ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
-    ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
-    ANSIBLE_CALLBACK_PLUGINS: ''  
-    ANSIBLE_NOCOLOR: True
-    NO_COLOR: True
+
   vars:
       ansible_remote_tmp: "/tmp/jby/{{tower_job_id }}"
   collections:
@@ -34,7 +29,13 @@
         ignore_errors: True
         register: ansible_playbook
         no_log: True
-
+        environment:
+          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
+          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
+          ANSIBLE_CALLBACK_PLUGINS: ''  
+          ANSIBLE_NOCOLOR: True
+          ANSIBLE_FORCE_COLOR: False
+          NO_COLOR: True
       - name: Print Wazi Deploy Log
         debug:
           msg: "{{ ansible_playbook.stdout | regex_replace('\"', '`') }}"        
