@@ -13,6 +13,7 @@
   environment:
     ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
     ANSIBLE_CALLBACK_PLUGINS: ''  
+    ANSIBLE_NOCOLOR: True
   vars:
       ansible_remote_tmp: "/tmp/jby/{{tower_job_id }}"
   collections:
@@ -22,13 +23,11 @@
       - name: Print Python Version
         shell: |
           #!/bin/bash
-          python3 -V
+          #python3 -V
           export ANSIBLE_CONFIG=/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg
           #ansible --version
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
           ansible-playbook deploy.yml -i inventories/
-          env
-          ls -l $ANSIBLE_CALLBACK_PLUGINS
         delegate_to: localhost
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
