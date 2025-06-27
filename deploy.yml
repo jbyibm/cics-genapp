@@ -11,9 +11,11 @@
   gather_facts: "{{ wd_gather_facts if wd_gather_facts is defined else 'no' }}"
   serial: "{{ wd_serial if wd_serial is defined else 5 }}"
   environment:
+    ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
     ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
     ANSIBLE_CALLBACK_PLUGINS: ''  
     ANSIBLE_NOCOLOR: True
+    NO_COLOR: True
   vars:
       ansible_remote_tmp: "/tmp/jby/{{tower_job_id }}"
   collections:
@@ -23,30 +25,17 @@
       - name: Print Python Version
         shell: |
           #!/bin/bash
-          #python3 -V
-          export ANSIBLE_CONFIG=/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg
-          export ANSIBLE_NOCOLOR=True
-          export NO_COLOR=True
-          #ansible --version
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
           ansible-playbook deploy.yml -i inventories/ 2>&1
         delegate_to: localhost
         ignore_errors: True
         register: ansible_playbook
         no_log: True
-        
-      - name: Concatenate the public keys
-        set_fact:
-          my_joined_list: |
-            {% for item in ansible_playbook.stdout_lines %}
-            {{ item }}
-            {% endfor %}
-      
-      - name: Examine the joined string
-        debug:
-          msg: "{{ ansible_playbook.stdout.replace('\\u001b[0;31', '').split('\n')  }}"
 
-        
+      - name: Print Wazi Deploy Log
+        debug:
+          msg: "{{ ansible_playbook.stdout | regex_replace('..u001b[0;3[0-9]]m', '') | split('\n')  }}"        
+
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
 #          name: /runner/project/wazideploy-3.0.4.tar.gz
