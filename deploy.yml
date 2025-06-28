@@ -9,18 +9,17 @@
 ---
 - hosts: "all"
   gather_facts: "no"
-  serial: "{{ wd_serial if wd_serial is defined else 5 }}"
   tasks:
-      - name: WD Deployment
+      - name: Deployment
         shell: |
           #!/bin/bash
-          env
-          echo "####################### Start WD ####################################"
+          #env
+          echo "####################### Start Deployment ####################################"
           cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/
+          ansible-playbook deploy.yml -i inventories/ 2>&1
         delegate_to: localhost
         ignore_errors: True
-        register: ansible_playbook
+        register: deployment_result
         no_log: True
         environment:
           ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
@@ -28,9 +27,11 @@
           ANSIBLE_CALLBACK_PLUGINS: ''  
           ANSIBLE_NOCOLOR: True
           ANSIBLE_FORCE_COLOR: False
-      - name: Print Wazi Deploy Log
+          
+      - name: Print Deployment Log
         debug:
-          msg: "{{ ansible_playbook.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"        
+          msg: "{{ item | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"
+        with_items: "{{ deployment_result.stdout_lines }}"        
 
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
