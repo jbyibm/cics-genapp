@@ -30,8 +30,7 @@
           
       - name: Print Deployment Log
         debug:
-          msg: "{{ item | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"
-        with_items: "{{ deployment_result.stdout_lines }}"        
+          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"      
 
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
