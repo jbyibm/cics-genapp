@@ -36,7 +36,7 @@
           ANSIBLE_FORCE_COLOR: False
       - name: Print Wazi Deploy Log
         debug:
-          msg: "{{ ansible_playbook.stdout | regex_replace('\"|\\\\', '`') | split('\n') }}"        
+          msg: "{{ ansible_playbook.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"        
 
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
