@@ -10,7 +10,7 @@
       *  NODIF: 01                                                     *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LGACD02.
+       PROGRAM-ID. LGACDB02.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
