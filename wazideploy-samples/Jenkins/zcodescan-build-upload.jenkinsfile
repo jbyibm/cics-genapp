@@ -24,7 +24,7 @@ pipeline {
     environment {
         APP_NAME = "${appName}"
         BUILD_NUMBER = "${env.BUILD_NUMBER}"
-        DBB_HOME = "${env.DBB_HOME ? env.DBB_HOME : '/usr/lpp/IBM/dbb'}"
+        DBB_HOME = "${env.DBB_HOME ? env.DBB_HOME : '/var/usr/lpp/IBM/dbb3'}"
         DBB_URL = "${env.DBB_URL ? env.DBB_URL : 'https://example.com:9443/dbb'}"
         DBB_HLQ = "${env.DBB_HLQ ? env.DBB_HLQ : 'IBMUSER.GENAPP.DBBBUILD'}"
         DBB_CRED = "${env.DBB_CRED ? env.DBB_CRED : '-id ADMIN -pw ADMIN'}"
