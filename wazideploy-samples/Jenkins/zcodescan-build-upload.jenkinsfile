@@ -170,7 +170,7 @@ pipeline {
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
                                         -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
-                                        -Dsonar.token=${SONARQ_CREDS_PSW} \
+                                        -Dsonar.token=${SONARQ_CREDS} \
                                         -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
                                   echo "$CMD"
                                   $CMD
