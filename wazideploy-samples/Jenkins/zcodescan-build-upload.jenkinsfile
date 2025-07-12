@@ -161,7 +161,6 @@ pipeline {
                             ''')
                         if ( rc != 0 )
                             error("DBB build failed!!!")
-    
                         def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
                         // Do not enter into some steps if nothing in the build list
                         hasBuildFiles = files.length > 0 && files[0].length > 0
@@ -175,6 +174,44 @@ pipeline {
                     }
                     buildListContents.each { content ->
                         writeFile file: '/tmp/buildList.txt', text:content
+                            def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                if [ $rc -eq 0 ]
+                                then
+                                  cd ${WORKSPACE}
+                                  export PATH=/usr/lib/jvm/jre-17-openjdk/bin:$PATH
+                                  export JAVA_HOME=/usr/lib/jvm/jre-17-openjdk
+                                  CMD="zcodescan \
+                                    -sfl /tmp/buildList.txt \
+                                    -if $PWD\
+                                    -rf cics-genapp/zcodescan-rules.yaml\
+                                    -cf $HOME/config.yml\
+                                    -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
+                                    -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
+                                  echo "$CMD"
+                                  $CMD
+                                  rc=$?
+                                  CMD="/opt/sonar/sonar-scanner-7.1.0.4889-linux-x64/bin/sonar-scanner \
+                                        -Dsonar.projectKey=genapp \
+                                        -Dsonar.sources=. \
+                                        -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
+                                        -Dsonar.token=${SONARQ_CREDS_PSW} \
+                                        -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
+                                  echo "$CMD"
+                                  $CMD
+                                  if [ $rc -gt 3 ]
+                                  then
+                                    exit $rc
+                                  elif [ $rc -lt 0 ]
+                                  then
+                                    exit $rc
+                                  else
+                                    rc=0
+                                  fi
+                                fi
+                                exit $rc
+                            ''')
+                        if ( rc != 0 )
+                            error("ZCodeScan failed!!!")
                     }
                 }
             }
