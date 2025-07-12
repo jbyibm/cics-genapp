@@ -166,9 +166,9 @@ pipeline {
                         // Do not enter into some steps if nothing in the build list
                         hasBuildFiles = files.length > 0 && files[0].length > 0
                         if ( hasBuildFiles ) {
-                            files.each { file ->
-                                println "Process file: $file.path"
-                                def content = readFile file: file.path
+                            files.each { buildList ->
+                                println "Process file: $buildList.path"
+                                def content = readFile file: buildList.path
                                 buildListContents << content
                             }
                         }
