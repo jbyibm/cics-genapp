@@ -164,7 +164,7 @@ pipeline {
     
                         def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
                         // Do not enter into some steps if nothing in the build list
-                        def hasBuildFiles = files.length > 0 && files[0].length > 0
+                        hasBuildFiles = files.length > 0 && files[0].length > 0
                         if ( hasBuildFiles ) {
                             files.each { file ->
                                 println "Process file: $file.path"
