@@ -231,54 +231,56 @@ pipeline {
         stage('DBB Build') {
             steps {
                 script{
-                    // DBB Build
-                    if ( env.DBB_BUILD_TYPE == null )
-                        env.DBB_BUILD_TYPE = "--fullBuild"
-                    def rc = sh (returnStatus: true, script: '''#!/bin/sh
-                            if [[ $DBB_BUILD_TYPE == *Build ]]
-                            then
-                                export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
-                                CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
-                                    ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
-                                    --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
-                                    ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
-                                    --application ${APP_NAME} --sourceDir ${WORKSPACE}"
-                                echo "$CMD"
-                                $CMD
-                                rc=$?
-                            else
-                                export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
-                                export DBB_CONF=${DBB_BUILD}
-                                export PATH=$DBB_HOME/bin:$PATH
-                                cd ${WORKSPACE}/${APP_NAME}
-                                CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
-                                         --config $DBB_BUILD/dbb-app.yaml\
-                                         --dbid db2inst1 --dbpf $HOME/password"
-                                mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                echo "$CMD"
-                                $CMD
-                                rc=$?
-                                mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                            fi
-                            exit $rc
-                        ''')
-                    if ( rc != 0 )
-                        error("DBB build failed!!!")
-
-                    def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
-                    // Do not enter into some steps if nothing in the build list
-                    hasBuildFiles = files.length > 0 && files[0].length > 0
+                  if ( hasBuildFiles ) {
+                    node (zOsAgentLabel) {
+                        // DBB Build
+                        if ( env.DBB_BUILD_TYPE == null )
+                            env.DBB_BUILD_TYPE = "--fullBuild"
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                if [[ $DBB_BUILD_TYPE == *Build ]]
+                                then
+                                    export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
+                                    CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
+                                        ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
+                                        --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
+                                        ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
+                                        --application ${APP_NAME} --sourceDir ${WORKSPACE}"
+                                    echo "$CMD"
+                                    $CMD
+                                    rc=$?
+                                else
+                                    export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
+                                    export DBB_CONF=${DBB_BUILD}
+                                    export PATH=$DBB_HOME/bin:$PATH
+                                    cd ${WORKSPACE}/${APP_NAME}
+                                    CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
+                                             --config $DBB_BUILD/dbb-app.yaml\
+                                             --dbid db2inst1 --dbpf $HOME/password"
+                                    mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                    echo "$CMD"
+                                    $CMD
+                                    rc=$?
+                                    mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                fi
+                                exit $rc
+                            ''')
+                        if ( rc != 0 )
+                            error("DBB build failed!!!")
+                    }
+                  }
                 }
             }
             post {
                 always {
-                    dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
-                        archiveArtifacts allowEmptyArchive: true,
-                                        artifacts: '**/*.log,**/*.json,**/*.html',
-                                        excludes: '**/*clist',
-                                        onlyIfSuccessful: false
+                    node (zOsAgentLabel) {
+                        dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
+                            archiveArtifacts allowEmptyArchive: true,
+                                            artifacts: '**/*.log,**/*.json,**/*.html',
+                                            excludes: '**/*clist',
+                                            onlyIfSuccessful: false
+                        }
                     }
-                }
+               }
             }
         }
 
