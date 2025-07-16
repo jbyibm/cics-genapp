@@ -15,7 +15,6 @@
                SELECT EMP_ID, EMP_NAME, EMP_SALARY
                INTO :WS-EMP-ID, :WS-EMP-NAME, :WS-EMP-SALARY
                FROM EMPLOYEE
-               WHERE  EMP_ID=1
            END-EXEC.
            DISPLAY "Employee ID: " WS-EMP-ID.
            DISPLAY "Employee Name: " WS-EMP-NAME.
