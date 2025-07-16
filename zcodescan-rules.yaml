@@ -16,7 +16,7 @@ rules:
     severity: HIGH
     statements:
       - name: "If"
-        value: false
+        value: true
       - name: "Evaluate"
         value: true
       - name: "Read"
