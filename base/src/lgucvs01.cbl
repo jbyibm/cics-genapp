@@ -93,7 +93,7 @@
              PERFORM WRITE-ERROR-MESSAGE
              EXEC CICS ABEND ABCODE('LGV2') NODUMP END-EXEC
              EXEC CICS RETURN END-EXEC
-           End-If.
+           .
 
       *---------------------------------------------------------------*
 
