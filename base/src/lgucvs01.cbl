@@ -79,7 +79,8 @@
              MOVE '81' TO CA-RETURN-CODE
              PERFORM WRITE-ERROR-MESSAGE
              EXEC CICS ABEND ABCODE('LGV1') NODUMP END-EXEC
-             EXEC CICS RETURN END-EXEC.
+             EXEC CICS RETURN END-EXEC
+           End-If.
       *---------------------------------------------------------------*
            Exec CICS ReWrite File('KSDSCUST')
                      From(CA-Customer-Num)
