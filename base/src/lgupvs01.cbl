@@ -201,6 +201,5 @@
                          COMMAREA(CA-ERROR-MSG)
                          LENGTH(Length Of CA-ERROR-MSG)
                END-EXEC
-             END-IF
-           END-IF.
+             END-IF.
            EXIT.
