@@ -139,6 +139,7 @@ pipeline {
 	                            if [ $rc -eq 0 ]
 	                            then
 	                              cd ${WORKSPACE}
+	                              unset CLIENT_PORT
 	                              . /u/jenkins/python_wazideploy/beta/env/bin/activate
 	                              export JAVA_HOME=/usr/lpp/java/J21.0_64
 	                              CMD="zcodescan \
