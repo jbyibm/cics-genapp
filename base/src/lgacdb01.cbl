@@ -152,7 +152,7 @@
                MOVE ' NO COMMAREA RECEIVED' TO EM-VARIABLE
                PERFORM WRITE-ERROR-MESSAGE
                EXEC CICS ABEND ABCODE('LGCA') NODUMP END-EXEC
-           END-IF
+           .
 
       * initialize commarea return code to zero
            MOVE '00' TO CA-RETURN-CODE
