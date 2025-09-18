@@ -128,6 +128,7 @@ pipeline {
                                 export DBB_CONF=${DBB_BUILD}
                                 export PATH=$DBB_HOME/bin:$PATH
                                 cd ${WORKSPACE}/${APP_NAME}
+                                export JAVA_HOME=/usr/lpp/java/J11.0_64
                                 CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
                                          --config $DBB_BUILD/dbb-app.yaml\
                                          --dbid db2inst1 --dbpf $HOME/password --preview"
