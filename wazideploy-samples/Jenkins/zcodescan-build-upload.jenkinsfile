@@ -184,8 +184,8 @@ pipeline {
                         writeFile file: '/tmp/buildList.txt', text:content
                             def rc = sh (returnStatus: true, script: '''#!/bin/bash
                                   cd ${WORKSPACE}
-                                  export PATH=/usr/lib/jvm/jre-17-openjdk/bin:$PATH
-                                  export JAVA_HOME=/usr/lib/jvm/jre-17-openjdk
+                                  export PATH=/opt/java/jdk-21.0.8/bin:$PATH
+                                  export JAVA_HOME=/opt/java/jdk-21.0.8
                                   CMD="zcodescan \
                                     -sfl /tmp/buildList.txt \
                                     -if $PWD\
