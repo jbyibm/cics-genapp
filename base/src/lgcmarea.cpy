@@ -7,7 +7,7 @@
       *   This commarea can be used for all functions                  *
       *                                                                *
       ******************************************************************
-           03 CA-REQUEST-ID            PIC X(6) VALUE 'password'.
+           03 CA-REQUEST-ID            PIC X(6).
            03 CA-RETURN-CODE           PIC 9(2).
            03 CA-CUSTOMER-NUM          PIC 9(10).
            03 CA-REQUEST-SPECIFIC      PIC X(32482).
