@@ -139,7 +139,6 @@ pipeline {
 	                            if [ $rc -eq 0 ]
 	                            then
 	                              cd ${WORKSPACE}
-	                              unset CLIENT_PORT
 	                              . /u/jenkins/python_wazideploy/beta/env/bin/activate
 	                              export JAVA_HOME=/usr/lpp/java/J21.0_64
 	                              CMD="zcodescan \
@@ -157,17 +156,16 @@ pipeline {
                                 chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
 	                            chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
 	                            chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
-	                            #if [ $rc -gt 3 ]
-	                            #then
-	                            #  exit $rc
-	                            #elif [ $rc -lt 0 ]
-	                            #then
-	                            #  exit $rc
-	                            #else
-	                            #  rc=0
-	                            #fi
-	                            #exit $rc
-	                            exit 0
+	                            if [ $rc -gt 3 ]
+	                            then
+	                              exit $rc
+	                            elif [ $rc -lt 0 ]
+	                            then
+	                              exit $rc
+	                            else
+	                              rc=0
+	                            fi
+	                            exit $rc
                             ''')
                         if ( rc != 0 )
                             error("DBB build failed!!!")
