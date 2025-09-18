@@ -167,7 +167,7 @@
            IF EIBCALEN IS LESS THAN WS-REQUIRED-CA-LEN
              MOVE '98' TO CA-RETURN-CODE
              EXEC CICS RETURN END-EXEC
-           END-IF.
+           .
 
       * Call routine to Insert row in Customer table                   *
            PERFORM Obtain-CUSTOMER-Number.
