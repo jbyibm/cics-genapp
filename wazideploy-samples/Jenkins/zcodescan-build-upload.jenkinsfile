@@ -141,7 +141,7 @@ pipeline {
                             ''')
                         if ( rc != 0 )
                             error("DBB build failed!!!")
-                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                        rc = sh (returnStatus: true, script: '''#!/bin/sh
                                 cd ${WORKSPACE}
                                 . /u/jenkins/python_wazideploy/beta/env/bin/activate
                                 export JAVA_HOME=/usr/lpp/java/J21.0_64
