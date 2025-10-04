@@ -137,7 +137,7 @@ pipeline {
                                 $CMD
                                 rc=$?
                                 mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                if [ "$ZCS_ZOS" == ""]
+                                if [ "$ZCS_ENABLE_ZOS" == "" ]
                                 then
                                   if [ $rc -eq 0 ]
                                   then
@@ -152,19 +152,20 @@ pipeline {
                                         -cf $HOME/config.yml\
                                         -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
                                         -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
-                                  echo "$CMD"
-                                  $CMD
-                                  rc=$?
-                                  chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
-                                  chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
-                                  chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
-                                  if [ $rc -gt 3 ]
-                                  then
-                                    exit $rc
-                                  elif [ $rc -lt 0 ]
-                                    exit $rc
-                                  else
-                                    rc=0
+                                    echo "$CMD"
+                                    $CMD
+                                    rc=$?
+                                    chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
+                                    chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
+                                    chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
+                                    if [ $rc -gt 3 ]
+                                    then
+                                      exit $rc
+                                    elif [ $rc -lt 0 ]
+                                      exit $rc
+                                    else
+                                      rc=0
+                                    fi
                                   fi
                                 fi
                                 exit $rc
