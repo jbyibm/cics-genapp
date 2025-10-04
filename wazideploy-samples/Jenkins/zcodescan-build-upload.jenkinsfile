@@ -145,7 +145,7 @@ pipeline {
                                 cd ${WORKSPACE}
                                 . /u/jenkins/python_wazideploy/beta/env/bin/activate
                                 export JAVA_HOME=/usr/lpp/java/J21.0_64
-                                zcodescan -v
+                                #zcodescan -v
                                 CMD="zcodescan \
                                         -e IBM-1047 \
                                         -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
