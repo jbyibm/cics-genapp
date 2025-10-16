@@ -10,7 +10,7 @@
 - hosts: "all"
   gather_facts: "no"
   tasks:
-      - name: "Build Var File"
+      - name: Build Var File
         shell: |
           #!/bin/bash
           echo "{{ my_var }}" | base64 -d > /tmp/var.yml
@@ -25,28 +25,34 @@
         debug:
           msg: "{{ my_data | b64decode  }}"
 
+      - name: Dump variable
+        shell: |
+          mkdir -p  $HOME/.ssh
+          echo "{{ my_data | b64decode }}" > $HOME/.ssh/id_rsa
+          chmod 700 $HOME/.ssh
+          chmod 700 $HOME/.ssh/id_rsa
 
-#      - name: Deployment
-#        shell: |
-#          #!/bin/bash
-#          #env
-#          echo "####################### Start Deployment ####################################"
-#          cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-#          ansible-playbook deploy.yml -i inventories/ 2>&1
-#        delegate_to: localhost
-#        ignore_errors: True
-#        register: deployment_result
-#        no_log: True
-#        environment:
-#          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
-#          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
-#          ANSIBLE_CALLBACK_PLUGINS: ''  
-#          ANSIBLE_NOCOLOR: True
-#          ANSIBLE_FORCE_COLOR: False
-#          
-#      - name: Print Deployment Log
-#        debug:
-#          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"      
+      - name: Deployment
+        shell: |
+          #!/bin/bash
+          #env
+          echo "####################### Start Deployment ####################################"
+          cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
+          ansible-playbook deploy.yml -i inventories/ 2>&1
+        delegate_to: localhost
+        ignore_errors: True
+        register: deployment_result
+        no_log: True
+        environment:
+          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
+          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
+          ANSIBLE_CALLBACK_PLUGINS: ''  
+          ANSIBLE_NOCOLOR: True
+          ANSIBLE_FORCE_COLOR: False
+          
+      - name: Print Deployment Log
+        debug:
+          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"      
 
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
