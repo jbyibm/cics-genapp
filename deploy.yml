@@ -10,17 +10,11 @@
 - hosts: "all"
   gather_facts: "no"
   tasks:
-      - name: Afficher ma variable
-        debug:
-            msg: "Text : {{ ma_variable }}"
-
-      - copy: content="{{ ma_variable }}" dest=/tmp/test01.yml"
-
-      - name: Deployment
+      - name: "Build Var File"
         shell: |
           #!/bin/bash
-          cat /tmp/text.yml | base64 -d > /tmp/test02.yml
-          cat /tmp/test02.yml
+          echo "{{ my_var }}" | base64 -d > /tmp/var.yml
+          cat /tmp/var.yml
 #      - name: Deployment
 #        shell: |
 #          #!/bin/bash
