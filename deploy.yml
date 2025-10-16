@@ -10,9 +10,10 @@
 - hosts: "all"
   gather_facts: "no"
   tasks:
-      - name: Afficher le texte déchiffré
+      - name: Afficher ma variable
         debug:
             msg: "Text : {{ ma_variable }}"
+
       - name: Deployment
         shell: |
           #!/bin/bash
