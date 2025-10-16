@@ -16,22 +16,20 @@
           echo "{{ my_var }}" | base64 -d > /tmp/var.yml
           cat /tmp/var.yml
         delegate_to: localhost
+        no_log: True
         
-      - name: Load variables
+      - name: Load Var File
         include_vars:
            file: "/tmp/var.yml"
 
-      - name: Print variable
-        debug:
-          msg: "{{ my_data | b64decode  }}"
-
-      - name: Dump variable
+      - name: Dump Var File
         shell: |
           mkdir -p  $HOME/.ssh
           echo "{{ my_data | b64decode }}" > $HOME/.ssh/id_rsa
           chmod 700 $HOME/.ssh
           chmod 700 $HOME/.ssh/id_rsa
         delegate_to: localhost
+        no_log: True
         
       - name: Deployment
         shell: |
