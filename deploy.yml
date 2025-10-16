@@ -31,7 +31,8 @@
           echo "{{ my_data | b64decode }}" > $HOME/.ssh/id_rsa
           chmod 700 $HOME/.ssh
           chmod 700 $HOME/.ssh/id_rsa
-
+        delegate_to: localhost
+        
       - name: Deployment
         shell: |
           #!/bin/bash
