@@ -22,11 +22,10 @@
            file: "/tmp/var.yml"
 
       - name: Print variable
-        include_vars:
-           file: "/tmp/var.yml"
-           
-      - debug:
-          msg: "{{ my_data }}"
+        debug:
+          msg: "{{ my_data | b64decode  }}"
+
+
 #      - name: Deployment
 #        shell: |
 #          #!/bin/bash
