@@ -21,6 +21,7 @@
       - name: Load Var File
         include_vars:
            file: "/tmp/var.yml"
+        no_log: True
 
       - name: Dump Var File
         shell: |
