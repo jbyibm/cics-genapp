@@ -14,27 +14,34 @@
         debug:
             msg: "Text : {{ ma_variable }}"
 
+      - copy: content="{{ ma_variable }}" dest=/tmp/test01.yml"
+
       - name: Deployment
         shell: |
           #!/bin/bash
-          #env
-          echo "####################### Start Deployment ####################################"
-          cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/ 2>&1
-        delegate_to: localhost
-        ignore_errors: True
-        register: deployment_result
-        no_log: True
-        environment:
-          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
-          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
-          ANSIBLE_CALLBACK_PLUGINS: ''  
-          ANSIBLE_NOCOLOR: True
-          ANSIBLE_FORCE_COLOR: False
-          
-      - name: Print Deployment Log
-        debug:
-          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"      
+          cat /tmp/text.yml | base64 -d > /tmp/test02.yml
+          cat /tmp/test02.yml
+#      - name: Deployment
+#        shell: |
+#          #!/bin/bash
+#          #env
+#          echo "####################### Start Deployment ####################################"
+#          cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
+#          ansible-playbook deploy.yml -i inventories/ 2>&1
+#        delegate_to: localhost
+#        ignore_errors: True
+#        register: deployment_result
+#        no_log: True
+#        environment:
+#          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
+#          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
+#          ANSIBLE_CALLBACK_PLUGINS: ''  
+#          ANSIBLE_NOCOLOR: True
+#          ANSIBLE_FORCE_COLOR: False
+#          
+#      - name: Print Deployment Log
+#        debug:
+#          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"      
 
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
