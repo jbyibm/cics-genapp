@@ -1,5 +1,0 @@
-rules:
-  - id: zcodescan.cobol.rules.ProgramId
-    severity: HIGH
-#    variables:
-#       MYVAR: MYVALUE
