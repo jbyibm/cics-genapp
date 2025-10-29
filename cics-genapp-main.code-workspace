@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "base/java"
+		}
+	],
+	"settings": {
+		"workbench.panel.defaultLocation": "bottom",
+		"java.project.sourcePaths": []
+	}
+}
