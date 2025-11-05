@@ -231,5 +231,4 @@
              END-IF
            END-IF.
            EXIT.
-           EXIT.
 
