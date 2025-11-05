@@ -1,7 +1,7 @@
 rules:
   # ZCodeScan Rules
   - id: zcodescan.cobol.rules.ProgramIdRule
-    severity: MEDIUM
+    severity: HIGH
   - id: zcodescan.cobol.rules.CallSyntaxRule
     severity: INFO
   - id: zcodescan.cobol.rules.SqlWhereRule
