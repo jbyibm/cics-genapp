@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID.     LGACDB01. 
+       PROGRAM-ID.     LGACB01. 
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -126,7 +126,7 @@
        PROCEDURE DIVISION.
 
       *----------------------------------------------------------------*
-       MAINLINE .
+       MAINLINE.
 
       *----------------------------------------------------------------*
       * Common code with initialize                                    *
@@ -283,11 +283,6 @@
                EXEC SQL
                  SET :DB2-CUSTOMERNUM-INT = IDENTITY_VAL_LOCAL()
                END-EXEC
-               IF SQLCODE NOT EQUAL 0
-               MOVE '90' TO CA-RETURN-CODE
-               PERFORM WRITE-ERROR-MESSAGE
-               EXEC CICS RETURN END-EXEC
-             END-IF
            END-IF.
 
            MOVE DB2-CUSTOMERNUM-INT TO CA-CUSTOMER-NUM.
