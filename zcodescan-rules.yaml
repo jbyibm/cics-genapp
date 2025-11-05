@@ -83,7 +83,7 @@ rules:
   - id: zcodescan.cobol.rules.AlterRule
     severity: HIGH
   - id: zcodescan.cobol.rules.AvoidSectionInProcedureDivisionRule
-    severity: LOW
+    severity: HIGH
   - id: zcodescan.cobol.rules.IndexSubscriptRule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.BlockContainsRule
