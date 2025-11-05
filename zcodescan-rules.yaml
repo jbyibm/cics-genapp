@@ -50,10 +50,10 @@ rules:
   #   severity: MEDIUM
   # - id: zcodescan.cobol.rules.PerformWithThroughRule
   #   severity: MEDIUM
-  - id: "zcodescan.cobol.rules.InitializeRule"
-    severity: INFO
-  - id: "zcodescan.cobol.rules.EvaluateNotIfRule"
-    severity: INFO
+  #- id: "zcodescan.cobol.rules.InitializeRule"
+  #  severity: INFO
+  #- id: "zcodescan.cobol.rules.EvaluateNotIfRule"
+  #  severity: INFO
   # - id: "zcodescan.cobol.rules.IfElseRule"
   #   severity: MEDIUM
   - id: zcodescan.cobol.rules.CancelRule
