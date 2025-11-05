@@ -1,7 +1,7 @@
 rules:
   # ZCodeScan Rules
   - id: zcodescan.cobol.rules.ProgramIdRule
-    severity: HIGH
+    severity: MEDIUM
   - id: zcodescan.cobol.rules.CallSyntaxRule
     severity: INFO
   - id: zcodescan.cobol.rules.SqlWhereRule
@@ -58,8 +58,8 @@ rules:
   #   severity: MEDIUM
   - id: zcodescan.cobol.rules.CancelRule
     severity: MEDIUM
-  - id: zcodescan.cobol.rules.ExitParagraphRule
-    severity: HIGH
+  #- id: zcodescan.cobol.rules.ExitParagraphRule
+  #  severity: MEDIUM
   - id: zcodescan.cobol.rules.ExitProgramRule
     severity: HIGH
   - id: zcodescan.cobol.rules.SearchAllRule
