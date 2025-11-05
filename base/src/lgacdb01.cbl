@@ -29,7 +29,6 @@
            03 WS-TERMID                PIC X(4).
            03 WS-TASKNUM               PIC 9(7).
            03 WS-FILLER                PIC X.
-           03 WS-ADDR-DFHCOMMAREA      USAGE is POINTER.
            03 WS-CALEN                 PIC S9(4) COMP.
 
       *
@@ -157,7 +156,6 @@
       * initialize commarea return code to zero
            MOVE '00' TO CA-RETURN-CODE
            MOVE EIBCALEN TO WS-CALEN.
-           SET WS-ADDR-DFHCOMMAREA TO ADDRESS OF DFHCOMMAREA.
 
       * check commarea length
            ADD WS-CA-HEADER-LEN TO WS-REQUIRED-CA-LEN

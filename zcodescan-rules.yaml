@@ -154,16 +154,16 @@ rules:
     severity: MEDIUM
     statements:
       - name: BasisDirective
-        value: true
+        value: false
       - name: ProcessDirective
-        value: true
+        value: false
       - name: CopyDirective
         value: false
       - name: ReplaceDirective
-        value: true
+        value: false
       - name: ServicelabelDirective
-        value: true
+        value: false
       - name: ServiceloadDirective
-        value: true
+        value: false
       - name: TitleDirective
-        value: true
+        value: false
