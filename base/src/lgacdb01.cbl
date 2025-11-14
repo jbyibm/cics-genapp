@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID.     LGACD01. 
+       PROGRAM-ID.     LGACDB01. 
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -126,7 +126,7 @@
        PROCEDURE DIVISION.
 
       *----------------------------------------------------------------*
-       MAINLINE  SECTION.
+       MAINLINE  .
 
       *----------------------------------------------------------------*
       * Common code with initialize                                    *
