@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "cics-genapp-zcodescan",
+			"path": "."
+		},
+		{
+			"name": "zcode-scan-dev-rules",
+			"path": "../zcode-scan-dev-rules"
+		}
+	],
+	"settings": {}
+}

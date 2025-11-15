@@ -1,42 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>custom.cobol.rules.java</groupId>
-    <artifactId>zcodescan</artifactId>
-    <version>1.0-SNAPSHOT</version>
+	<groupId>custom.cobol.rules.java</groupId>
+	<artifactId>zcodescan</artifactId>
+	<version>1.0.0</version>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-    </properties>
-<dependencies>
-    <dependency>
-        <groupId>zcode.scan.api</groupId>
-        <artifactId>zcodescan</artifactId>
-        <version>1.0.1</version>
-        <scope>system</scope>
-        <systemPath>${project.basedir}/lib/zcode-scan-api-1.0.1.jar</systemPath>
-    </dependency>
+	<properties>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>zcode.scan.api</groupId>
+			<artifactId>zcodescan</artifactId>
+			<version>1.0.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/zcode-scan-api-1.0.1.jar</systemPath>
+		</dependency>
 
-</dependencies>
+	</dependencies>
 
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>3.3.0</version>
-            <configuration>
-                <archive>
-                    <manifest>
-                        <mainClass>custom.cobol.rules.java.ProgramIdRule</mainClass>
-                    </manifest>
-                </archive>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.3.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>custom.cobol.rules.java.ProgramIdRule</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>Nexus Release Repository</name>
+			<url>http://zdevops-demo1.fyre.ibm.com:8888/repository/maven-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>Nexus Snapshot Repository</name>
+			<url>http://zdevops-demo1.fyre.ibm.com:8888/repository/maven-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
