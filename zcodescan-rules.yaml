@@ -8,7 +8,7 @@ rules:
       - name: RoutineName
         value: LGADBC
   - id: zcodescan.cobol.rules.CopybookRule
-    severity: MEDIUM
+    severity: HIGH
     statements:
       - name: CopybookName
         value: lgpolicy
