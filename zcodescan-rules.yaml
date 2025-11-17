@@ -1,8 +1,17 @@
 rules:
   # ZCodeScan Rules
-
   - id: zcodescan.cobol.rules.CallSyntaxRule
     severity: INFO
+  - id: zcodescan.cobol.rules.RestrictedRoutineRule
+    severity: HIGH
+    statements:
+      - name: RoutineName
+        value: LGADBC
+  - id: zcodescan.cobol.rules.CopybookRule
+    severity: MEDIUM
+    statements:
+      - name: CopybookName
+        value: lgpolicy
   - id: zcodescan.cobol.rules.SqlWhereRule
     severity: HIGH
     statements:
@@ -115,11 +124,6 @@ rules:
   #   severity: MEDIUM
   - id: zcodescan.cobol.rules.NextSentenceInScopedRangeRule
     severity: MEDIUM
-  - id: zcodescan.cobol.rules.RestrictedRoutineRule
-    severity: HIGH
-    statements:
-      - name: RoutineName
-        value: LGADBC
   # - id: zcodescan.cobol.rules.InlinePerformLineLimitRule
   #   severity: MEDIUM
   #   statements:
