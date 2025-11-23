@@ -42,8 +42,8 @@ pipeline {
      
      parameters {
        string(defaultValue: "1.0", description: 'Release Version.', name: 'RELEASE_VERSION')
-       choice(choices: ["impact", "full", "--impactBuild", "--fullBuild"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
-       booleanParam(defaultValue: false, description: 'Rolling back the prevouis deployment', name: 'ROLLING_BACK')
+       choice(choices: ["impact", "full"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
+       choice(choices: ["TEST", "PROD"], description: 'Targeted Environment.', name: 'TARGET_ENV')
        booleanParam(defaultValue: false, description: 'Display verbose output', name: 'VERBOSE')
     }
 
@@ -302,6 +302,7 @@ pipeline {
                                     --envFile   ${WORKSPACE}/${APP_NAME}/wazideploy-samples/external-repos/environment-conf/python/${WD_DEPLOY_ENV_FILE}\
                                     --evidencesFileName ${WORKSPACE}/evidences/data/BUILD-${BUILD_NUMBER}-evidence.yml\
                                     --workingFolder ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy -e git_env_source=${WORKSPACE}/${APP_NAME}\
+                                    -e target_environment=${TARGET_ENV} \
                                     -e working_folder=${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy"
                             else
                                 CMD="wazideploy-deploy\
@@ -310,6 +311,7 @@ pipeline {
                                     --evidencesFileName ${WORKSPACE}/evidences/data/BUILD-${BUILD_NUMBER}-evidence.yml\
                                     --workingFolder ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy\
                                     --planTags restore -e git_env_source=${WORKSPACE}/${APP_NAME}\
+                                    -e target_environment=${TARGET_ENV} \
                                     -e working_folder=${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy"
                             fi
                             echo $CMD
