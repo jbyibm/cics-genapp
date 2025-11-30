@@ -187,11 +187,6 @@ pip install JPype1  # Required for JayDeBeApi
    - Or extract from DB2 installation: `<DB2_HOME>/java/db2jcc4.jar`
    - Save to an accessible directory (e.g., `C:\drivers\db2jcc4.jar`)
 
-2. **Install Java JDK**
-   - Recommended version: Java 8 or higher
-   - Download: https://www.oracle.com/java/technologies/downloads/
-   - Verify installation: `java -version`
-
 #### 📚 Useful Links
 
 - **JayDeBeApi Documentation**: https://github.com/baztian/jaydebeapi
@@ -848,6 +843,7 @@ HAVING COUNT(DISTINCT d.DEPLOY_ID) > 1;
 | **Compatibility** | ⭐⭐⭐⭐⭐ Native DB2 | ⭐⭐⭐⭐ Standard JDBC |
 | **Windows** | ⭐⭐⭐ Complex setup | ⭐⭐⭐⭐⭐ Simple |
 | **Linux** | ⭐⭐⭐⭐⭐ Native | ⭐⭐⭐⭐ Requires Java |
+| **z/OS** | ⭐⭐⭐⭐⭐ Native For DB2 on z/OS | ⭐⭐⭐⭐ Requires Java |
 
 ### When to Use Which Driver?
 
@@ -855,11 +851,11 @@ HAVING COUNT(DISTINCT d.DEPLOY_ID) > 1;
 - DB2 CLI is already installed
 - Maximum performance required
 - Running on Linux/AIX
+- Running on z/OS to access DB2 on z/OS
 - Need advanced DB2 features
 
 **Use `JayDeBeApi` if:**
 - Simplified installation desired
-- Windows environment
 - Cross-database portability needed
 - Docker/containerized deployment
 
