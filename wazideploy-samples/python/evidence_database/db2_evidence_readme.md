@@ -792,7 +792,7 @@ HAVING COUNT(DISTINCT d.DEPLOY_ID) > 1;
 ## 📄 License
 
 Licensed Materials - Property of IBM  
-(c) Copyright IBM Corp. 2023, 2025. All Rights Reserved.
+(c) Copyright IBM Corp. 2025. All Rights Reserved.
 
 ---
 
