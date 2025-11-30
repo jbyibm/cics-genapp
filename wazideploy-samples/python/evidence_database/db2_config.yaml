@@ -58,7 +58,7 @@ jdbc:
   password: ${DB2_PASSWORD}
   
   # Driver configuration
-  driver_path: C:/drivers/db2jcc4.jar
+  driver_path: /opt/drivers/db2jcc4.jar
   driver_class: com.ibm.db2.jcc.DB2Driver
   
   # Optional: SSL configuration

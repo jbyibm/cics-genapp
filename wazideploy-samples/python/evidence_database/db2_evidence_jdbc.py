@@ -6,6 +6,8 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #*******************************************************************************
+from typing import Optional
+from datetime import datetime
 
 """
 DB2 Evidence Loader - JDBC Implementation
@@ -71,6 +73,10 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         self.cursor = self.conn.cursor()
         logger.info("Connected successfully")
 
+    def _init_connection(self):
+        # Nothing to do but we need to override the super abstract method.
+        pass
+
     def _execute(self, sql: str, params):
         """Execute SQL with parameters"""
         # JayDeBeApi accepts list for parameters
@@ -99,6 +105,35 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
                 logger.info("Connection closed")
             except:
                 pass
+
+    def parse_timestamp(self, timestamp_str: str) -> Optional[str]:
+        """
+        Convert timestamp from YYYYMMDD.HHMMSS.mmm format to datetime
+        
+        Args:
+            timestamp_str: Timestamp string (e.g. "20251123.082744.513")
+            
+        Returns:
+            datetime object or None if invalid
+        """
+        if not timestamp_str:
+            return None
+
+        try:
+            # Format: YYYYMMDD.HHMMSS.mmm
+            date_part, time_part = timestamp_str.split('.')[:2]
+            year = int(date_part[:4])
+            month = int(date_part[4:6])
+            day = int(date_part[6:8])
+            hour = int(time_part[:2])
+            minute = int(time_part[2:4])
+            second = int(time_part[4:6])
+
+            date_time = datetime(year, month, day, hour, minute, second)
+            iso_str = date_time.strftime("%Y-%m-%d %H:%M:%S")
+            return iso_str
+        except (ValueError, IndexError):
+            return None
 
 
 # Example usage

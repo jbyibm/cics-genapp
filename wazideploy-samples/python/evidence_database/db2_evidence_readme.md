@@ -202,7 +202,7 @@ pip install JPype1  # Required for JayDeBeApi
 1. **Download DB2 JDBC Driver**
    - Download `db2jcc4.jar` from: [IBM Data Server Driver for JDBC](https://www.ibm.com/support/pages/db2-jdbc-driver-versions-and-downloads)
    - Or extract from DB2 installation: `<DB2_HOME>/java/db2jcc4.jar`
-   - Save to an accessible directory (e.g., `C:\drivers\db2jcc4.jar`)
+   - Save to an accessible directory (e.g., `/opt/drivers/db2jcc4.jar`)
 
 #### Useful Links
 
@@ -262,7 +262,7 @@ options:
 ```
 ### Using Environment Variables in Configuration
 
-You can use environment variables in your `config.yaml`:
+You can use environment variables in your `db2_config.yaml`:
 
 ```yaml
 jdbc:
@@ -281,7 +281,7 @@ export DB_PORT=50000
 export DB_NAME=DEPLOY
 export DB_USER=db2inst1
 export DB_PASSWORD=secret
-export JDBC_DRIVER_PATH=/path/to/db2jcc4.jar
+export JDBC_DRIVER_PATH=/opt/drivers/db2jcc4.jar
 
 # Windows
 set DB_HOST=localhost
@@ -297,7 +297,7 @@ set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar
 #### Command Line
 
 ```bash
-# Using default db2_config.yaml
+# Set credentials
 set DB2_USER=YOUR_DB2_USER
 set DB2_PASSWORD=YOUR_DB2_PASSWORD
 
@@ -314,11 +314,15 @@ python.exe db2_evidence_ibm.py evidences.yml my_config.yaml
 #### Command Line
 
 ```bash
+# Set credentials
+export DB2_USER=YOUR_DB2_USER
+export DB2_PASSWORD=YOUR_DB2_PASSWORD
+
 # Using default db2_config.yaml
-python db2_evidence_loader_jdbc.py evidences.yml
+python3 db2_evidence_jdbc.py evidences.yml
 
 # Using custom config file
-python db2_evidence_loader_jdbc.py evidences.yml my_config.yaml
+python3 db2_evidence_jdbc.py evidences.yml my_config.yaml
 ```
 
 
