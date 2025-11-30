@@ -6,7 +6,7 @@ Python tool to load YAML evidence files into a DB2 database.
 - With minor changes, it should  also be applicable for other database providers.
 - In the guide we use Db2 for Linux, UNIX, with minor changes it should  also be applicable for Db2 for z/OS.
 - The Python source code, DB2 schema, and configuration files are mentioned solely as example use cases. They should not be interpreted as any form of design commitment.
-- This this sample code that may contains issues. Not to use ASIS.
+- This this sample code that may contains issues. Not to use in production.
 
 ## 📋 Table of Contents
 
@@ -19,8 +19,8 @@ Python tool to load YAML evidence files into a DB2 database.
   - [Using IBM DB Driver](#using-ibm-db-driver)
   - [Using JDBC Driver](#using-jdbc-driver)
 - [File Structure](#file-structure)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
+- [Database Schema](#database-schema)
+- [Querying Samples](#querying-samples)
 
 ---
 
@@ -129,18 +129,6 @@ The IBM DB driver requires DB2 CLI libraries on Windows:
    - Download from: [IBM Data Server Driver Package](https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/v12.1.2/)
    - Extract to `C:\clidriver` (or another directory)
 
-2. **Environment Variables Configuration** (automatic in code - just for information purpose):
-   ```python
-   import os
-   import sys
-   
-   if sys.platform == 'win32':
-       clidriver = r'C:\clidriver'
-       os.environ['IBM_DB_HOME'] = clidriver
-       os.environ['IBM_DB_LIB'] = os.path.join(clidriver, 'lib')
-       os.environ['PATH'] = os.path.join(clidriver, 'bin') + ';' + os.environ['PATH']
-       os.add_dll_directory(os.path.join(clidriver, 'bin'))
-   ```
 
 #### 📚 Useful Links
 
@@ -290,21 +278,21 @@ set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar
 ```
 
 
-## 📁 File Structure
+# 📁 File Structure
 
 ```
 project/
 │
-├── config.yaml                      # Configuration file (REQUIRED)
-├── db2_config.py                    # Configuration loader
-├── db2_evidence_loader_base.py      # Abstract base class
-├── db2_evidence_loader_ibm.py       # IBM DB implementation
-├── db2_evidence_loader_jdbc.py      # JDBC implementation
-├── db2_schema.sql                   # Database schema DDL
-└── README.md                        # This file
+├── db2_config.yaml           # Configuration file (REQUIRED)
+├── db2_config.py             # Configuration loader
+├── db2_evidence_base.py      # Abstract base class
+├── db2_evidence_ibm.py       # IBM DB implementation
+├── db2_evidence_jdbc.py      # JDBC implementation
+├── db2_schema_ddl.sql        # Database schema DDL
+└── README.md                 # This file
 ```
 
-### Database Schema
+# Database Schema
 
 The database uses the following structure:
 
@@ -324,7 +312,7 @@ DEPLOY (1) ──┬──→ ACTIVITY (N) ──┬──→ ACTION (N) ──�
 - Constraint: `UNIQUE (ARTIFACT_PATH)` ensures artifact uniqueness
 
 
-### Querying Artifacts
+# Querying Samples
 
 ```sql
 -- List all deployments in a specific environment
