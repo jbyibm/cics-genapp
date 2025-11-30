@@ -10,26 +10,26 @@ Python tool to load YAML evidence files into a DB2 database.
 
 ## Table of Contents
 
-- [Architecture](#-architecture)
-- [Database Setup](#-database-setup)
+- [Architecture](#architecture)
+- [Database Setup](#database-setup)
   - [Step 1: Create Database (if needed)](#step-1-create-database-if-needed)
   - [Step 2: Create Schema](#step-2-create-schema)
   - [Step 3: Create Tables](#step-3-create-tables)
   - [Step 4: Verify Tables](#step-4-verify-tables)
-- [Installation and Configuration](#-installation-and-configuration)
+- [Installation and Configuration](#installation-and-configuration)
   - [Option 1: IBM DB Driver (ibm_db)](#option-1-ibm-db-driver-ibm_db)
   - [Option 2: JDBC Driver (JayDeBeApi)](#option-2-jdbc-driver-jaydebeapi)
-- [Usage](#-usage)
+- [Usage](#usage)
   - [Configuration File](#configuration-file)
   - [Using IBM DB Driver](#using-ibm-db-driver)
   - [Using JDBC Driver](#using-jdbc-driver)
   - [Using Environment Variables](#using-environment-variables-in-configuration)
-- [File Structure](#-file-structure)
-- [Database Schema](#-database-schema)
-- [Querying Samples](#-querying-samples)
-- [Driver Comparison](#-driver-comparison)
-- [Additional Resources](#-additional-resources)
-- [License](#-license)
+- [File Structure](#file-structure)
+- [Database Schema](#database-schema)
+- [Querying Samples](#querying-samples)
+- [Driver Comparison](#driver-comparison)
+- [Additional Resources](#additional-resources)
+- [License](#license)
 
 
 ---
