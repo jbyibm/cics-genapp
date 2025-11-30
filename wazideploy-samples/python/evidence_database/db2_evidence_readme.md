@@ -197,6 +197,12 @@ pip install JayDeBeApi
 pip install JPype1  # Required for JayDeBeApi
 ```
 
+**For z/OS See:** [Python® AI Toolkit for IBM® z/OS®](https://ibm-z-oss-oda.github.io/python_ai_toolkit_zos/)
+
+```bash
+pip install jaydebeapi --index-url https://downloads.pyaitoolkit.ibm.net:443/repository/python_ai_toolkit_zos/simple
+```
+
 #### Configuration
 
 1. **Download DB2 JDBC Driver**
@@ -319,6 +325,10 @@ export DB2_USER=YOUR_DB2_USER
 export DB2_PASSWORD=YOUR_DB2_PASSWORD
 
 # Using default db2_config.yaml
+# For z/OS uncomment these lines
+# export CLASSPATH=/opt/drivers/db2jcc4.jar
+# export JAVA_HOME=/usr/lpp/java/J8.0_64
+# export LIBPATH=$JAVA_HOME/bin/j9vm:$LIBPATH
 python3 db2_evidence_jdbc.py evidences.yml
 
 # Using custom config file
