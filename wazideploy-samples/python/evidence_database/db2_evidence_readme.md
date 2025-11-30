@@ -8,7 +8,7 @@ Python tool to load YAML evidence files into a DB2 database.
 - The Python source code, DB2 schema, and configuration files are mentioned solely as example use cases. They should not be interpreted as any form of design commitment.
 - This this sample code that may contains issues. Not to use in production.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Architecture](#-architecture)
 - [Database Setup](#-database-setup)
@@ -34,7 +34,7 @@ Python tool to load YAML evidence files into a DB2 database.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 The project uses a **Template Method** pattern with:
 - **`DB2EvidenceLoaderBase`**: Abstract class containing all business logic
@@ -50,7 +50,7 @@ The project uses a **Template Method** pattern with:
 - The `ARTIFACT_HASH` field has been removed from the schema
 
 ---
-## 🗄️ Database Setup
+## Database Setup
 
 Before using the evidence loader, you must create the database and schema.
 
@@ -121,17 +121,17 @@ db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABN
 -- V_STEP_ARTIFACTS
 ```
 
-## ⚙️ Installation and Configuration
+## Installation and Configuration
 
 ### Option 1: IBM DB Driver (ibm_db)
 
-#### 📦 Installation
+#### Installation
 
 ```bash
 pip install ibm_db
 ```
 
-#### 🔧 Configuration (Windows)
+#### Configuration (Windows)
 
 The IBM DB driver requires DB2 CLI libraries on Windows:
 
@@ -140,14 +140,14 @@ The IBM DB driver requires DB2 CLI libraries on Windows:
    - Extract to `C:\clidriver` (or another directory)
 
 
-#### 📚 Useful Links
+#### Useful Links
 
 - **Official Documentation**: https://github.com/ibmdb/python-ibmdb
 - **API Reference**: https://github.com/ibmdb/python-ibmdb/wiki/APIs
 - **Installation Guide**: https://github.com/ibmdb/python-ibmdb#installation
 - **Troubleshooting** (usefull for z/OS DB2 support): https://github.com/ibmdb/python-ibmdb/blob/master/README.md#troubleshooting
 
-#### ⚠️ Prerequisites
+#### Prerequisites
 
 - **Python**: 3.6+
 
@@ -155,21 +155,21 @@ The IBM DB driver requires DB2 CLI libraries on Windows:
 
 ### Option 2: JDBC Driver (JayDeBeApi)
 
-#### 📦 Installation
+#### Installation
 
 ```bash
 pip install JayDeBeApi
 pip install JPype1  # Required for JayDeBeApi
 ```
 
-#### 🔧 Configuration
+#### Configuration
 
 1. **Download DB2 JDBC Driver**
    - Download `db2jcc4.jar` from: [IBM Data Server Driver for JDBC](https://www.ibm.com/support/pages/db2-jdbc-driver-versions-and-downloads)
    - Or extract from DB2 installation: `<DB2_HOME>/java/db2jcc4.jar`
    - Save to an accessible directory (e.g., `C:\drivers\db2jcc4.jar`)
 
-#### 📚 Useful Links
+#### Useful Links
 
 - **JayDeBeApi Documentation**: https://github.com/baztian/jaydebeapi
 - **JPype1 Documentation**: https://jpype.readthedocs.io/
@@ -177,7 +177,7 @@ pip install JPype1  # Required for JayDeBeApi
 - **DB2 JDBC Developer Guide**: https://www.ibm.com/docs/en/db2/12.1.x?topic=apis-installing-data-server-driver-jdbc-sqlj
 - **JayDeBeApi Examples**: https://github.com/baztian/jaydebeapi/blob/master/README.rst
 
-#### ⚠️ Prerequisites
+#### Prerequisites
 
 - **Java JDK**: 8 or higher (JRE is sufficient)
 - **Python**: 3.6+
@@ -185,7 +185,7 @@ pip install JPype1  # Required for JayDeBeApi
 
 ---
 
-## 🚀 Usage
+## Usage
 
 ### Configuration File
 
@@ -288,7 +288,7 @@ set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar
 ```
 
 
-## 📁 File Structure
+## File Structure
 
 ```
 project/
@@ -426,7 +426,7 @@ ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
 
 ---
 
-## 📊 Driver Comparison
+## Driver Comparison
 
 | Feature | IBM DB (`ibm_db`) | JDBC (`JayDeBeApi`) |
 |---------|-------------------|---------------------|
@@ -454,14 +454,14 @@ ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### DB2 Documentation
 - [DB2 Knowledge Center](https://www.ibm.com/docs/en/db2/12.1.x)
 
 ---
 
-## 📄 License
+## License
 
 Licensed Materials - Property of IBM  
 (c) Copyright IBM Corp. 2025. All Rights Reserved.
