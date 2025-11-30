@@ -354,13 +354,22 @@ class DB2EvidenceLoaderBase(ABC):
         ) VALUES (?, ?, ?, ?, ?)
         """
 
-        params = [
-            int(step_id),  # STEP_ID INTEGER
-            str(result.get('status', ''))[:50],  # STATUS VARCHAR(50)
-            str(result.get('msg', ''))[:2000],  # MESSAGE VARCHAR(2000)
-            str(results_data.get('command', ''))[:4000],  # COMMAND VARCHAR(4000)
-            json.dumps(results_data)[:4000]  # RESULT_COMMAND VARCHAR(4000)
-        ]
+        if isinstance(results_data, dict):
+            params = [
+                int(step_id),  # STEP_ID INTEGER
+                str(result.get('status', ''))[:50],  # STATUS VARCHAR(50)
+                str(result.get('msg', ''))[:2000],  # MESSAGE VARCHAR(2000)
+                str(results_data.get('command', ''))[:4000],  # COMMAND VARCHAR(4000)
+                json.dumps(results_data)[:4000]  # RESULT_COMMAND VARCHAR(4000)
+            ]
+        else:
+            params = [
+                int(step_id),  # STEP_ID INTEGER
+                str(result.get('status', ''))[:50],  # STATUS VARCHAR(50)
+                str(result.get('msg', ''))[:2000],  # MESSAGE VARCHAR(2000)
+                "",  # NO COMMAND
+                json.dumps(results_data)[:4000]  # RESULT_COMMAND VARCHAR(4000)
+            ]
 
         self._execute(sql, params)
         self._commit()
