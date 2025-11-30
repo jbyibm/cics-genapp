@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
     """DB2 Evidence Loader using ibm_db driver"""
 
-    def __init__(self, config_file: str='config.yaml'):
+    def __init__(self, config_file: str='db2_config.yaml'):
         """
         Initialize DB2 connection using ibm_db from configuration file
         
@@ -53,6 +53,7 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
         logger.info("Connected successfully")
 
     def _init_connection(self):
+        # Nothing to do but we need to override the super abstract method.
         pass
 
     def _setup_windows_environment(self):

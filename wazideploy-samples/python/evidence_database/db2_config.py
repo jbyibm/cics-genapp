@@ -14,7 +14,7 @@ Configuration loader for DB2 Evidence Loader
 import os
 import yaml
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from pathlib import Path
 
 

@@ -14,8 +14,8 @@ Uses JayDeBeApi (JDBC) driver
 
 import logging
 import jaydebeapi
-from db2_evidence_loader_base import DB2EvidenceLoaderBase, SQL_GET_IDENTITY
-from db2_config import DB2Config, load_config
+from db2_evidence_base import DB2EvidenceLoaderBase, SQL_GET_IDENTITY
+from db2_config import load_config
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
     """DB2 Evidence Loader using JayDeBeApi (JDBC)"""
 
-    def __init__(self, config_file: str='config.yaml'):
+    def __init__(self, config_file: str='db2_config.yaml'):
         """
         Initialize DB2 connection using JayDeBeApi from configuration file
         
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     yaml_file = sys.argv[1]
-    config_file = sys.argv[2] if len(sys.argv) > 2 else 'config.yaml'
+    config_file = sys.argv[2] if len(sys.argv) > 2 else 'db2_config.yaml'
 
     try:
         logger.info(f"Starting evidence loading from: {yaml_file}")
