@@ -2,9 +2,13 @@
 
 Python tool to load YAML evidence files into a DB2 database.
 
+**NOTES**:
+- With minor changes, it should  also be applicable for other database providers.
+
 ## 📋 Table of Contents
 
 - [Architecture](#architecture)
+- [Database Setup](#database-setup)
 - [Installation and Configuration](#installation-and-configuration)
   - [Option 1: IBM DB Driver (ibm_db)](#option-1-ibm-db-driver-ibm_db)
   - [Option 2: JDBC Driver (JayDeBeApi)](#option-2-jdbc-driver-jaydebeapi)
@@ -33,6 +37,95 @@ The project uses a **Template Method** pattern with:
 - The `ARTIFACT_HASH` field has been removed from the schema
 
 ---
+## 🗄️ Database Setup
+
+Before using the evidence loader, you must create the database and schema.
+
+### Step 1: Create Database (if needed)
+
+If you don't have a database yet, create one:
+
+#### On Linux/Unix:
+```bash
+# Switch to DB2 instance owner
+su - db2inst1
+
+# Create database
+db2 create database DEPLOY using codeset UTF-8 territory US
+
+# Verify database was created
+db2 list database directory | grep DEPLOY
+```
+
+#### On Windows:
+```cmd
+REM Open DB2 Command Window as Administrator
+
+REM Create database
+db2 create database DEPLOY using codeset UTF-8 territory US
+
+REM Verify database was created
+db2 list database directory | findstr DEPLOY
+```
+
+### Step 2: Connect to Database
+
+```bash
+# Connect to the database
+db2 connect to DEPLOY user db2inst1
+
+# Verify connection
+db2 "SELECT CURRENT SERVER FROM SYSIBM.SYSDUMMY1"
+```
+
+### Step 3: Create Schema
+
+Create the schema that will contain all tables:
+
+```sql
+-- Connect to database
+db2 connect to DEPLOY user db2inst1
+
+-- Create schema
+db2 "CREATE SCHEMA DEPLOYZ AUTHORIZATION db2inst1"
+
+-- Verify schema was created
+db2 "SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = 'DEPLOYZ'"
+```
+
+### Step 4: Create Tables
+
+Run the DDL script to create all tables:
+
+```bash
+# Execute the schema creation script
+db2 -tvf db2_schema.sql
+
+# Or execute directly
+db2 connect to DEPLOY user db2inst1
+db2 -tvf db2_schema.sql
+```
+
+### Step 5: Verify Tables
+
+Check that all tables were created successfully:
+
+```sql
+-- List all tables in DEPLOYZ schema
+db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABNAME"
+
+-- Expected output:
+-- TABNAME
+-- ----------------
+-- ACTION
+-- ACTIVITY
+-- ARTIFACT
+-- DEPLOY
+-- PROPERTIES
+-- STEP
+-- STEP_ARTIFACT
+-- STEP_RESULT_DETAIL
+```
 
 ## ⚙️ Installation and Configuration
 
@@ -69,14 +162,11 @@ The IBM DB driver requires DB2 CLI libraries on Windows:
 
 - **Official Documentation**: https://github.com/ibmdb/python-ibmdb
 - **API Reference**: https://github.com/ibmdb/python-ibmdb/wiki/APIs
-- **DB2 CLI Driver**: https://www.ibm.com/support/pages/download-db2-fix-packs-version-db2-linux-unix-and-windows
 - **Installation Guide**: https://github.com/ibmdb/python-ibmdb#installation
-- **Troubleshooting**: https://github.com/ibmdb/python-ibmdb/blob/master/README.md#troubleshooting
+- **Troubleshooting** (usefull for z/OS DB2 support): https://github.com/ibmdb/python-ibmdb/blob/master/README.md#troubleshooting
 
 #### ⚠️ Prerequisites
 
-- **Windows**: Visual C++ Redistributable 2015-2019
-- **Linux**: `gcc`, `python-dev`
 - **Python**: 3.6+
 
 ---
@@ -107,7 +197,7 @@ pip install JPype1  # Required for JayDeBeApi
 - **JayDeBeApi Documentation**: https://github.com/baztian/jaydebeapi
 - **JPype1 Documentation**: https://jpype.readthedocs.io/
 - **DB2 JDBC Driver**: https://www.ibm.com/support/pages/db2-jdbc-driver-versions-and-downloads
-- **DB2 JDBC Developer Guide**: https://www.ibm.com/docs/en/db2/11.5?topic=apis-jdbc-sqlj-driver
+- **DB2 JDBC Developer Guide**: https://www.ibm.com/docs/en/db2/12.1.x?topic=apis-installing-data-server-driver-jdbc-sqlj
 - **JayDeBeApi Examples**: https://github.com/baztian/jaydebeapi/blob/master/README.rst
 
 #### ⚠️ Prerequisites
@@ -778,14 +868,7 @@ HAVING COUNT(DISTINCT d.DEPLOY_ID) > 1;
 ## 📚 Additional Resources
 
 ### DB2 Documentation
-- [DB2 Knowledge Center](https://www.ibm.com/docs/en/db2/11.5)
-- [DB2 Connection Strings](https://www.ibm.com/docs/en/db2/11.5?topic=applications-connecting-data-source)
-- [DB2 SQL Reference](https://www.ibm.com/docs/en/db2/11.5?topic=reference-sql)
-
-### Community
-- [Stack Overflow - ibm-db tag](https://stackoverflow.com/questions/tagged/ibm-db)
-- [Stack Overflow - jaydebeapi tag](https://stackoverflow.com/questions/tagged/jaydebeapi)
-- [IBM DB GitHub Issues](https://github.com/ibmdb/python-ibmdb/issues)
+- [DB2 Knowledge Center](https://www.ibm.com/docs/en/db2/12.1.x)
 
 ---
 
@@ -793,12 +876,3 @@ HAVING COUNT(DISTINCT d.DEPLOY_ID) > 1;
 
 Licensed Materials - Property of IBM  
 (c) Copyright IBM Corp. 2025. All Rights Reserved.
-
----
-
-## 👥 Support
-
-For questions or issues:
-1. Check the [Troubleshooting](#troubleshooting) section first
-2. Review [GitHub issues](https://github.com/ibmdb/python-ibmdb/issues)
-3. Contact IBM support if needed
