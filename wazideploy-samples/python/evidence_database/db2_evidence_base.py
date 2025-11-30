@@ -119,7 +119,7 @@ class DB2EvidenceLoaderBase(ABC):
 
         return self._get_identity()
 
-    def insert_property(self, entity_type: str, entity_id: int, prop: Dict[str, str]):
+    def insert_property(self, entity_type: str, entity_id: int, deploy_id:int, prop: Dict[str, str]):
         """
         Insert a property into the generic PROPERTIES table
         
@@ -129,10 +129,10 @@ class DB2EvidenceLoaderBase(ABC):
             prop: Dictionary containing 'key' and 'value'
         """
         sql = f"""
-        INSERT INTO {self.schema}.PROPERTIES (ENTITY_TYPE, ENTITY_ID, PROPERTY_KEY, PROPERTY_VALUE)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO {self.schema}.PROPERTIES (ENTITY_TYPE, ENTITY_ID, PROPERTY_KEY, PROPERTY_VALUE, DEPLOY_ID)
+        VALUES (?, ?, ?, ?, ?)
         """
-        self._execute(sql, [entity_type, entity_id, prop.get('key', ''), prop.get('value', '')])
+        self._execute(sql, [entity_type, entity_id, prop.get('key', ''), prop.get('value', ''), deploy_id])
         self._commit()
 
     def insert_activity(self, deploy_id: int, activity: Dict[str, Any]) -> int:
@@ -171,11 +171,11 @@ class DB2EvidenceLoaderBase(ABC):
 
         # Insert properties using generic table
         for prop in activity.get('properties', []):
-            self.insert_property('ACTIVITY', activity_id, prop)
+            self.insert_property('ACTIVITY', activity_id, deploy_id, prop)
 
         return activity_id
 
-    def insert_action(self, activity_id: int, action: Dict[str, Any]) -> int:
+    def insert_action(self, activity_id: int, deploy_id: int, action: Dict[str, Any]) -> int:
         """
         Insert an action
         
@@ -210,11 +210,11 @@ class DB2EvidenceLoaderBase(ABC):
 
         # Insert properties using generic table
         for prop in action.get('properties', []):
-            self.insert_property('ACTION', action_id, prop)
+            self.insert_property('ACTION', action_id, deploy_id, prop)
 
         return action_id
 
-    def insert_step(self, action_id: int, step: Dict[str, Any]) -> int:
+    def insert_step(self, action_id: int, deploy_id: int, step: Dict[str, Any]) -> int:
         """
         Insert a step
         
@@ -249,11 +249,11 @@ class DB2EvidenceLoaderBase(ABC):
 
         # Insert properties using generic table
         for prop in step.get('properties', []):
-            self.insert_property('STEP', step_id, prop)
+            self.insert_property('STEP', step_id, deploy_id, prop)
 
         return step_id
 
-    def insert_artifact(self, step_id: int, artifact: Dict[str, Any]) -> int:
+    def insert_artifact(self, step_id: int, deploy_id: int, artifact: Dict[str, Any]) -> int:
         """
         Insert an artifact or return existing artifact_id if path already exists
         Uniqueness is based on ARTIFACT_PATH
@@ -283,6 +283,10 @@ class DB2EvidenceLoaderBase(ABC):
             artifact_id = existing[0]
             print(f"        Artifact already exists: {artifact_path} (ID: {artifact_id})")
 
+            # Insert properties using generic table
+            for prop in artifact.get('properties', []):
+                self.insert_property('ARTIFACT', artifact_id, deploy_id, prop)
+
             # Create link between step and existing artifact
             self._link_step_artifact(step_id, artifact_id)
             return artifact_id
@@ -307,6 +311,10 @@ class DB2EvidenceLoaderBase(ABC):
 
         # Link step to artifact
         self._link_step_artifact(step_id, artifact_id)
+
+        # Insert properties using generic table
+        for prop in artifact.get('properties', []):
+            self.insert_property('ARTIFACT', artifact_id, deploy_id, prop)
 
         return artifact_id
 
@@ -387,17 +395,17 @@ class DB2EvidenceLoaderBase(ABC):
             for action in activity.get('actions', []):
                 action_name = action.get('name', '')
                 print(f"    Processing action: {action_name}")
-                action_id = self.insert_action(activity_id, action)
+                action_id = self.insert_action(activity_id, deploy_id, action)
 
                 # Process steps
                 for step in action.get('steps', []):
                     step_name = step.get('name', '')
                     print(f"      Processing step: {step_name}")
-                    step_id = self.insert_step(action_id, step)
+                    step_id = self.insert_step(action_id, deploy_id, step)
 
                     # Process artifacts
                     for artifact in step.get('artifacts', []):
-                        self.insert_artifact(step_id, artifact)
+                        self.insert_artifact(step_id, deploy_id, artifact)
 
                     # Process results
                     step_result = step.get('step_result', {})

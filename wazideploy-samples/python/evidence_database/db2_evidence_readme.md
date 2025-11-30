@@ -6,6 +6,7 @@ Python tool to load YAML evidence files into a DB2 database.
 - With minor changes, it should  also be applicable for other database providers.
 - In the guide we use Db2 for Linux, UNIX, with minor changes it should  also be applicable for Db2 for z/OS.
 - The Python source code, DB2 schema, and configuration files are mentioned solely as example use cases. They should not be interpreted as any form of design commitment.
+- This this sample code that may contains issues. Not to use ASIS.
 
 ## 📋 Table of Contents
 
@@ -326,30 +327,103 @@ DEPLOY (1) ──┬──→ ACTIVITY (N) ──┬──→ ACTION (N) ──�
 ### Querying Artifacts
 
 ```sql
--- Find all artifacts used more than once
-SELECT * FROM DEPLOYZ.V_ARTIFACT_USAGE 
-WHERE USAGE_COUNT > 1;
+-- List all deployments in a specific environment
+SELECT DEPLOY_ID, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP, STATUS
+FROM DEPLOYZ.DEPLOY
+WHERE ENVIRONMENT_NAME = 'PROD'
+ORDER BY DEPLOY_TIMESTAMP DESC;
 
--- Find all steps using a specific artifact
-SELECT s.* 
-FROM DEPLOYZ.STEP s
-INNER JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
-INNER JOIN DEPLOYZ.ARTIFACT a ON sa.ARTIFACT_ID = a.ARTIFACT_ID
-WHERE a.ARTIFACT_PATH = '/path/to/your/artifact';
+-- List all artifacts deployed in a specific environment
+SELECT DISTINCT art.ARTIFACT_ID,
+                art.ARTIFACT_NAME,
+                art.ARTIFACT_PATH,
+                art.ARTIFACT_TYPE
+FROM DEPLOYZ.DEPLOY d
+JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
+JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
+JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
+JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
+JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
+WHERE d.ENVIRONMENT_NAME = 'PROD'
+ORDER BY art.ARTIFACT_NAME;
 
--- Find shared artifacts across deployments
+-- In which environments is the artifact named "A0000001" deployed?
+SELECT DISTINCT 
+       d.ENVIRONMENT_NAME,
+       d.DEPLOY_TIMESTAMP,
+       act.ACTIVITY_NAME,
+       a.ACTION_NAME,
+       s.STEP_NAME,
+       art.ARTIFACT_TYPE
+FROM DEPLOYZ.DEPLOY d
+JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
+JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
+JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
+JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
+JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
+WHERE art.ARTIFACT_NAME = 'A0000001'
+ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP
+
+-- In which environments is the artifact named "A0000001" of type "CICSLOADPERF" deployed?
+SELECT DISTINCT 
+       d.ENVIRONMENT_NAME,
+       d.DEPLOY_TIMESTAMP,
+       act.ACTIVITY_NAME,
+       a.ACTION_NAME,
+       s.STEP_NAME,
+       art.ARTIFACT_TYPE
+FROM DEPLOYZ.DEPLOY d
+JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
+JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
+JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
+JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
+JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
+WHERE art.ARTIFACT_NAME = 'A0000001' and art.ARTIFACT_TYPE = 'CICSLOADPERF'
+ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP
+
+-- List the properties (PROPERTIES) of an activity for a deployment with a specific DEPLOY_TIMESTAMP
 SELECT 
-    a.ARTIFACT_PATH,
-    COUNT(DISTINCT d.DEPLOY_ID) AS DEPLOY_COUNT,
-    COUNT(DISTINCT sa.STEP_ID) AS STEP_COUNT
-FROM DEPLOYZ.ARTIFACT a
-INNER JOIN DEPLOYZ.STEP_ARTIFACT sa ON a.ARTIFACT_ID = sa.ARTIFACT_ID
-INNER JOIN DEPLOYZ.STEP s ON sa.STEP_ID = s.STEP_ID
-INNER JOIN DEPLOYZ.ACTION act ON s.ACTION_ID = act.ACTION_ID
-INNER JOIN DEPLOYZ.ACTIVITY actv ON act.ACTIVITY_ID = actv.ACTIVITY_ID
-INNER JOIN DEPLOYZ.DEPLOY d ON actv.DEPLOY_ID = d.DEPLOY_ID
-GROUP BY a.ARTIFACT_PATH
-HAVING COUNT(DISTINCT d.DEPLOY_ID) > 1;
+    act.ACTIVITY_ID,
+    act.ACTIVITY_NAME,
+    p.PROPERTY_KEY,
+    p.PROPERTY_VALUE
+FROM DEPLOYZ.DEPLOY d
+JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
+JOIN DEPLOYZ.PROPERTIES p 
+    ON p.ENTITY_TYPE = 'ACTIVITY' 
+   AND p.ENTITY_ID = act.ACTIVITY_ID
+WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-28 15:37:32.0')
+ORDER BY act.ACTIVITY_ID, p.PROPERTY_KEY;
+
+-- to list the properties of a specific artifact (by name and type) for a given deployment timestamp
+SELECT 
+    d.DEPLOY_ID,
+    d.ENVIRONMENT_NAME,
+    d.DEPLOY_TIMESTAMP,
+    art.ARTIFACT_ID,
+    art.ARTIFACT_NAME,
+    art.ARTIFACT_TYPE,
+    p.PROPERTY_KEY,
+    p.PROPERTY_VALUE
+FROM DEPLOYZ.DEPLOY d
+JOIN DEPLOYZ.ARTIFACT art
+    ON EXISTS (
+        SELECT 1
+        FROM DEPLOYZ.STEP_ARTIFACT sa
+        JOIN DEPLOYZ.STEP s ON sa.STEP_ID = s.STEP_ID
+        JOIN DEPLOYZ.ACTION a ON s.ACTION_ID = a.ACTION_ID
+        JOIN DEPLOYZ.ACTIVITY act ON a.ACTIVITY_ID = act.ACTIVITY_ID
+        WHERE sa.ARTIFACT_ID = art.ARTIFACT_ID
+          AND act.DEPLOY_ID = d.DEPLOY_ID
+    )
+JOIN DEPLOYZ.PROPERTIES p
+    ON p.ENTITY_TYPE = 'ARTIFACT'
+   AND p.ENTITY_ID = art.ARTIFACT_ID
+   AND p.DEPLOY_ID = d.DEPLOY_ID
+WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-29 19:37:32.0') and art.ARTIFACT_NAME = 'A0000001'
+ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
+
+
 ```
 
 ---
