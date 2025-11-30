@@ -4,6 +4,8 @@ Python tool to load YAML evidence files into a DB2 database.
 
 **NOTES**:
 - With minor changes, it should  also be applicable for other database providers.
+- In the guide we use Db2 for Linux, UNIX, with minor changes it should  also be applicable for Db2 for z/OS.
+- The Python source code, DB2 schema, and configuration files are mentioned solely as example use cases. They should not be interpreted as any form of design commitment.
 
 ## 📋 Table of Contents
 
@@ -43,48 +45,29 @@ Before using the evidence loader, you must create the database and schema.
 
 ### Step 1: Create Database (if needed)
 
-If you don't have a database yet, create one:
-
-#### On Linux/Unix:
+#### On Linux/Unix where DB2 is installed:
 ```bash
 # Switch to DB2 instance owner
 su - db2inst1
 
 # Create database
-db2 create database DEPLOY using codeset UTF-8 territory US
+db2 create database DEPLOY using codeset UTF-8 territory en PAGESIZE 8192
 
 # Verify database was created
 db2 list database directory | grep DEPLOY
 ```
 
-#### On Windows:
-```cmd
-REM Open DB2 Command Window as Administrator
 
-REM Create database
-db2 create database DEPLOY using codeset UTF-8 territory US
-
-REM Verify database was created
-db2 list database directory | findstr DEPLOY
-```
-
-### Step 2: Connect to Database
-
-```bash
-# Connect to the database
-db2 connect to DEPLOY user db2inst1
-
-# Verify connection
-db2 "SELECT CURRENT SERVER FROM SYSIBM.SYSDUMMY1"
-```
-
-### Step 3: Create Schema
+### Step 2: Create Schema
 
 Create the schema that will contain all tables:
 
 ```sql
 -- Connect to database
 db2 connect to DEPLOY user db2inst1
+
+-- Verify connection
+db2 "SELECT CURRENT SERVER FROM SYSIBM.SYSDUMMY1"
 
 -- Create schema
 db2 "CREATE SCHEMA DEPLOYZ AUTHORIZATION db2inst1"
@@ -93,20 +76,17 @@ db2 "CREATE SCHEMA DEPLOYZ AUTHORIZATION db2inst1"
 db2 "SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = 'DEPLOYZ'"
 ```
 
-### Step 4: Create Tables
+### Step 3: Create Tables
 
 Run the DDL script to create all tables:
 
 ```bash
 # Execute the schema creation script
-db2 -tvf db2_schema.sql
+db2 -tvf db2_schema_ddl.sql
 
-# Or execute directly
-db2 connect to DEPLOY user db2inst1
-db2 -tvf db2_schema.sql
 ```
 
-### Step 5: Verify Tables
+### Step 4: Verify Tables
 
 Check that all tables were created successfully:
 
@@ -116,7 +96,7 @@ db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABN
 
 -- Expected output:
 -- TABNAME
--- ----------------
+--------------------------
 -- ACTION
 -- ACTIVITY
 -- ARTIFACT
@@ -125,6 +105,9 @@ db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABN
 -- STEP
 -- STEP_ARTIFACT
 -- STEP_RESULT_DETAIL
+-- V_ARTIFACT_USAGE
+-- V_DEPLOYMENT_HIERARCHY
+-- V_STEP_ARTIFACTS
 ```
 
 ## ⚙️ Installation and Configuration
@@ -142,10 +125,10 @@ pip install ibm_db
 The IBM DB driver requires DB2 CLI libraries on Windows:
 
 1. **Download DB2 CLI Driver**
-   - Download from: [IBM Data Server Driver Package](https://www.ibm.com/support/pages/download-initial-version-115-clients-and-drivers)
+   - Download from: [IBM Data Server Driver Package](https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/v12.1.2/)
    - Extract to `C:\clidriver` (or another directory)
 
-2. **Environment Variables Configuration** (automatic in code):
+2. **Environment Variables Configuration** (automatic in code - just for information purpose):
    ```python
    import os
    import sys
@@ -211,7 +194,7 @@ Create a `config.yaml` file with your database connection settings:
 
 ```yaml
 # Driver selection: ibm_db or jdbc
-driver: jdbc
+driver: ibm_db
 
 # Database schema
 schema: DEPLOYZ
@@ -222,15 +205,15 @@ ibm_db:
   hostname: localhost
   port: 50000
   protocol: TCPIP
-  uid: db2inst1
-  pwd: password
+  uid: ${DB2_USER}
+  pwd:  ${DB2_PASSWORD}
 
 # JDBC configuration (if driver: jdbc)
 jdbc:
   url: jdbc:db2://localhost:50000/DEPLOY
-  username: db2inst1
-  password: password
-  driver_path: C:/drivers/db2jcc4.jar
+  username: ${DB2_USER}
+  password:  ${DB2_PASSWORD}
+  driver_path: /opt/drivers/db2jcc4.jar
   driver_class: com.ibm.db2.jcc.DB2Driver
 
 # Logging
@@ -249,31 +232,17 @@ options:
 #### Command Line
 
 ```bash
-# Using default config.yaml
-python db2_evidence_loader_ibm.py evidence.yml
+# Using default db2_config.yaml
+set DB2_USER=YOUR_DB2_USER
+set DB2_PASSWORD=YOUR_DB2_PASSWORD
 
-# Using custom config file
-python db2_evidence_loader_ibm.py evidence.yml my_config.yaml
+# Using default db2_config.yaml
+python.exe db2_evidence_ibm.py evidences.yml
+
+# Using custom db2_config.yaml
+python.exe db2_evidence_ibm.py evidences.yml my_config.yaml
 ```
 
-#### Python Code
-
-```python
-from db2_evidence_loader_ibm import DB2EvidenceLoaderIBM
-
-# Using default config.yaml
-loader = DB2EvidenceLoaderIBM()
-
-# Using custom config file
-loader = DB2EvidenceLoaderIBM(config_file='my_config.yaml')
-
-# Load evidence file
-try:
-    deploy_id = loader.load_evidence_file("evidence.yml")
-    print(f"✓ Evidence loaded (Deploy ID: {deploy_id})")
-finally:
-    loader.close()
-```
 
 ### Using JDBC Driver
 
@@ -281,29 +250,10 @@ finally:
 
 ```bash
 # Using default config.yaml
-python db2_evidence_loader_jdbc.py evidence.yml
+python db2_evidence_loader_jdbc.py evidences.yml
 
 # Using custom config file
-python db2_evidence_loader_jdbc.py evidence.yml my_config.yaml
-```
-
-#### Python Code
-
-```python
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-# Using default config.yaml
-loader = DB2EvidenceLoaderJDBC()
-
-# Using custom config file
-loader = DB2EvidenceLoaderJDBC(config_file='my_config.yaml')
-
-# Load evidence file
-try:
-    deploy_id = loader.load_evidence_file("evidence.yml")
-    print(f"✓ Evidence loaded (Deploy ID: {deploy_id})")
-finally:
-    loader.close()
+python db2_evidence_loader_jdbc.py evidences.yml my_config.yaml
 ```
 
 ### Using Environment Variables in Configuration
@@ -321,7 +271,7 @@ jdbc:
 Then set the environment variables:
 
 ```bash
-# Linux/Mac
+# Unix
 export DB_HOST=localhost
 export DB_PORT=50000
 export DB_NAME=DEPLOY
@@ -338,26 +288,6 @@ set DB_PASSWORD=secret
 set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar
 ```
 
-### Using Context Manager
-
-```python
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-# Add context manager support
-class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderJDBC):
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-# Usage
-with DB2EvidenceLoaderJDBC('config.yaml') as loader:
-    deploy_id = loader.load_evidence_file("evidence.yml")
-    print(f"Deploy ID: {deploy_id}")
-```
-
----
 
 ## 📁 File Structure
 
@@ -379,12 +309,11 @@ The database uses the following structure:
 
 ```
 DEPLOY (1) ──┬──→ ACTIVITY (N) ──┬──→ ACTION (N) ──┬──→ STEP (N)
-             │                    │                  │
-             │                    │                  └──→ STEP_ARTIFACT (junction)
-             │                    │                            │
-             │                    └──→ PROPERTIES              └──→ ARTIFACT (unique by PATH)
-             │
-             └──→ PROPERTIES
+             │                    │                 | │
+             └──→ PROPERTIES      └──→ PROPERTIES   | └──→ STEP_ARTIFACT (junction)
+                                                    └──→ PROPERTIES  |
+                                                                     └──→ ARTIFACT (unique by PATH)
+                                                                            └──→ PROPERTIES
 ```
 
 **Key Points:**
@@ -393,414 +322,6 @@ DEPLOY (1) ──┬──→ ACTIVITY (N) ──┬──→ ACTION (N) ──�
 - Same artifact can be used by multiple steps (no duplication)
 - Constraint: `UNIQUE (ARTIFACT_PATH)` ensures artifact uniqueness
 
-### File Dependencies
-
-```
-db2_evidence_loader_ibm.py
-    └── import from db2_evidence_loader_base
-
-db2_evidence_loader_jdbc.py
-    └── import from db2_evidence_loader_base
-```
-
----
-
-## 📝 Examples
-
-### Complete Example with Configuration File
-
-**config.yaml:**
-```yaml
-driver: jdbc
-schema: DEPLOYZ
-
-jdbc:
-  url: jdbc:db2://localhost:50000/DEPLOY
-  username: db2inst1
-  password: mypassword
-  driver_path: /opt/drivers/db2jcc4.jar
-
-logging:
-  level: INFO
-  file: evidence_loader.log
-
-options:
-  verbose: true
-```
-
-**Python script:**
-```python
-import sys
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python load_evidence.py <yaml_file>")
-        sys.exit(1)
-    
-    yaml_file = sys.argv[1]
-    
-    try:
-        # Load using config.yaml
-        loader = DB2EvidenceLoaderJDBC()
-        deploy_id = loader.load_evidence_file(yaml_file)
-        print(f"✓ Success! Deploy ID: {deploy_id}")
-        
-    except Exception as e:
-        print(f"✗ Error: {e}")
-        sys.exit(1)
-    
-    finally:
-        if 'loader' in locals():
-            loader.close()
-
-if __name__ == "__main__":
-    main()
-```
-
-**Run:**
-```bash
-python load_evidence.py evidence.yml
-```
-
-### Multiple Configuration Files
-
-You can maintain different configurations for different environments:
-
-**config_dev.yaml:**
-```yaml
-driver: jdbc
-schema: DEPLOYZ
-
-jdbc:
-  url: jdbc:db2://dev-server:50000/DEPLOY
-  username: dev_user
-  password: dev_pass
-  driver_path: /opt/drivers/db2jcc4.jar
-```
-
-**config_prod.yaml:**
-```yaml
-driver: jdbc
-schema: DEPLOYZ
-
-jdbc:
-  url: jdbc:db2://prod-server:50000/DEPLOY
-  username: prod_user
-  password: ${PROD_PASSWORD}  # From environment
-  driver_path: /opt/drivers/db2jcc4.jar
-
-options:
-  stop_on_error: true
-```
-
-**Usage:**
-```bash
-# Development
-python db2_evidence_loader_jdbc.py evidence.yml config_dev.yaml
-
-# Production
-export PROD_PASSWORD=secret
-python db2_evidence_loader_jdbc.py evidence.yml config_prod.yaml
-```
-
-### Batch Processing Multiple Evidence Files
-
-```python
-import os
-import glob
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-def load_all_evidence(evidence_dir, config_file='config.yaml'):
-    """Load all YAML evidence files from a directory"""
-    
-    # Create loader once
-    loader = DB2EvidenceLoaderJDBC(config_file=config_file)
-    
-    try:
-        # Find all YAML files
-        yaml_files = glob.glob(os.path.join(evidence_dir, '*.yml'))
-        
-        results = []
-        for yaml_file in yaml_files:
-            try:
-                print(f"Loading {yaml_file}...")
-                deploy_id = loader.load_evidence_file(yaml_file)
-                results.append((yaml_file, deploy_id, 'SUCCESS'))
-                print(f"  ✓ Deploy ID: {deploy_id}")
-            except Exception as e:
-                results.append((yaml_file, None, f'ERROR: {e}'))
-                print(f"  ✗ Error: {e}")
-        
-        # Summary
-        print(f"\n{'='*60}")
-        print(f"Loaded {sum(1 for r in results if r[2] == 'SUCCESS')} / {len(results)} files")
-        print(f"{'='*60}")
-        
-        return results
-        
-    finally:
-        loader.close()
-
-# Usage
-if __name__ == "__main__":
-    results = load_all_evidence('/path/to/evidence_files')
-```
-
-### Error Handling and Logging
-
-```python
-import logging
-from db2_evidence_loader_ibm import DB2EvidenceLoaderIBM
-
-# Configure detailed logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('evidence_loader.log'),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
-def load_with_retry(yaml_file, config_file='config.yaml', max_retries=3):
-    """Load evidence with retry logic"""
-    
-    for attempt in range(1, max_retries + 1):
-        try:
-            logger.info(f"Attempt {attempt}/{max_retries} to load {yaml_file}")
-            
-            loader = DB2EvidenceLoaderIBM(config_file=config_file)
-            deploy_id = loader.load_evidence_file(yaml_file)
-            loader.close()
-            
-            logger.info(f"Successfully loaded (Deploy ID: {deploy_id})")
-            return deploy_id
-            
-        except Exception as e:
-            logger.error(f"Attempt {attempt} failed: {e}")
-            if attempt == max_retries:
-                logger.error(f"All {max_retries} attempts failed")
-                raise
-            
-            # Wait before retry
-            import time
-            time.sleep(2 ** attempt)  # Exponential backoff
-
-# Usage
-deploy_id = load_with_retry('evidence.yml')
-```
-
----
-
-## 🔧 Troubleshooting
-
-```python
-import sys
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-def load_evidence(yaml_file, jdbc_url, driver_path, username, password):
-    """
-    Load an evidence file into DB2
-    
-    Args:
-        yaml_file: Path to YAML file
-        jdbc_url: JDBC connection URL
-        driver_path: Path to db2jcc4.jar
-        username: DB2 username
-        password: Password
-    
-    Returns:
-        deploy_id or None on error
-    """
-    loader = None
-    try:
-        print(f"Connecting to database...")
-        loader = DB2EvidenceLoaderJDBC(
-            db_connection_string=jdbc_url,
-            jdbc_driver_path=driver_path,
-            username=username,
-            password=password
-        )
-        
-        print(f"Loading {yaml_file}...")
-        deploy_id = loader.load_evidence_file(yaml_file)
-        
-        print(f"✓ Evidence loaded successfully (Deploy ID: {deploy_id})")
-        return deploy_id
-        
-    except FileNotFoundError:
-        print(f"✗ Error: File {yaml_file} not found")
-        return None
-        
-    except Exception as e:
-        print(f"✗ Error during loading: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None
-        
-    finally:
-        if loader:
-            loader.close()
-            print("Connection closed")
-
-# Usage
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <yaml_file>")
-        sys.exit(1)
-    
-    result = load_evidence(
-        yaml_file=sys.argv[1],
-        jdbc_url="jdbc:db2://localhost:50000/DEPLOY",
-        driver_path="C:/drivers/db2jcc4.jar",
-        username="db2inst1",
-        password="password"
-    )
-    
-    sys.exit(0 if result else 1)
-```
-
-### Example with Logging
-
-```python
-import logging
-from db2_evidence_loader_ibm import DB2EvidenceLoaderIBM
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-DB_CONNECTION = "DATABASE=DEPLOY;HOSTNAME=localhost;..."
-
-try:
-    logger.info("Starting evidence loading")
-    
-    loader = DB2EvidenceLoaderIBM(DB_CONNECTION)
-    deploy_id = loader.load_evidence_file("evidence.yml")
-    
-    logger.info(f"Evidence loaded successfully (Deploy ID: {deploy_id})")
-    
-except Exception as e:
-    logger.error(f"Error during loading: {str(e)}", exc_info=True)
-    raise
-finally:
-    if 'loader' in locals():
-        loader.close()
-        logger.info("Connection closed")
-```
-
----
-
-## 🔧 Troubleshooting
-
-### IBM DB Driver
-
-#### Error: "DLL load failed"
-```
-ImportError: DLL load failed while importing _ibm_db
-```
-**Solution**:
-- Verify DB2 CLI Driver is installed
-- Check environment variables (`IBM_DB_HOME`, `PATH`)
-- Install Visual C++ Redistributable 2015-2019
-
-#### Error: "SQL1336N"
-```
-SQL1336N  The remote host was not found
-```
-**Solution**:
-- Verify hostname and port
-- Test network connectivity: `ping hostname`
-- Check firewall settings
-
-#### Error: "SQL30081N"
-```
-SQL30081N  A communication error has been detected
-```
-**Solution**:
-- Verify DB2 is running
-- Check port (default: 50000)
-- Test with `db2 connect to database`
-
-### JDBC Driver
-
-#### Error: "No suitable driver"
-```
-java.sql.SQLException: No suitable driver found
-```
-**Solution**:
-- Verify `db2jcc4.jar` exists
-- Check JAR file path
-- Verify Java is installed: `java -version`
-
-#### Error: "ClassNotFoundException: com.ibm.db2.jcc.DB2Driver"
-```
-java.lang.ClassNotFoundException: com.ibm.db2.jcc.DB2Driver
-```
-**Solution**:
-- Use correct class name: `com.ibm.db2.jcc.DB2Driver`
-- Verify JAR is not corrupted
-- Try with full JAR: `db2jcc4.jar` instead of `db2jcc.jar`
-
-#### Error: "Unable to start JVM"
-```
-RuntimeError: Unable to start JVM
-```
-**Solution**:
-- Install Java JDK (not just JRE)
-- Set `JAVA_HOME`: `export JAVA_HOME=/path/to/jdk`
-- Reinstall JPype1: `pip install --upgrade JPype1`
-
-#### Error: "Connection refused"
-```
-com.ibm.db2.jcc.am.DisconnectNonTransientConnectionException
-```
-**Solution**:
-- Verify DB2 is listening on the correct port
-- Check JDBC URL: `jdbc:db2://HOST:PORT/DATABASE`
-- Test with native DB2 client
-
----
-
-## 🗄️ Database Schema Setup
-
-Before using the evidence loader, you must create the database schema:
-
-```bash
-# Connect to DB2
-db2 connect to DEPLOY user db2inst1
-
-# Create schema
-db2 -tvf db2_schema.sql
-
-# Verify tables
-db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ'"
-```
-
-### Important Schema Features
-
-1. **Artifact Uniqueness by PATH**
-   ```sql
-   -- Artifacts are unique by their path
-   CONSTRAINT UQ_ARTIFACT_PATH UNIQUE (ARTIFACT_PATH)
-   ```
-
-2. **Many-to-Many Relationship**
-   ```sql
-   -- Multiple steps can share the same artifact
-   STEP (N) ←→ STEP_ARTIFACT (junction) ←→ ARTIFACT (1)
-   ```
-
-3. **Automatic Artifact Reuse**
-   - If artifact with same path exists → reuse existing artifact
-   - If artifact is new → create new artifact entry
-   - No duplicate artifacts in database
 
 ### Querying Artifacts
 

@@ -29,8 +29,8 @@ ibm_db:
   hostname: localhost
   port: 50000
   protocol: TCPIP
-  uid: db2inst1
-  pwd: password
+  uid: ${DB2_USER}
+  pwd: ${DB2_PASSWORD}
   
   # Or use environment variables
   # database: ${DB_NAME}
@@ -54,8 +54,8 @@ jdbc:
   # database: DEPLOY
   
   # Credentials
-  username: db2inst1
-  password: password
+  username: ${DB2_USER}
+  password: ${DB2_PASSWORD}
   
   # Driver configuration
   driver_path: C:/drivers/db2jcc4.jar
@@ -72,7 +72,7 @@ jdbc:
 # =============================================================================
 windows:
   # Path to DB2 CLI driver (required for ibm_db on Windows)
-  clidriver: D:\a\Db2\clidriver
+  clidriver: c:\clidriver
   
   # Set to true to enable automatic DLL loading
   auto_configure: true

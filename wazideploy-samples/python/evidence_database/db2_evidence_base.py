@@ -11,6 +11,7 @@ import yaml
 from datetime import datetime
 from typing import Dict, Any, Optional
 from abc import ABC, abstractmethod
+import json
 
 # SQL Constants
 SQL_GET_IDENTITY = "VALUES IDENTITY_VAL_LOCAL()"
@@ -91,20 +92,16 @@ class DB2EvidenceLoaderBase(ABC):
         annotations = metadata.get('annotations', {})
         engine = annotations.get('engine', {})
         package = annotations.get('package', {})
-        runtime_ctx = annotations.get('runtime_context', {})
-        smf_record = annotations.get('smf_record', {})
 
         sql = f"""
         INSERT INTO {self.schema}.DEPLOY (
-            EVIDENCE_NAME, DESCRIPTION, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP,
+            DESCRIPTION, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP,
             CREATION_TIMESTAMP, STATUS, ENGINE_VERSION, ENGINE_BUILD,
-            ENGINE_DATE, PACKAGE_PATH, PACKAGE_SHA256, ZOAU_VERSION,
-            SMF_RECORD_STATUS
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ENGINE_DATE, PACKAGE_PATH, PACKAGE_SHA256
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = [
-            metadata.get('name', ''),
             metadata.get('description', ''),
             annotations.get('environment_name', ''),
             self.parse_timestamp(annotations.get('deploy_timestamp', '')),
@@ -114,9 +111,7 @@ class DB2EvidenceLoaderBase(ABC):
             engine.get('build', ''),
             self.parse_timestamp(engine.get('date', '')) if isinstance(engine.get('date'), str) else None,
             package.get('path', ''),
-            package.get('sha256', ''),
-            runtime_ctx.get('zoau_version', ''),
-            smf_record.get('status', '')
+            package.get('sha256', '')
         ]
 
         self._execute(sql, params)
@@ -156,8 +151,8 @@ class DB2EvidenceLoaderBase(ABC):
         sql = f"""
         INSERT INTO {self.schema}.ACTIVITY (
             DEPLOY_ID, ACTIVITY_NAME, SHORT_NAME, DESCRIPTION,
-            STATUS, MESSAGE, LOOP_INDEX
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            STATUS, MESSAGE
+        ) VALUES (?, ?, ?, ?, ?, ?)
         """
 
         params = [
@@ -166,8 +161,7 @@ class DB2EvidenceLoaderBase(ABC):
             activity.get('short_name', ''),
             activity.get('description', ''),
             activity_result.get('status', ''),
-            activity_result.get('msg', ''),
-            activity.get('loop_index', 0)
+            activity_result.get('msg', '')
         ]
 
         self._execute(sql, params)
@@ -197,8 +191,8 @@ class DB2EvidenceLoaderBase(ABC):
         sql = f"""
         INSERT INTO {self.schema}.ACTION (
             ACTIVITY_ID, ACTION_NAME, DESCRIPTION,
-            STATUS, MESSAGE, LOOP_INDEX
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            STATUS, MESSAGE
+        ) VALUES (?, ?, ?, ?, ?)
         """
 
         params = [
@@ -206,8 +200,7 @@ class DB2EvidenceLoaderBase(ABC):
             action.get('name', ''),
             action.get('description', ''),
             action_result.get('status', ''),
-            action_result.get('msg', ''),
-            action.get('loop_index', 0)
+            action_result.get('msg', '')
         ]
 
         self._execute(sql, params)
@@ -237,8 +230,8 @@ class DB2EvidenceLoaderBase(ABC):
         sql = f"""
         INSERT INTO {self.schema}.STEP (
             ACTION_ID, STEP_NAME, DESCRIPTION,
-            STATUS, MESSAGE, DURATION, LOOP_INDEX
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            STATUS, MESSAGE
+        ) VALUES (?, ?, ?, ?, ?)
         """
 
         params = [
@@ -246,9 +239,7 @@ class DB2EvidenceLoaderBase(ABC):
             step.get('name', ''),
             step.get('description', ''),
             step_result.get('status', ''),
-            step_result.get('msg', ''),
-            step_result.get('duration', None),
-            step.get('loop_index', 0)
+            step_result.get('msg', '')
         ]
 
         self._execute(sql, params)
@@ -299,15 +290,14 @@ class DB2EvidenceLoaderBase(ABC):
         # Insert new artifact
         sql = f"""
         INSERT INTO {self.schema}.ARTIFACT (
-            ARTIFACT_NAME, ARTIFACT_PATH, ARTIFACT_TYPE, WD_MANIFEST_INDEX
-        ) VALUES (?, ?, ?, ?)
+            ARTIFACT_NAME, ARTIFACT_PATH, ARTIFACT_TYPE
+        ) VALUES (?, ?, ?)
         """
 
         params = [
             artifact.get('name', ''),
             artifact_path,
-            properties.get('type', ''),
-            int(properties.get('wd_manifest_index', 0)) if properties.get('wd_manifest_index') else None
+            properties.get('type', '')
         ]
 
         self._execute(sql, params)
@@ -352,17 +342,16 @@ class DB2EvidenceLoaderBase(ABC):
 
         sql = f"""
         INSERT INTO {self.schema}.STEP_RESULT_DETAIL (
-            STEP_ID, STATUS, MESSAGE, COMMAND, RESULT_COMMAND, RETURN_CODE
-        ) VALUES (?, ?, ?, ?, ?, ?)
+            STEP_ID, STATUS, MESSAGE, COMMAND, RESULT_COMMAND
+        ) VALUES (?, ?, ?, ?, ?)
         """
 
         params = [
-            step_id,
-            result.get('status', ''),
-            result.get('msg', ''),
-            results_data.get('command', ''),
-            results_data.get('result_command', ''),
-            results_data.get('rc', None)
+            int(step_id),  # STEP_ID INTEGER
+            str(result.get('status', ''))[:50],  # STATUS VARCHAR(50)
+            str(result.get('msg', ''))[:2000],  # MESSAGE VARCHAR(2000)
+            str(results_data.get('command', ''))[:4000],  # COMMAND VARCHAR(4000)
+            json.dumps(results_data)[:4000]  # RESULT_COMMAND VARCHAR(4000)
         ]
 
         self._execute(sql, params)

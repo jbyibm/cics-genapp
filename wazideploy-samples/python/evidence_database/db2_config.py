@@ -174,7 +174,7 @@ class DB2Config:
         return yaml.dump(config_copy, default_flow_style=False)
 
 
-def load_config(config_file: str='config.yaml') -> DB2Config:
+def load_config(config_file: str='db2_config.yaml') -> DB2Config:
     """
     Convenience function to load configuration
     
@@ -185,27 +185,3 @@ def load_config(config_file: str='config.yaml') -> DB2Config:
         DB2Config instance
     """
     return DB2Config(config_file)
-
-
-# Example usage
-if __name__ == "__main__":
-    # Load configuration
-    config = load_config('config.yaml')
-
-    print("Configuration loaded:")
-    print(f"  Driver: {config.driver}")
-    print(f"  Schema: {config.schema}")
-    print(f"  Verbose: {config.is_verbose()}")
-
-    if config.driver == 'ibm_db':
-        print(f"\nIBM DB Connection String:")
-        print(f"  {config.get_ibm_db_connection_string()}")
-    else:
-        print(f"\nJDBC Configuration:")
-        jdbc_cfg = config.get_jdbc_config()
-        print(f"  URL: {jdbc_cfg['url']}")
-        print(f"  Username: {jdbc_cfg['username']}")
-        print(f"  Driver Path: {jdbc_cfg['driver_path']}")
-
-    print("\nFull configuration (passwords masked):")
-    print(config)
