@@ -1,6 +1,6 @@
 #*******************************************************************************
 # Licensed Materials - Property of IBM
-# (c) Copyright IBM Corp. 2023, 2025. All Rights Reserved.
+# (c) Copyright IBM Corp. 2025. All Rights Reserved.
 #
 # Note to U.S. Government Users Restricted Rights:
 # Use, duplication or disclosure restricted by GSA ADP Schedule
@@ -12,28 +12,72 @@ DB2 Evidence Loader - IBM DB Implementation
 Uses ibm_db and ibm_db_dbi drivers
 """
 
+import os
+import sys
+import logging
 import ibm_db
 import ibm_db_dbi
 from db2_evidence_loader_base import DB2EvidenceLoaderBase, SQL_GET_IDENTITY
+from db2_config import DB2Config, load_config
+
+logger = logging.getLogger(__name__)
 
 
 class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
     """DB2 Evidence Loader using ibm_db driver"""
 
-    def __init__(self, db_connection_string: str, schema: str = 'DEPLOYZ'):
+    def __init__(self, config_file: str='config.yaml'):
         """
-        Initialize DB2 connection using ibm_db
+        Initialize DB2 connection using ibm_db from configuration file
         
         Args:
-            db_connection_string: DB2 connection string
-                Format: "DATABASE=mydb;HOSTNAME=hostname;PORT=50000;PROTOCOL=TCPIP;UID=user;PWD=XXX;"
-            schema: DB2 schema name (default: 'DEPLOYZ')
+            config_file: Path to YAML configuration file
         """
-        super().__init__(schema)
-        
+        # Load configuration
+        self.config = load_config(config_file)
+
+        # Setup Windows environment if needed
+        self._setup_windows_environment()
+
+        # Initialize base class with schema from config
+        super().__init__(self.config.schema)
+
+        # Build connection string and connect
+        db_connection_string = self.config.get_ibm_db_connection_string()
+
+        logger.info("Connecting to DB2 using ibm_db driver...")
         self.conn = ibm_db.connect(db_connection_string, "", "")
         self.dbi_conn = ibm_db_dbi.Connection(self.conn)
         self.cursor = self.dbi_conn.cursor()
+        logger.info("Connected successfully")
+
+    def _setup_windows_environment(self):
+        """Setup Windows DLL environment for ibm_db"""
+        if sys.platform != 'win32':
+            return
+
+        win_config = self.config.get_windows_config()
+        if not win_config.get('auto_configure', True):
+            return
+
+        clidriver = win_config.get('clidriver', r'D:\a\Db2\clidriver')
+
+        if not os.path.exists(clidriver):
+            logger.warning(f"CLI driver not found at: {clidriver}")
+            return
+
+        logger.info(f"Configuring Windows environment for CLI driver: {clidriver}")
+        os.environ['IBM_DB_HOME'] = clidriver
+        os.environ['IBM_DB_LIB'] = os.path.join(clidriver, 'lib')
+        os.environ['IBM_DB_INCLUDE'] = os.path.join(clidriver, 'include')
+        os.environ['PATH'] = (os.path.join(clidriver, 'bin\\amd64.VC12.CRT') + ';' +
+                             os.path.join(clidriver, 'bin') + ';' +
+                             os.environ.get('PATH', ''))
+
+        try:
+            os.add_dll_directory(os.path.join(clidriver, 'bin'))
+        except (AttributeError, OSError) as e:
+            logger.warning(f"Could not add DLL directory: {e}")
 
     def _execute(self, sql: str, params):
         """Execute SQL with parameters"""
@@ -56,59 +100,58 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
                 self.cursor.close()
             except:
                 pass
-                
+
         if self.dbi_conn:
             try:
                 self.dbi_conn.close()
             except:
                 pass
-                
+
         if self.conn:
             try:
                 ibm_db.close(self.conn)
+                logger.info("Connection closed")
             except:
                 pass  # Connection already closed
 
 
 # Example usage
 if __name__ == "__main__":
-    import os
     import sys
-    
-    # Windows DLL loading workaround for ibm_db
-    if sys.platform == 'win32':
-        clidriver = r'D:\a\Db2\clidriver'
-        if os.path.exists(clidriver):
-            os.environ['IBM_DB_HOME'] = clidriver
-            os.environ['IBM_DB_LIB'] = os.path.join(clidriver, 'lib')
-            os.environ['IBM_DB_INCLUDE'] = os.path.join(clidriver, 'include')
-            os.environ['PATH'] = os.path.join(clidriver, 'bin\\amd64.VC12.CRT') + ';' + \
-                                os.path.join(clidriver, 'bin') + ';' + os.environ.get('PATH', '')
-            os.add_dll_directory(os.path.join(clidriver, 'bin'))
-    
-    # DB2 connection configuration
-    DB_CONNECTION = (
-        "DATABASE=DEPLOY;"
-        "HOSTNAME=localhost;"
-        "PORT=50000;"
-        "PROTOCOL=TCPIP;"
-        "UID=db2inst1;"
-        "PWD=password;"
-    )
-    
-    # Path to YAML file
-    YAML_FILE = "path/to/evidence.yml"
-    
+
+    # Check arguments
+    if len(sys.argv) < 2:
+        print("Usage: python db2_evidence_loader_ibm.py <yaml_evidence_file> [config_file]")
+        print("\nExample:")
+        print("  python db2_evidence_loader_ibm.py evidence.yml")
+        print("  python db2_evidence_loader_ibm.py evidence.yml my_config.yaml")
+        sys.exit(1)
+
+    yaml_file = sys.argv[1]
+    config_file = sys.argv[2] if len(sys.argv) > 2 else 'config.yaml'
+
     try:
-        # Create loader and load data
-        loader = DB2EvidenceLoaderIBM(DB_CONNECTION)
-        deploy_id = loader.load_evidence_file(YAML_FILE)
-        
+        logger.info(f"Starting evidence loading from: {yaml_file}")
+        logger.info(f"Using configuration: {config_file}")
+
+        # Create loader with config file
+        loader = DB2EvidenceLoaderIBM(config_file=config_file)
+
+        # Load evidence file
+        deploy_id = loader.load_evidence_file(yaml_file)
+
         print(f"\n✓ Evidence loaded successfully (Deploy ID: {deploy_id})")
-        
+        logger.info(f"Evidence loaded successfully (Deploy ID: {deploy_id})")
+
         # Close connection
         loader.close()
-        
+
+    except FileNotFoundError as e:
+        print(f"✗ File not found: {e}")
+        logger.error(f"File not found: {e}")
+        sys.exit(1)
+
     except Exception as e:
         print(f"✗ Error during loading: {str(e)}")
-        raise
+        logger.error(f"Error during loading: {str(e)}", exc_info=True)
+        sys.exit(1)

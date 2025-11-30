@@ -1,6 +1,6 @@
 #*******************************************************************************
 # Licensed Materials - Property of IBM
-# (c) Copyright IBM Corp. 2023, 2025. All Rights Reserved.
+# (c) Copyright IBM Corp. 2025. All Rights Reserved.
 #
 # Note to U.S. Government Users Restricted Rights:
 # Use, duplication or disclosure restricted by GSA ADP Schedule
@@ -19,7 +19,7 @@ SQL_GET_IDENTITY = "VALUES IDENTITY_VAL_LOCAL()"
 class DB2EvidenceLoaderBase(ABC):
     """Base class to load YAML evidence into DB2"""
 
-    def __init__(self, schema: str = 'DEPLOYZ'):
+    def __init__(self, schema: str='DEPLOYZ'):
         """
         Initialize base loader
         
@@ -277,25 +277,25 @@ class DB2EvidenceLoaderBase(ABC):
         # Extract artifact properties
         properties = {prop['key']: prop['value'] for prop in artifact.get('properties', [])}
         artifact_path = properties.get('path', '')
-        
+
         # Check if artifact with this path already exists
         check_sql = f"""
         SELECT ARTIFACT_ID FROM {self.schema}.ARTIFACT 
         WHERE ARTIFACT_PATH = ?
         """
-        
+
         self._execute(check_sql, [artifact_path])
         existing = self.cursor.fetchone()
-        
+
         if existing:
             # Artifact already exists, return existing ID
             artifact_id = existing[0]
             print(f"        Artifact already exists: {artifact_path} (ID: {artifact_id})")
-            
+
             # Create link between step and existing artifact
             self._link_step_artifact(step_id, artifact_id)
             return artifact_id
-        
+
         # Insert new artifact
         sql = f"""
         INSERT INTO {self.schema}.ARTIFACT (
@@ -312,14 +312,14 @@ class DB2EvidenceLoaderBase(ABC):
 
         self._execute(sql, params)
         self._commit()
-        
+
         artifact_id = self._get_identity()
-        
+
         # Link step to artifact
         self._link_step_artifact(step_id, artifact_id)
-        
+
         return artifact_id
-    
+
     def _link_step_artifact(self, step_id: int, artifact_id: int):
         """
         Create link between step and artifact in junction table
@@ -332,7 +332,7 @@ class DB2EvidenceLoaderBase(ABC):
         INSERT INTO {self.schema}.STEP_ARTIFACT (STEP_ID, ARTIFACT_ID)
         VALUES (?, ?)
         """
-        
+
         try:
             self._execute(sql, [step_id, artifact_id])
             self._commit()
@@ -423,15 +423,15 @@ class DB2EvidenceLoaderBase(ABC):
         """Close database connections - to be implemented by subclasses"""
         pass
 
-
 # ============================================================================
 # IBM_DB Implementation
 # ============================================================================
 
+
 class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
     """DB2 Evidence Loader using ibm_db driver"""
 
-    def __init__(self, db_connection_string: str, schema: str = 'DEPLOYZ'):
+    def __init__(self, db_connection_string: str, schema: str='DEPLOYZ'):
         """
         Initialize DB2 connection using ibm_db
         
@@ -443,7 +443,7 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
         super().__init__(schema)
         import ibm_db
         import ibm_db_dbi
-        
+
         self.ibm_db = ibm_db
         self.conn = ibm_db.connect(db_connection_string, "", "")
         self.dbi_conn = ibm_db_dbi.Connection(self.conn)
@@ -474,16 +474,16 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
             except:
                 pass  # Connection already closed
 
-
 # ============================================================================
 # JayDeBeApi Implementation
 # ============================================================================
 
+
 class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
     """DB2 Evidence Loader using JayDeBeApi (JDBC)"""
 
-    def __init__(self, db_connection_string: str, schema: str = 'DEPLOYZ',
-                 jdbc_driver_path: str = None, jdbc_driver_class: str = 'com.ibm.db2.jcc.DB2Driver'):
+    def __init__(self, db_connection_string: str, schema: str='DEPLOYZ',
+                 jdbc_driver_path: str=None, jdbc_driver_class: str='com.ibm.db2.jcc.DB2Driver'):
         """
         Initialize DB2 connection using JayDeBeApi
         
@@ -496,9 +496,9 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         """
         super().__init__(schema)
         import jaydebeapi
-        
+
         self.jaydebeapi = jaydebeapi
-        
+
         # Parse connection parameters from connection string if in old format
         if not db_connection_string.startswith('jdbc:'):
             # Convert from ibm_db format to JDBC format

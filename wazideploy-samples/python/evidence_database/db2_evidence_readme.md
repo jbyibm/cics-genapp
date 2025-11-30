@@ -120,30 +120,69 @@ pip install JPype1  # Required for JayDeBeApi
 
 ## 🚀 Usage
 
+### Configuration File
+
+Create a `config.yaml` file with your database connection settings:
+
+```yaml
+# Driver selection: ibm_db or jdbc
+driver: jdbc
+
+# Database schema
+schema: DEPLOYZ
+
+# IBM DB configuration (if driver: ibm_db)
+ibm_db:
+  database: DEPLOY
+  hostname: localhost
+  port: 50000
+  protocol: TCPIP
+  uid: db2inst1
+  pwd: password
+
+# JDBC configuration (if driver: jdbc)
+jdbc:
+  url: jdbc:db2://localhost:50000/DEPLOY
+  username: db2inst1
+  password: password
+  driver_path: C:/drivers/db2jcc4.jar
+  driver_class: com.ibm.db2.jcc.DB2Driver
+
+# Logging
+logging:
+  level: INFO
+  format: '%(asctime)s - %(levelname)s - %(message)s'
+
+# Options
+options:
+  verbose: true
+  stop_on_error: false
+```
+
 ### Using IBM DB Driver
 
-#### Basic Example
+#### Command Line
+
+```bash
+# Using default config.yaml
+python db2_evidence_loader_ibm.py evidence.yml
+
+# Using custom config file
+python db2_evidence_loader_ibm.py evidence.yml my_config.yaml
+```
+
+#### Python Code
 
 ```python
 from db2_evidence_loader_ibm import DB2EvidenceLoaderIBM
 
-# Connection configuration
-DB_CONNECTION = (
-    "DATABASE=DEPLOY;"
-    "HOSTNAME=localhost;"
-    "PORT=50000;"
-    "PROTOCOL=TCPIP;"
-    "UID=db2inst1;"
-    "PWD=password;"
-)
+# Using default config.yaml
+loader = DB2EvidenceLoaderIBM()
 
-# Create loader
-loader = DB2EvidenceLoaderIBM(
-    db_connection_string=DB_CONNECTION,
-    schema='DEPLOYZ'  # Optional, default: 'DEPLOYZ'
-)
+# Using custom config file
+loader = DB2EvidenceLoaderIBM(config_file='my_config.yaml')
 
-# Load YAML file
+# Load evidence file
 try:
     deploy_id = loader.load_evidence_file("evidence.yml")
     print(f"✓ Evidence loaded (Deploy ID: {deploy_id})")
@@ -151,27 +190,76 @@ finally:
     loader.close()
 ```
 
-#### Using Environment Variables
+### Using JDBC Driver
 
-```python
-import os
+#### Command Line
 
-DB_CONNECTION = (
-    f"DATABASE={os.environ['DB_NAME']};"
-    f"HOSTNAME={os.environ['DB_HOST']};"
-    f"PORT={os.environ['DB_PORT']};"
-    f"PROTOCOL=TCPIP;"
-    f"UID={os.environ['DB_USER']};"
-    f"PWD={os.environ['DB_PASSWORD']};"
-)
+```bash
+# Using default config.yaml
+python db2_evidence_loader_jdbc.py evidence.yml
 
-loader = DB2EvidenceLoaderIBM(DB_CONNECTION)
+# Using custom config file
+python db2_evidence_loader_jdbc.py evidence.yml my_config.yaml
 ```
 
-#### Using Context Manager
+#### Python Code
 
 ```python
-class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
+from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
+
+# Using default config.yaml
+loader = DB2EvidenceLoaderJDBC()
+
+# Using custom config file
+loader = DB2EvidenceLoaderJDBC(config_file='my_config.yaml')
+
+# Load evidence file
+try:
+    deploy_id = loader.load_evidence_file("evidence.yml")
+    print(f"✓ Evidence loaded (Deploy ID: {deploy_id})")
+finally:
+    loader.close()
+```
+
+### Using Environment Variables in Configuration
+
+You can use environment variables in your `config.yaml`:
+
+```yaml
+jdbc:
+  url: jdbc:db2://${DB_HOST}:${DB_PORT}/${DB_NAME}
+  username: ${DB_USER}
+  password: ${DB_PASSWORD}
+  driver_path: ${JDBC_DRIVER_PATH}
+```
+
+Then set the environment variables:
+
+```bash
+# Linux/Mac
+export DB_HOST=localhost
+export DB_PORT=50000
+export DB_NAME=DEPLOY
+export DB_USER=db2inst1
+export DB_PASSWORD=secret
+export JDBC_DRIVER_PATH=/path/to/db2jcc4.jar
+
+# Windows
+set DB_HOST=localhost
+set DB_PORT=50000
+set DB_NAME=DEPLOY
+set DB_USER=db2inst1
+set DB_PASSWORD=secret
+set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar
+```
+
+### Using Context Manager
+
+```python
+from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
+
+# Add context manager support
+class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderJDBC):
     def __enter__(self):
         return self
     
@@ -179,95 +267,9 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
         self.close()
 
 # Usage
-with DB2EvidenceLoaderIBM(DB_CONNECTION) as loader:
+with DB2EvidenceLoaderJDBC('config.yaml') as loader:
     deploy_id = loader.load_evidence_file("evidence.yml")
     print(f"Deploy ID: {deploy_id}")
-```
-
----
-
-### Using JDBC Driver
-
-#### Basic Example (JDBC URL format)
-
-```python
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-# JDBC configuration
-JDBC_URL = "jdbc:db2://localhost:50000/DEPLOY"
-JDBC_DRIVER_PATH = "C:/drivers/db2jcc4.jar"
-USERNAME = "db2inst1"
-PASSWORD = "password"
-
-# Create loader
-loader = DB2EvidenceLoaderJDBC(
-    db_connection_string=JDBC_URL,
-    jdbc_driver_path=JDBC_DRIVER_PATH,
-    username=USERNAME,
-    password=PASSWORD,
-    schema='DEPLOYZ'  # Optional
-)
-
-# Load YAML file
-try:
-    deploy_id = loader.load_evidence_file("evidence.yml")
-    print(f"✓ Evidence loaded (Deploy ID: {deploy_id})")
-finally:
-    loader.close()
-```
-
-#### Example with Legacy Format (auto-conversion)
-
-```python
-from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
-
-# Legacy format (automatically converted to JDBC URL)
-DB_CONNECTION = (
-    "DATABASE=DEPLOY;"
-    "HOSTNAME=localhost;"
-    "PORT=50000;"
-    "PROTOCOL=TCPIP;"
-    "UID=db2inst1;"
-    "PWD=password;"
-)
-
-loader = DB2EvidenceLoaderJDBC(
-    db_connection_string=DB_CONNECTION,
-    jdbc_driver_path="C:/drivers/db2jcc4.jar"
-)
-
-deploy_id = loader.load_evidence_file("evidence.yml")
-loader.close()
-```
-
-#### Without Specifying Driver Path (if in CLASSPATH)
-
-```python
-# If db2jcc4.jar is in Java CLASSPATH
-loader = DB2EvidenceLoaderJDBC(
-    db_connection_string="jdbc:db2://localhost:50000/DEPLOY",
-    username="db2inst1",
-    password="password"
-    # jdbc_driver_path not specified
-)
-```
-
-#### With SSL
-
-```python
-JDBC_URL = (
-    "jdbc:db2://localhost:50001/DEPLOY:"
-    "sslConnection=true;"
-    "sslTrustStoreLocation=/path/to/truststore.jks;"
-    "sslTrustStorePassword=password;"
-)
-
-loader = DB2EvidenceLoaderJDBC(
-    db_connection_string=JDBC_URL,
-    jdbc_driver_path="C:/drivers/db2jcc4.jar",
-    username="db2inst1",
-    password="password"
-)
 ```
 
 ---
@@ -277,10 +279,11 @@ loader = DB2EvidenceLoaderJDBC(
 ```
 project/
 │
+├── config.yaml                      # Configuration file (REQUIRED)
+├── db2_config.py                    # Configuration loader
 ├── db2_evidence_loader_base.py      # Abstract base class
 ├── db2_evidence_loader_ibm.py       # IBM DB implementation
 ├── db2_evidence_loader_jdbc.py      # JDBC implementation
-├── db2_evidence_usage.py            # Usage examples
 ├── db2_schema.sql                   # Database schema DDL
 └── README.md                        # This file
 ```
@@ -319,7 +322,195 @@ db2_evidence_loader_jdbc.py
 
 ## 📝 Examples
 
-### Complete Example with Error Handling
+### Complete Example with Configuration File
+
+**config.yaml:**
+```yaml
+driver: jdbc
+schema: DEPLOYZ
+
+jdbc:
+  url: jdbc:db2://localhost:50000/DEPLOY
+  username: db2inst1
+  password: mypassword
+  driver_path: /opt/drivers/db2jcc4.jar
+
+logging:
+  level: INFO
+  file: evidence_loader.log
+
+options:
+  verbose: true
+```
+
+**Python script:**
+```python
+import sys
+from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python load_evidence.py <yaml_file>")
+        sys.exit(1)
+    
+    yaml_file = sys.argv[1]
+    
+    try:
+        # Load using config.yaml
+        loader = DB2EvidenceLoaderJDBC()
+        deploy_id = loader.load_evidence_file(yaml_file)
+        print(f"✓ Success! Deploy ID: {deploy_id}")
+        
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        sys.exit(1)
+    
+    finally:
+        if 'loader' in locals():
+            loader.close()
+
+if __name__ == "__main__":
+    main()
+```
+
+**Run:**
+```bash
+python load_evidence.py evidence.yml
+```
+
+### Multiple Configuration Files
+
+You can maintain different configurations for different environments:
+
+**config_dev.yaml:**
+```yaml
+driver: jdbc
+schema: DEPLOYZ
+
+jdbc:
+  url: jdbc:db2://dev-server:50000/DEPLOY
+  username: dev_user
+  password: dev_pass
+  driver_path: /opt/drivers/db2jcc4.jar
+```
+
+**config_prod.yaml:**
+```yaml
+driver: jdbc
+schema: DEPLOYZ
+
+jdbc:
+  url: jdbc:db2://prod-server:50000/DEPLOY
+  username: prod_user
+  password: ${PROD_PASSWORD}  # From environment
+  driver_path: /opt/drivers/db2jcc4.jar
+
+options:
+  stop_on_error: true
+```
+
+**Usage:**
+```bash
+# Development
+python db2_evidence_loader_jdbc.py evidence.yml config_dev.yaml
+
+# Production
+export PROD_PASSWORD=secret
+python db2_evidence_loader_jdbc.py evidence.yml config_prod.yaml
+```
+
+### Batch Processing Multiple Evidence Files
+
+```python
+import os
+import glob
+from db2_evidence_loader_jdbc import DB2EvidenceLoaderJDBC
+
+def load_all_evidence(evidence_dir, config_file='config.yaml'):
+    """Load all YAML evidence files from a directory"""
+    
+    # Create loader once
+    loader = DB2EvidenceLoaderJDBC(config_file=config_file)
+    
+    try:
+        # Find all YAML files
+        yaml_files = glob.glob(os.path.join(evidence_dir, '*.yml'))
+        
+        results = []
+        for yaml_file in yaml_files:
+            try:
+                print(f"Loading {yaml_file}...")
+                deploy_id = loader.load_evidence_file(yaml_file)
+                results.append((yaml_file, deploy_id, 'SUCCESS'))
+                print(f"  ✓ Deploy ID: {deploy_id}")
+            except Exception as e:
+                results.append((yaml_file, None, f'ERROR: {e}'))
+                print(f"  ✗ Error: {e}")
+        
+        # Summary
+        print(f"\n{'='*60}")
+        print(f"Loaded {sum(1 for r in results if r[2] == 'SUCCESS')} / {len(results)} files")
+        print(f"{'='*60}")
+        
+        return results
+        
+    finally:
+        loader.close()
+
+# Usage
+if __name__ == "__main__":
+    results = load_all_evidence('/path/to/evidence_files')
+```
+
+### Error Handling and Logging
+
+```python
+import logging
+from db2_evidence_loader_ibm import DB2EvidenceLoaderIBM
+
+# Configure detailed logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('evidence_loader.log'),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+def load_with_retry(yaml_file, config_file='config.yaml', max_retries=3):
+    """Load evidence with retry logic"""
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            logger.info(f"Attempt {attempt}/{max_retries} to load {yaml_file}")
+            
+            loader = DB2EvidenceLoaderIBM(config_file=config_file)
+            deploy_id = loader.load_evidence_file(yaml_file)
+            loader.close()
+            
+            logger.info(f"Successfully loaded (Deploy ID: {deploy_id})")
+            return deploy_id
+            
+        except Exception as e:
+            logger.error(f"Attempt {attempt} failed: {e}")
+            if attempt == max_retries:
+                logger.error(f"All {max_retries} attempts failed")
+                raise
+            
+            # Wait before retry
+            import time
+            time.sleep(2 ** attempt)  # Exponential backoff
+
+# Usage
+deploy_id = load_with_retry('evidence.yml')
+```
+
+---
+
+## 🔧 Troubleshooting
 
 ```python
 import sys
