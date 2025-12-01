@@ -47,7 +47,6 @@ The project uses a **Template Method** pattern with:
 - Same artifact path = same artifact (reused across multiple steps)
 - Many-to-many relationship between STEP and ARTIFACT via `STEP_ARTIFACT` junction table
 - When an artifact with the same path is encountered, the existing artifact is linked instead of creating a duplicate
-- The `ARTIFACT_HASH` field has been removed from the schema
 
 ---
 
@@ -79,7 +78,7 @@ DEPLOY (1) ──┬──→ ACTIVITY (N) ──┬──→ ACTION (N) ──�
 ```
 
 **Key Points:**
-- **ARTIFACT** table stores unique artifacts identified by `ARTIFACT_PATH`
+- **ARTIFACT** table stores unique artifacts identified by `ARTIFACT_PATH` for a given application name
 - **STEP_ARTIFACT** junction table creates many-to-many relationship
 - Same artifact can be used by multiple steps (no duplication)
 - Constraint: `UNIQUE (ARTIFACT_PATH)` ensures artifact uniqueness
@@ -339,17 +338,12 @@ python3 db2_evidence_jdbc.py evidences.yml my_config.yaml
 ## Querying Samples
 
 ```sql
--- List all deployments in a specific environment
-SELECT DEPLOY_ID, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP, STATUS
-FROM DEPLOYZ.DEPLOY
-WHERE ENVIRONMENT_NAME = 'PROD'
-ORDER BY DEPLOY_TIMESTAMP DESC;
-
--- List all artifacts deployed in a specific environment
-SELECT DISTINCT art.ARTIFACT_ID,
-                art.ARTIFACT_NAME,
-                art.ARTIFACT_TYPE,
-                art.ARTIFACT_PATH
+-- Lists all artifacts deployed in a specific environment, including the application name and versionSELECT DISTINCT 
+    d.APPLICATION_NAME,
+    d.APPLICATION_VERSION,
+    art.ARTIFACT_NAME,
+    art.ARTIFACT_TYPE,
+    art.ARTIFACT_PATH
 FROM DEPLOYZ.DEPLOY d
 JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
 JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
@@ -357,16 +351,15 @@ JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
 JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
 JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
 WHERE d.ENVIRONMENT_NAME = 'PROD'
-ORDER BY art.ARTIFACT_NAME;
+ORDER BY d.APPLICATION_NAME, d.APPLICATION_VERSION, art.ARTIFACT_NAME;
 
--- In which environments is the artifact named "LGACDB02" deployed?
+-- In which environments is the artifact named "LGACDB02" deployed
 SELECT DISTINCT 
-       d.ENVIRONMENT_NAME,
-       d.DEPLOY_TIMESTAMP,
-       act.ACTIVITY_NAME,
-       a.ACTION_NAME,
-       s.STEP_NAME,
-       art.ARTIFACT_TYPE
+    d.ENVIRONMENT_NAME,
+    d.APPLICATION_NAME,
+    d.APPLICATION_VERSION,
+    d.DEPLOY_TIMESTAMP,
+    d.STATUS AS DEPLOY_STATUS
 FROM DEPLOYZ.DEPLOY d
 JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
 JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
@@ -374,24 +367,25 @@ JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
 JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
 JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
 WHERE art.ARTIFACT_NAME = 'LGACDB02'
-ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP
+ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP DESC;
 
--- In which environments is the artifact named "LGACDB02" of type "CICSLOAD" deployed?
+-- In which environments is the artifact named "LGACDB02" of type "CICSLOAD" deployed
 SELECT DISTINCT 
-       d.ENVIRONMENT_NAME,
-       d.DEPLOY_TIMESTAMP,
-       act.ACTIVITY_NAME,
-       a.ACTION_NAME,
-       s.STEP_NAME,
-       art.ARTIFACT_TYPE
+    d.ENVIRONMENT_NAME,
+    d.APPLICATION_NAME,
+    d.APPLICATION_VERSION,
+    d.DEPLOY_TIMESTAMP,
+    d.STATUS AS DEPLOY_STATUS,
+    art.ARTIFACT_PATH
 FROM DEPLOYZ.DEPLOY d
 JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
 JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
 JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
 JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
 JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
-WHERE art.ARTIFACT_NAME = 'LGACDB02' and art.ARTIFACT_TYPE = 'CICSLOAD'
-ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP
+WHERE art.ARTIFACT_NAME = 'LGACDB02'
+  AND art.ARTIFACT_TYPE = 'CICSLOAD'
+ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP DESC;
 
 -- List the properties (PROPERTIES) of an activity for a deployment with a specific DEPLOY_TIMESTAMP
 SELECT 
@@ -404,7 +398,7 @@ JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
 JOIN DEPLOYZ.PROPERTIES p 
     ON p.ENTITY_TYPE = 'ACTIVITY' 
    AND p.ENTITY_ID = act.ACTIVITY_ID
-WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-27 12:26:21.0')
+WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-12 13:22:35.0')
 ORDER BY act.ACTIVITY_ID, p.PROPERTY_KEY;
 
 -- List the properties of a specific artifact (by name and type) for a given deployment timestamp
@@ -432,7 +426,7 @@ JOIN DEPLOYZ.PROPERTIES p
     ON p.ENTITY_TYPE = 'ARTIFACT'
    AND p.ENTITY_ID = art.ARTIFACT_ID
    AND p.DEPLOY_ID = d.DEPLOY_ID
-WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-27 12:26:21.0') and art.ARTIFACT_NAME = 'LGACDB02'
+WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-12 13:22:35.0') and art.ARTIFACT_NAME = 'LGACDB02'
 ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
 
 

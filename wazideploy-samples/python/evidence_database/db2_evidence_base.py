@@ -30,6 +30,7 @@ class DB2EvidenceLoaderBase(ABC):
         self.schema = schema
         self.conn = None
         self.cursor = None
+        self.current_application_name = None  # Track current application
 
     @abstractmethod
     def _init_connection(self, *args, **kwargs):
@@ -93,16 +94,21 @@ class DB2EvidenceLoaderBase(ABC):
         engine = annotations.get('engine', {})
         package = annotations.get('package', {})
 
+        # Extract application name from metadata
+        self.current_application_name = metadata.get('name', 'NONAME')
+
         sql = f"""
         INSERT INTO {self.schema}.DEPLOY (
-            DESCRIPTION, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP,
+            DESCRIPTION, APPLICATION_NAME, APPLICATION_VERSION, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP,
             CREATION_TIMESTAMP, STATUS, ENGINE_VERSION, ENGINE_BUILD,
             ENGINE_DATE, PACKAGE_PATH, PACKAGE_SHA256
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         params = [
             metadata.get('description', ''),
+            self.current_application_name,
+            metadata.get('version', '1.0.0'),
             annotations.get('environment_name', ''),
             self.parse_timestamp(annotations.get('deploy_timestamp', '')),
             self.parse_timestamp(annotations.get('creation_timestamp', '')),
@@ -124,10 +130,15 @@ class DB2EvidenceLoaderBase(ABC):
         Insert a property into the generic PROPERTIES table
         
         Args:
-            entity_type: Type of entity ('ACTIVITY', 'ACTION', or 'STEP')
+            entity_type: Type of entity ('ACTIVITY', 'ACTION', 'STEP', or 'ARTIFACT')
             entity_id: ID of the entity
+            deploy_id: ID of the deployment
             prop: Dictionary containing 'key' and 'value'
         """
+        # Skip wd_manifest_index property
+        if prop.get('key', '') == 'wd_manifest_index':
+            return
+
         sql = f"""
         INSERT INTO {self.schema}.PROPERTIES (ENTITY_TYPE, ENTITY_ID, PROPERTY_KEY, PROPERTY_VALUE, DEPLOY_ID)
         VALUES (?, ?, ?, ?, ?)
@@ -255,11 +266,12 @@ class DB2EvidenceLoaderBase(ABC):
 
     def insert_artifact(self, step_id: int, deploy_id: int, artifact: Dict[str, Any]) -> int:
         """
-        Insert an artifact or return existing artifact_id if path already exists
-        Uniqueness is based on ARTIFACT_PATH
+        Insert an artifact or return existing artifact_id if path already exists for this application
+        Uniqueness is based on APPLICATION_NAME + ARTIFACT_PATH
         
         Args:
             step_id: Parent step ID
+            deploy_id: Parent deployment ID
             artifact: Artifact dictionary
             
         Returns:
@@ -269,19 +281,19 @@ class DB2EvidenceLoaderBase(ABC):
         properties = {prop['key']: prop['value'] for prop in artifact.get('properties', [])}
         artifact_path = properties.get('path', '')
 
-        # Check if artifact with this path already exists
+        # Check if artifact with this path already exists for this application
         check_sql = f"""
         SELECT ARTIFACT_ID FROM {self.schema}.ARTIFACT 
-        WHERE ARTIFACT_PATH = ?
+        WHERE APPLICATION_NAME = ? AND ARTIFACT_PATH = ?
         """
 
-        self._execute(check_sql, [artifact_path])
+        self._execute(check_sql, [self.current_application_name, artifact_path])
         existing = self.cursor.fetchone()
 
         if existing:
-            # Artifact already exists, return existing ID
+            # Artifact already exists for this application, return existing ID
             artifact_id = existing[0]
-            print(f"        Artifact already exists: {artifact_path} (ID: {artifact_id})")
+            print(f"        Artifact already exists for {self.current_application_name}: {artifact_path} (ID: {artifact_id})")
 
             # Insert properties using generic table
             for prop in artifact.get('properties', []):
@@ -294,11 +306,12 @@ class DB2EvidenceLoaderBase(ABC):
         # Insert new artifact
         sql = f"""
         INSERT INTO {self.schema}.ARTIFACT (
-            ARTIFACT_NAME, ARTIFACT_PATH, ARTIFACT_TYPE
-        ) VALUES (?, ?, ?)
+            APPLICATION_NAME, ARTIFACT_NAME, ARTIFACT_PATH, ARTIFACT_TYPE
+        ) VALUES (?, ?, ?, ?)
         """
 
         params = [
+            self.current_application_name,
             artifact.get('name', ''),
             artifact_path,
             properties.get('type', '')
@@ -390,9 +403,9 @@ class DB2EvidenceLoaderBase(ABC):
 
         print(f"Loading evidence: {evidence['metadata']['name']}")
 
-        # Insert main deployment
+        # Insert main deployment (sets self.current_application_name)
         deploy_id = self.insert_deploy(evidence)
-        print(f"  Deploy ID created: {deploy_id}")
+        print(f"  Deploy ID created: {deploy_id} for application: {self.current_application_name}")
 
         # Process activities
         for activity in evidence.get('activities', []):

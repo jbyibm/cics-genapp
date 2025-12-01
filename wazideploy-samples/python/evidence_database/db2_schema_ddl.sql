@@ -17,6 +17,8 @@
 CREATE TABLE DEPLOYZ.DEPLOY (
     DEPLOY_ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
     DESCRIPTION VARCHAR(1000),
+    APPLICATION_NAME VARCHAR(255),
+    APPLICATION_VERSION VARCHAR(50),
     ENVIRONMENT_NAME VARCHAR(255),
     DEPLOY_TIMESTAMP TIMESTAMP,
     CREATION_TIMESTAMP TIMESTAMP,
@@ -92,22 +94,23 @@ CREATE INDEX DEPLOYZ.IDX_STEP_ACTION ON DEPLOYZ.STEP(ACTION_ID);
 COMMENT ON TABLE DEPLOYZ.STEP IS 'Deployment steps';
 
 -- =============================================================================
--- 5. ARTIFACT TABLE (Unique artifacts by PATH)
+-- 5. ARTIFACT TABLE (Unique artifacts by APPLICATION_NAME + PATH)
 -- =============================================================================
 
 CREATE TABLE DEPLOYZ.ARTIFACT (
     ARTIFACT_ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+    APPLICATION_NAME VARCHAR(255) NOT NULL,
     ARTIFACT_NAME VARCHAR(255),
     ARTIFACT_PATH VARCHAR(1000) NOT NULL,
     ARTIFACT_TYPE VARCHAR(100),
     PRIMARY KEY (ARTIFACT_ID),
-    CONSTRAINT UQ_ARTIFACT_PATH UNIQUE (ARTIFACT_PATH)
+    CONSTRAINT UQ_ARTIFACT_APP_PATH UNIQUE (APPLICATION_NAME, ARTIFACT_PATH)
 );
 
-CREATE UNIQUE INDEX DEPLOYZ.IDX_ARTIFACT_PATH ON DEPLOYZ.ARTIFACT(ARTIFACT_PATH);
 
-COMMENT ON TABLE DEPLOYZ.ARTIFACT IS 'Unique artifacts identified by their path';
-COMMENT ON COLUMN DEPLOYZ.ARTIFACT.ARTIFACT_PATH IS 'Unique path to the artifact (enforces uniqueness)';
+COMMENT ON TABLE DEPLOYZ.ARTIFACT IS 'Unique artifacts identified by application name and path';
+COMMENT ON COLUMN DEPLOYZ.ARTIFACT.APPLICATION_NAME IS 'Application name - part of uniqueness constraint';
+COMMENT ON COLUMN DEPLOYZ.ARTIFACT.ARTIFACT_PATH IS 'Path to the artifact - unique within application';
 
 -- =============================================================================
 -- 6. STEP_ARTIFACT TABLE (Many-to-Many relationship)
@@ -179,22 +182,24 @@ COMMENT ON TABLE DEPLOYZ.STEP_RESULT_DETAIL IS 'Detailed results for each step';
 -- VIEWS FOR EASIER QUERYING
 -- =============================================================================
 
--- View: All artifacts with their usage count
+-- View: All artifacts with their usage count per application
 CREATE VIEW DEPLOYZ.V_ARTIFACT_USAGE AS
 SELECT 
     a.ARTIFACT_ID,
+    a.APPLICATION_NAME,
     a.ARTIFACT_NAME,
     a.ARTIFACT_PATH,
     a.ARTIFACT_TYPE,
     COUNT(DISTINCT sa.STEP_ID) AS USAGE_COUNT
 FROM DEPLOYZ.ARTIFACT a
 LEFT JOIN DEPLOYZ.STEP_ARTIFACT sa ON a.ARTIFACT_ID = sa.ARTIFACT_ID
-GROUP BY a.ARTIFACT_ID, a.ARTIFACT_NAME, a.ARTIFACT_PATH, a.ARTIFACT_TYPE;
+GROUP BY a.ARTIFACT_ID, a.APPLICATION_NAME, a.ARTIFACT_NAME, a.ARTIFACT_PATH, a.ARTIFACT_TYPE;
 
 -- View: Complete deployment hierarchy
 CREATE VIEW DEPLOYZ.V_DEPLOYMENT_HIERARCHY AS
 SELECT 
     d.DEPLOY_ID,
+    d.APPLICATION_NAME,
     d.ENVIRONMENT_NAME,
     d.DEPLOY_TIMESTAMP,
     d.STATUS AS DEPLOY_STATUS,
@@ -219,6 +224,7 @@ SELECT
     s.STEP_NAME,
     s.STATUS AS STEP_STATUS,
     art.ARTIFACT_ID,
+    art.APPLICATION_NAME,
     art.ARTIFACT_NAME,
     art.ARTIFACT_PATH,
     art.ARTIFACT_TYPE
@@ -226,26 +232,6 @@ FROM DEPLOYZ.STEP s
 INNER JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
 INNER JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID;
 
-
--- =============================================================================
--- SAMPLE QUERIES
--- =============================================================================
-
--- Find all deployments for a specific environment
--- SELECT * FROM DEPLOYZ.DEPLOY WHERE ENVIRONMENT_NAME = 'PRODUCTION';
-
--- Find all artifacts used more than once (shared artifacts)
--- SELECT * FROM DEPLOYZ.V_ARTIFACT_USAGE WHERE USAGE_COUNT > 1;
-
--- Find all steps that use a specific artifact
--- SELECT s.* 
--- FROM DEPLOYZ.STEP s
--- INNER JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
--- INNER JOIN DEPLOYZ.ARTIFACT a ON sa.ARTIFACT_ID = a.ARTIFACT_ID
--- WHERE a.ARTIFACT_PATH = '/path/to/artifact';
-
--- Find deployment hierarchy for specific deploy
--- SELECT * FROM DEPLOYZ.V_DEPLOYMENT_HIERARCHY WHERE DEPLOY_ID = 1;
 
 -- =============================================================================
 -- GRANTS (adjust as needed for your security model)
