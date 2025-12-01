@@ -11,11 +11,7 @@
 
 # =============================================================================
 # Database Configuration
-# Choose one: 'ibm_db' or 'jdbc'
 # =============================================================================
-
-# Driver type: ibm_db or jdbc
-driver: jdbc
 
 # Database schema
 schema: DEPLOYZ

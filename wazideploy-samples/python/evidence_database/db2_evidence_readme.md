@@ -153,6 +153,8 @@ db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABN
 -- V_ARTIFACT_USAGE
 -- V_DEPLOYMENT_HIERARCHY
 -- V_STEP_ARTIFACTS
+
+  11 record(s) selected.
 ```
 
 ## Installation and Configuration
@@ -232,8 +234,6 @@ pip install jaydebeapi --index-url https://downloads.pyaitoolkit.ibm.net:443/rep
 Update the `db2_config.yaml` file with your database connection settings:
 
 ```yaml
-# Driver selection: ibm_db or jdbc
-driver: ibm_db
 
 # Database schema
 schema: DEPLOYZ
@@ -339,6 +339,7 @@ python3 db2_evidence_jdbc.py evidences.yml my_config.yaml
 
 ```sql
 -- Lists all artifacts deployed in a specific environment, including the application name and versionSELECT DISTINCT 
+SELECT DISTINCT 
     d.APPLICATION_NAME,
     d.APPLICATION_VERSION,
     art.ARTIFACT_NAME,
