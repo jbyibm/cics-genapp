@@ -357,6 +357,22 @@ ORDER BY s.STEP_ID, srd.RESULT_ID;
 -- Logic: Last action on each artifact determines its status
 -- =============================================================================
 
+-- =============================================================================
+-- Production Artifacts - MEMBER_DELETE has priority except if MEMBER_COPY after
+-- Logic: 
+--   1. If MEMBER_COPY appears after MEMBER_DELETE -> DEPLOYED
+--   2. If MEMBER_DELETE appears and no MEMBER_COPY after -> DELETED
+--   3. Otherwise -> DEPLOYED (based on last action)
+-- =============================================================================
+
+-- =============================================================================
+-- Production Artifacts - MEMBER_DELETE has priority except if MEMBER_COPY after
+-- Logic based on BUILDING_BLOC field:
+--   1. If MEMBER_COPY appears after MEMBER_DELETE -> DEPLOYED
+--   2. If MEMBER_DELETE appears and no MEMBER_COPY after -> DELETED
+--   3. Otherwise -> DEPLOYED (based on last action)
+-- =============================================================================
+
 WITH ARTIFACT_TIMELINE AS (
     -- Get ALL actions on artifacts with their chronological order
     SELECT 
@@ -368,8 +384,9 @@ WITH ARTIFACT_TIMELINE AS (
         d.DEPLOY_ID,
         d.DEPLOY_TIMESTAMP,
         s.STEP_NAME,
+        s.BUILDING_BLOC,
         CASE 
-            WHEN s.STEP_NAME = 'MEMBER_DELETE' THEN 'DELETED'
+            WHEN s.BUILDING_BLOC = 'MEMBER_DELETE' THEN 'DELETED'
             ELSE 'DEPLOYED'
         END AS ACTION_TYPE,
         ROW_NUMBER() OVER (
@@ -382,7 +399,27 @@ WITH ARTIFACT_TIMELINE AS (
     INNER JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
     INNER JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
     INNER JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
-    WHERE d.ENVIRONMENT_NAME = 'DEMO'
+    WHERE d.ENVIRONMENT_NAME = 'PROD'
+),
+ARTIFACT_STATUS AS (
+    SELECT 
+        APPLICATION_NAME,
+        ARTIFACT_ID,
+        ARTIFACT_NAME,
+        ARTIFACT_PATH,
+        ARTIFACT_TYPE,
+        DEPLOY_TIMESTAMP AS LAST_ACTION_DATE,
+        BUILDING_BLOC AS LAST_BUILDING_BLOC,
+        -- Check if MEMBER_DELETE exists for this artifact
+        MAX(CASE WHEN ACTION_TYPE = 'DELETED' THEN 1 ELSE 0 END) OVER (PARTITION BY ARTIFACT_ID) AS HAS_MEMBER_DELETE,
+        -- Check if MEMBER_COPY appears AFTER MEMBER_DELETE
+        MAX(CASE WHEN BUILDING_BLOC = 'MEMBER_COPY' AND ACTION_TYPE = 'DEPLOYED' THEN 1 ELSE 0 END) OVER (
+            PARTITION BY ARTIFACT_ID 
+            ORDER BY DEPLOY_TIMESTAMP DESC 
+            ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+        ) AS HAS_MEMBER_COPY_AFTER_DELETE
+    FROM ARTIFACT_TIMELINE
+    WHERE RECENCY_RANK = 1
 )
 SELECT 
     APPLICATION_NAME,
@@ -390,12 +427,17 @@ SELECT
     ARTIFACT_NAME,
     ARTIFACT_PATH,
     ARTIFACT_TYPE,
-    ACTION_TYPE AS STATUS,
-    DEPLOY_TIMESTAMP AS LAST_ACTION_DATE,
-    STEP_NAME AS LAST_STEP
-FROM ARTIFACT_TIMELINE
-WHERE RECENCY_RANK = 1
+    CASE 
+        WHEN HAS_MEMBER_DELETE = 1 AND HAS_MEMBER_COPY_AFTER_DELETE = 0 THEN 'DELETED'
+        ELSE 'DEPLOYED'
+    END AS STATUS,
+    LAST_ACTION_DATE,
+    LAST_BUILDING_BLOC
+FROM ARTIFACT_STATUS
 ORDER BY 
     APPLICATION_NAME,
-    CASE WHEN ACTION_TYPE = 'DEPLOYED' THEN 0 ELSE 1 END,
+    CASE 
+        WHEN HAS_MEMBER_DELETE = 1 AND HAS_MEMBER_COPY_AFTER_DELETE = 0 THEN 1 
+        ELSE 0 
+    END DESC,
     ARTIFACT_NAME;
