@@ -2,6 +2,8 @@ rules:
   # ZCodeScan Rules
   - id: zcodescan.cobol.rules.CallSyntaxRule
     severity: INFO
+  - id: zcodescan.cobol.rules.ProgramIdRule
+    severity: HIGH
   - id: zcodescan.cobol.rules.RestrictedRoutineRule
     severity: HIGH
     statements:
