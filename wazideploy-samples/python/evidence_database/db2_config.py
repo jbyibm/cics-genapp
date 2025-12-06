@@ -78,7 +78,7 @@ class DB2Config:
     @property
     def driver(self) -> str:
         """Get selected driver: 'ibm_db' or 'jdbc'"""
-        return self.config.get('driver', 'jdbc')
+        return self.config.get('driver', 'ibm_db')
 
     @property
     def schema(self) -> str:

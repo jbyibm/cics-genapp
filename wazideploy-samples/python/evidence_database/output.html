@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JSON Table</title>
+
+  <!-- IBM Carbon CSS (via CDN) -->
+  <link rel="stylesheet" href="https://unpkg.com/carbon-components/css/carbon-components.min.css" />
+
+  <!-- Optional: IBM Plex font (Carbon often uses it) -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* Small layout helpers - Carbon provides most visual styling */
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f4f6f8;
+      padding: 32px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .card-header h1 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .meta {
+      font-size: 0.875rem;
+      color: #525252;
+    }
+
+    /* Make table horizontally scrollable on small viewports */
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    /* Small padding tweak for carbon table cells so content breathes */
+    .bx--table-header,
+    .bx--table-column {
+      padding: 12px 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h1>JSON Table</h1>
+        <div class="meta">3 row(s) • 6 column(s)</div>
+      </div>
+      <div class="card-body">
+        <!-- Carbon data table container -->
+        <div class="bx--data-table-container table-scroll" data-table>
+          <table class="bx--data-table" data-table>
+            <thead class="bx--data-table-header">
+              <tr class="bx--table-head-row">
+                  <th scope="col" class="bx--table-header">ARTIFACT_ID</th>
+                  <th scope="col" class="bx--table-header">ARTIFACT_NAME</th>
+                  <th scope="col" class="bx--table-header">ARTIFACT_PATH</th>
+                  <th scope="col" class="bx--table-header">ARTIFACT_TYPE</th>
+                  <th scope="col" class="bx--table-header">USAGE_COUNT</th>
+                  <th scope="col" class="bx--table-header">DEPLOYMENT_COUNT</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr class="bx--table-row">
+                  <td class="bx--table-column">1</td>
+                  <td class="bx--table-column">LGIPOL01</td>
+                  <td class="bx--table-column">CICSLOAD/LGIPOL01.CICSLOAD</td>
+                  <td class="bx--table-column">CICSLOAD</td>
+                  <td class="bx--table-column">21</td>
+                  <td class="bx--table-column">7</td>
+                </tr>
+                <tr class="bx--table-row">
+                  <td class="bx--table-column">3</td>
+                  <td class="bx--table-column">LGACDB02</td>
+                  <td class="bx--table-column">DBRM/LGACDB02.DBRM</td>
+                  <td class="bx--table-column">DBRM</td>
+                  <td class="bx--table-column">21</td>
+                  <td class="bx--table-column">6</td>
+                </tr>
+                <tr class="bx--table-row">
+                  <td class="bx--table-column">2</td>
+                  <td class="bx--table-column">LGACDB02</td>
+                  <td class="bx--table-column">CICSLOAD/LGACDB02.CICSLOAD</td>
+                  <td class="bx--table-column">CICSLOAD</td>
+                  <td class="bx--table-column">15</td>
+                  <td class="bx--table-column">6</td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer" style="padding:12px 16px; border-top:1px solid #eee; font-size:0.875rem; color:#666;">
+        Generated on 12/06/2025 00:26:44
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional: include Carbon JS if you want interactive components (data-table behaviors, etc.) -->
+  <!-- <script src="https://unpkg.com/carbon-components/scripts/carbon-components.min.js"></script> -->
+</body>
+</html>
