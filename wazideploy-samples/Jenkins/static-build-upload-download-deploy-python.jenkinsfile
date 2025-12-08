@@ -142,7 +142,7 @@ pipeline {
                             then
                                 export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
                                 CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
-                                    ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
+                                    /SYSTEM/${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
                                     --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
                                     ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
                                     --application ${APP_NAME} --sourceDir ${WORKSPACE} --preview"
