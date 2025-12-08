@@ -2,8 +2,8 @@
 def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'wazideploy-e2e-pipeline'
 
 // DBB Git repositories (For DBB 3.x)
-//def zAppBuildGitRepo = 'https://github.com/IBM/dbb-zappbuild.git'
-def zAppBuildGitRepo = 'https://github.com/jbyibm/dbb-zappbuild.git'
+def zAppBuildGitRepo = 'https://github.com/IBM/dbb-zappbuild.git'
+//def zAppBuildGitRepo = 'https://github.com/jbyibm/dbb-zappbuild.git'
 def zAppBuildGitBranch = 'main'
 def dbbGitRepo = 'https://github.com/IBM/dbb.git'
 def dbbGitBranch = 'main'
@@ -31,7 +31,7 @@ pipeline {
         GROOVYZ_BUILD_EXTRA_OPTS = "${env.GROOVYZ_BUILD_EXTRA_OPTS ? env.GROOVYZ_BUILD_EXTRA_OPTS : ''}"
         DBB_BUILD_EXTRA_OPTS = "${env.DBB_BUILD_EXTRA_OPTS ? env.DBB_BUILD_EXTRA_OPTS : ''}"
         PYTHON_INTERPRETER = "${env.PYTHON_INTERPRETER ? env.PYTHON_INTERPRETER : '/usr/lpp/IBM/cyp/v3r10/pyz/bin/python3'}"
-        ZOAU_HOME ="${env.ZOAU_HOME ? env.ZOAU_HOME : '/var/usr/lpp/IBM/zoautil/v1.3.4.0'}"
+        ZOAU_HOME ="${env.ZOAU_HOME ? env.ZOAU_HOME : '/usr/lpp/IBM/zoautil'}"
         ARTIFACTORY_URL  = "${env.ARTIFACTORY_URL  ? env.ARTIFACTORY_URL : 'https://example.com/artifactory'}"
         ARTIFACTORY_CRED_ID = "${env.ARTIFACTORY_CRED_ID ? env.ARTIFACTORY_CRED_ID : 'artifactory_id'}"
         ARTIFACTORY_REPO = "${env.ARTIFACTORY_REPO  ? env.ARTIFACTORY_REPO : 'repository'}"
@@ -42,8 +42,8 @@ pipeline {
      
      parameters {
        string(defaultValue: "1.0", description: 'Release Version.', name: 'RELEASE_VERSION')
-       choice(choices: ["impact", "full"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
-       choice(choices: ["TEST", "PROD"], description: 'Targeted Environment.', name: 'TARGET_ENV')
+       choice(choices: ["impact", "full", "--impactBuild", "--fullBuild"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
+       booleanParam(defaultValue: false, description: 'Rolling back the prevouis deployment', name: 'ROLLING_BACK')
        booleanParam(defaultValue: false, description: 'Display verbose output', name: 'VERBOSE')
     }
 
@@ -302,7 +302,6 @@ pipeline {
                                     --envFile   ${WORKSPACE}/${APP_NAME}/wazideploy-samples/external-repos/environment-conf/python/${WD_DEPLOY_ENV_FILE}\
                                     --evidencesFileName ${WORKSPACE}/evidences/data/BUILD-${BUILD_NUMBER}-evidence.yml\
                                     --workingFolder ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy -e git_env_source=${WORKSPACE}/${APP_NAME}\
-                                    -e target_environment=${TARGET_ENV} \
                                     -e working_folder=${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy"
                             else
                                 CMD="wazideploy-deploy\
@@ -311,7 +310,6 @@ pipeline {
                                     --evidencesFileName ${WORKSPACE}/evidences/data/BUILD-${BUILD_NUMBER}-evidence.yml\
                                     --workingFolder ${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy\
                                     --planTags restore -e git_env_source=${WORKSPACE}/${APP_NAME}\
-                                    -e target_environment=${TARGET_ENV} \
                                     -e working_folder=${WORKSPACE}/BUILD-${BUILD_NUMBER}/deploy"
                             fi
                             echo $CMD
