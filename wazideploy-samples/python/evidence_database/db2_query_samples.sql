@@ -367,7 +367,7 @@ ORDER BY s.STEP_ID, srd.RESULT_ID;
 
 -- =============================================================================
 -- Production Artifacts - MEMBER_DELETE has priority except if MEMBER_COPY after
--- Logic based on BUILDING_BLOC field:
+-- Logic based on BUILDING_BLOCK field:
 --   1. If MEMBER_COPY appears after MEMBER_DELETE -> DEPLOYED
 --   2. If MEMBER_DELETE appears and no MEMBER_COPY after -> DELETED
 --   3. Otherwise -> DEPLOYED (based on last action)
@@ -384,9 +384,9 @@ WITH ARTIFACT_TIMELINE AS (
         d.DEPLOY_ID,
         d.DEPLOY_TIMESTAMP,
         s.STEP_NAME,
-        s.BUILDING_BLOC,
+        s.BUILDING_BLOCK,
         CASE 
-            WHEN s.BUILDING_BLOC = 'MEMBER_DELETE' THEN 'DELETED'
+            WHEN s.BUILDING_BLOCK = 'MEMBER_DELETE' THEN 'DELETED'
             ELSE 'DEPLOYED'
         END AS ACTION_TYPE,
         ROW_NUMBER() OVER (
@@ -409,11 +409,11 @@ ARTIFACT_STATUS AS (
         ARTIFACT_PATH,
         ARTIFACT_TYPE,
         DEPLOY_TIMESTAMP AS LAST_ACTION_DATE,
-        BUILDING_BLOC AS LAST_BUILDING_BLOC,
+        BUILDING_BLOCK AS LAST_BUILDING_BLOCK,
         -- Check if MEMBER_DELETE exists for this artifact
         MAX(CASE WHEN ACTION_TYPE = 'DELETED' THEN 1 ELSE 0 END) OVER (PARTITION BY ARTIFACT_ID) AS HAS_MEMBER_DELETE,
         -- Check if MEMBER_COPY appears AFTER MEMBER_DELETE
-        MAX(CASE WHEN BUILDING_BLOC = 'MEMBER_COPY' AND ACTION_TYPE = 'DEPLOYED' THEN 1 ELSE 0 END) OVER (
+        MAX(CASE WHEN BUILDING_BLOCK = 'MEMBER_COPY' AND ACTION_TYPE = 'DEPLOYED' THEN 1 ELSE 0 END) OVER (
             PARTITION BY ARTIFACT_ID 
             ORDER BY DEPLOY_TIMESTAMP DESC 
             ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
@@ -432,7 +432,7 @@ SELECT
         ELSE 'DEPLOYED'
     END AS STATUS,
     LAST_ACTION_DATE,
-    LAST_BUILDING_BLOC
+    LAST_BUILDING_BLOCK
 FROM ARTIFACT_STATUS
 ORDER BY 
     APPLICATION_NAME,
@@ -455,9 +455,9 @@ WITH ARTIFACT_TIMELINE AS (
         d.DEPLOY_ID,
         d.DEPLOY_TIMESTAMP,
         s.STEP_NAME,
-        s.BUILDING_BLOC,
+        s.BUILDING_BLOCK,
         CASE 
-            WHEN s.BUILDING_BLOC = 'MEMBER_DELETE' THEN 'DELETED'
+            WHEN s.BUILDING_BLOCK = 'MEMBER_DELETE' THEN 'DELETED'
             ELSE 'DEPLOYED'
         END AS ACTION_TYPE,
         ROW_NUMBER() OVER (
@@ -480,10 +480,10 @@ ARTIFACT_STATUS AS (
         ARTIFACT_PATH,
         ARTIFACT_TYPE,
         DEPLOY_TIMESTAMP AS LAST_ACTION_DATE,
-        BUILDING_BLOC AS LAST_BUILDING_BLOC,
+        BUILDING_BLOCK AS LAST_BUILDING_BLOCK,
         MAX(CASE WHEN ACTION_TYPE = 'DELETED' THEN 1 ELSE 0 END) 
             OVER (PARTITION BY ARTIFACT_ID) AS HAS_MEMBER_DELETE,
-        MAX(CASE WHEN BUILDING_BLOC = 'MEMBER_COPY' AND ACTION_TYPE = 'DEPLOYED' THEN 1 ELSE 0 END)
+        MAX(CASE WHEN BUILDING_BLOCK = 'MEMBER_COPY' AND ACTION_TYPE = 'DEPLOYED' THEN 1 ELSE 0 END)
             OVER (
                 PARTITION BY ARTIFACT_ID 
                 ORDER BY DEPLOY_TIMESTAMP DESC 
@@ -505,7 +505,7 @@ ORDERED_DATA AS (
             ELSE 'DEPLOYED'
         END AS STATUS,
         LAST_ACTION_DATE,
-        LAST_BUILDING_BLOC
+        LAST_BUILDING_BLOCK
     FROM ARTIFACT_STATUS
     ORDER BY 
         APPLICATION_NAME,
@@ -517,14 +517,13 @@ ORDERED_DATA AS (
 )
 SELECT JSON_ARRAYAGG(
     JSON_OBJECT(
-        'application_name'   VALUE APPLICATION_NAME,
-        'artifact_id'        VALUE ARTIFACT_ID,
-        'artifact_name'      VALUE ARTIFACT_NAME,
-        'artifact_path'      VALUE ARTIFACT_PATH,
-        'artifact_type'      VALUE ARTIFACT_TYPE,
-        'status'             VALUE STATUS,
-        'last_action_date'   VALUE LAST_ACTION_DATE,
-        'last_building_bloc' VALUE LAST_BUILDING_BLOC
+        'artifact_id'         VALUE ARTIFACT_ID,
+        'artifact_name'       VALUE ARTIFACT_NAME,
+        'artifact_path'       VALUE ARTIFACT_PATH,
+        'artifact_type'       VALUE ARTIFACT_TYPE,
+        'status'              VALUE STATUS,
+        'last_action_date'    VALUE LAST_ACTION_DATE,
+        'last_building_block' VALUE LAST_BUILDING_BLOCK
     )
 )
 AS RESULT_JSON

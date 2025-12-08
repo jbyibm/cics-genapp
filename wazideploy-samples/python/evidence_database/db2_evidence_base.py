@@ -330,7 +330,7 @@ class DB2EvidenceLoaderBase(ABC):
         sql = f"""
         INSERT INTO {self.schema}.STEP (
             ACTION_ID, STEP_NAME, SHORT_NAME, DESCRIPTION,
-            STATUS, MESSAGE, BUILDING_BLOC
+            STATUS, MESSAGE, BUILDING_BLOCK
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
@@ -341,7 +341,7 @@ class DB2EvidenceLoaderBase(ABC):
             step.get('description', ''),
             step_result.get('status', ''),
             step_result.get('msg', ''),
-            step.get('building_bloc', '')[:100]
+            step.get('building_block', '')[:100]
         ]
 
         self._execute(sql, params)
