@@ -1,4 +1,5 @@
 // Agent labels
+def linuxAgent = 'jenkins_genapp'
 def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'wazideploy-e2e-pipeline'
 
 // DBB Git repositories (For DBB 3.x)
@@ -19,7 +20,7 @@ def srcGitBranch = null
 
 pipeline {
 
-    agent { label zOsAgentLabel }
+    agent { label linuxAgent }
     
     environment {
         APP_NAME = "${appName}"
@@ -95,6 +96,33 @@ pipeline {
                                         url: zAppBuildGitRepo,
                             ]]])
                     }
+                    node (zOsAgentLabel) {
+                        dir(appName) {
+                            srcGitRepo = scm.getUserRemoteConfigs()[0].getUrl()
+                            srcGitBranch = scm.branches[0].name
+                            if ( env.APP_GIT_BRANCH == null || env.APP_GIT_BRANCH == "") {
+                                srcGitBranch = scm.branches[0].name
+                                env.GIT_BRANCH = srcGitBranch
+                            } else
+                                srcGitBranch =  env.GIT_BRANCH
+                            def scmVars = null
+                            scmVars = checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
+                                                    doGenerateSubmoduleConfigurations: false,
+                                                    submoduleCfg: [],
+                                                    userRemoteConfigs: [[
+                                                                         url: srcGitRepo, credentialsId: gitCredId
+                                                                         ]]])
+                        }
+                        dir("dbb-zappbuild") {
+                            def scmVars =
+                                checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
+                                        doGenerateSubmoduleConfigurations: false,
+                                        submoduleCfg: [],
+                                        userRemoteConfigs: [[
+                                            url: zAppBuildGitRepo,
+                                ]]])
+                        }
+                     }
                 }
             }
         }
@@ -236,53 +264,59 @@ pipeline {
             }
             steps {
                 script{
-                    // DBB Build
-                    if ( env.DBB_BUILD_TYPE == null )
-                        env.DBB_BUILD_TYPE = "--fullBuild"
-                    def rc = sh (returnStatus: true, script: '''#!/bin/sh
-                            if [[ $DBB_BUILD_TYPE == *Build ]]
-                            then
-                                export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
-                                CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
-                                    ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
-                                    --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
-                                    ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
-                                    --application ${APP_NAME} --sourceDir ${WORKSPACE}"
-                                echo "$CMD"
-                                $CMD
-                                rc=$?
-                            else
-                                export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
-                                export DBB_CONF=${DBB_BUILD}
-                                export PATH=$DBB_HOME/bin:$PATH
-                                cd ${WORKSPACE}/${APP_NAME}
-                                CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
-                                         --config $DBB_BUILD/dbb-app.yaml\
-                                         --dbid db2inst1 --dbpf $HOME/password"
-                                mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                echo "$CMD"
-                                $CMD
-                                rc=$?
-                                mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                            fi
-                            exit $rc
-                        ''')
-                    if ( rc != 0 )
-                        error("DBB build failed!!!")
-
-                    def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
-                    // Do not enter into some steps if nothing in the build list
-                    hasBuildFiles = files.length > 0 && files[0].length > 0
+                  if ( hasBuildFiles ) {
+                    node (zOsAgentLabel) {
+                        // DBB Build
+                        if ( env.DBB_BUILD_TYPE == null )
+                            env.DBB_BUILD_TYPE = "--fullBuild"
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                if [[ $DBB_BUILD_TYPE == *Build ]]
+                                then
+                                    export DBB_CONF=${WORKSPACE}/${APP_NAME}/dbb-build
+                                    CMD="$DBB_HOME/bin/groovyz $GROOVYZ_BUILD_EXTRA_OPTS\
+                                        ${WORKSPACE}/dbb-zappbuild/build.groovy --logEncoding UTF-8 -w ${WORKSPACE}\
+                                        --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --hlq ${DBB_HLQ}\
+                                        ${DBB_BUILD_TYPE} ${BUILD_VERBOSE} ${DBB_BUILD_EXTRA_OPTS}\
+                                        --application ${APP_NAME} --sourceDir ${WORKSPACE}"
+                                    echo "$CMD"
+                                    $CMD
+                                    rc=$?
+                                else
+                                    export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
+                                    export DBB_CONF=${DBB_BUILD}
+                                    export PATH=$DBB_HOME/bin:$PATH
+                                    cd ${WORKSPACE}/${APP_NAME}
+                                    CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
+                                             --config $DBB_BUILD/dbb-app.yaml\
+                                             --dbid db2inst1 --dbpf $HOME/password"
+                                    mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                    echo "$CMD"
+                                    $CMD
+                                    rc=$?
+                                    mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                fi
+                                exit $rc
+                            ''')
+                        if ( rc != 0 )
+                            error("DBB build failed!!!")
+    
+                        def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
+                        // Do not enter into some steps if nothing in the build list
+                        hasBuildFiles = files.length > 0 && files[0].length > 0
+                     }
+                  }
                 }
             }
             post {
                 always {
-                    dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
-                        archiveArtifacts allowEmptyArchive: true,
-                                        artifacts: '**/*.log,**/*.json,**/*.html',
-                                        excludes: '**/*clist',
-                                        onlyIfSuccessful: false
-                    }
+                    node (zOsAgentLabel) {
+	                    dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
+	                        archiveArtifacts allowEmptyArchive: true,
+	                                        artifacts: '**/*.log,**/*.json,**/*.html',
+	                                        excludes: '**/*clist',
+	                                        onlyIfSuccessful: false
+	                    }
+	                }
                 }
             }
         }
@@ -296,6 +330,7 @@ pipeline {
             }
             steps {
                 script {
+                  node (zOsAgentLabel) {
                     if ( hasBuildFiles ) {
                         writeFile file: "${WORKSPACE}/BUILD-${BUILD_NUMBER}/config.yml", encoding: "UTF-8",
                         text:"""artifact_repository:
@@ -361,6 +396,7 @@ pipeline {
                         if ( rc != 0 )
                             error("Uploading Package failed!!!")
                      }
+                   }
                 }
             }
         }
@@ -371,6 +407,7 @@ pipeline {
             }
             steps {
                 script {
+                  node (zOsAgentLabel) {
                     if ( hasBuildFiles ) {
                         def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             if [ "$PYTHON_VIRTUAL_ENV_COMMAND" != "" ]
@@ -401,14 +438,16 @@ pipeline {
                         if ( rc != 0 )
                           error("Generation Of Deployment Scripts Failed!!!")
                      }
+                   }
                 }
             }
         }
         
         
-        stage('Deploy: Execute The Deployment With Python/ZOAU') {
+        stage('Deploy: Execute The Deployment With Python') {
             steps {
                 script {
+                  node (zOsAgentLabel) {
                     if ( hasBuildFiles ) {
                         if ( env.WD_DEPLOY_ENV_FILE == null )
                            env.WD_DEPLOY_ENV_FILE = "environment-zos.yml"
@@ -455,15 +494,18 @@ pipeline {
                       if ( rc != 0 )
                           error("Excecution Of Deployment Scripts Failed!!!")
                      }
+                   }
                 }
             }
             post {
                 always {
+                  node (zOsAgentLabel) {
                     dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
                         archiveArtifacts allowEmptyArchive: true,
                                         artifacts: '**/deployment-plan.yml,**/deployment-plan-report.html,**/evidence.yml',
                                         onlyIfSuccessful: false
                     }
+                  }
                 }
             }
         }
@@ -471,6 +513,7 @@ pipeline {
         stage('Deploy: Deployment Report') {
             steps {
                 script {
+                  node (zOsAgentLabel) {
                     if ( hasBuildFiles ) {
                         def rc = sh (returnStatus: true, script: '''#!/bin/sh
                             if [ "$PYTHON_VIRTUAL_ENV_COMMAND" != "" ]
@@ -512,15 +555,18 @@ pipeline {
                       if ( rc != 0 )
                           error("Excecution Of Deployment Report Failed!!!")
                      }
+                   }
                 }
             }
             post {
                 always {
+                  node (zOsAgentLabel) {
                     dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
                         archiveArtifacts allowEmptyArchive: true,
                                         artifacts: '**/deployment-report.html',
                                         onlyIfSuccessful: false
                     }
+                  }
                 }
             }
         }
