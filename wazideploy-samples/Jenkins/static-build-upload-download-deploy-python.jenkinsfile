@@ -42,8 +42,8 @@ pipeline {
      
      parameters {
        string(defaultValue: "1.0", description: 'Release Version.', name: 'RELEASE_VERSION')
-       choice(choices: ["impact", "full", "--impactBuild", "--fullBuild"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
-       booleanParam(defaultValue: false, description: 'Rolling back the prevouis deployment', name: 'ROLLING_BACK')
+       choice(choices: [ "--impactBuild", "--fullBuild", "impact", "full",], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
+       #booleanParam(defaultValue: false, description: 'Rolling back the prevouis deployment', name: 'ROLLING_BACK')
        booleanParam(defaultValue: false, description: 'Display verbose output', name: 'VERBOSE')
     }
 
