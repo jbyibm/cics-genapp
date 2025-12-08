@@ -1,11 +1,6 @@
 rules:
-
-  # ZCodeScan Rules
   - id: zcodescan.cobol.rules.ProgramIdRule
     severity: INFO
-    parameters:
-      - name: "Test"
-        value: "Test"
   - id: zcodescan.cobol.rules.CallSyntaxRule
     severity: INFO
   - id: zcodescan.cobol.rules.SqlWhereRule
@@ -71,22 +66,24 @@ rules:
   - id: zcodescan.cobol.rules.Level88Rule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.MultipleExitsRule
-    severity: MEDIUM    
+    severity: MEDIUM
   - id: zcodescan.cobol.rules.NestedIfLimitRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: "NestingLimit"
         value: 2
   - id: zcodescan.cobol.rules.FileNameConventionRule
     severity: MEDIUM
-
+    parameters:
+      - name: "ConventionMask"
+        value: "ACT.*"
   - id: zcodescan.cobol.rules.FiveBasedLevelNumbersRule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.ProcedureRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: "LineLimit"
-        value: 100
+        value: 45
   - id: zcodescan.cobol.rules.AlterRule
     severity: HIGH
   - id: zcodescan.cobol.rules.AvoidSectionInProcedureDivisionRule
@@ -100,13 +97,13 @@ rules:
   - id: zcodescan.cobol.rules.AcceptFromConsoleRule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.OccursDependingOnRule
-    severity: MEDIUM   
+    severity: MEDIUM
   - id: zcodescan.cobol.rules.SqlAvoidSelectStarRule
-    severity: MEDIUM  
+    severity: MEDIUM
   - id: zcodescan.cobol.rules.SqlDeclareCursorOrderByRule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.NextSentenceRule
-    severity: MEDIUM  
+    severity: MEDIUM
   - id: zcodescan.cobol.rules.XMLParseRule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.BinarySubscriptRule
@@ -127,17 +124,17 @@ rules:
     severity: MEDIUM
   - id: zcodescan.cobol.rules.CopybookRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: CopybookName
         value: lgpolicy
   - id: zcodescan.cobol.rules.RestrictedRoutineRule
     severity: HIGH
-    statements:
+    parameters:
       - name: RoutineName
         value: LGADBC
   - id: zcodescan.cobol.rules.InlinePerformLineLimitRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: LineLimit
         value: 30
   - id: zcodescan.cobol.rules.CheckSqlcodeAfterExecSqlRule
@@ -146,24 +143,24 @@ rules:
     severity: MEDIUM
   - id: zcodescan.cobol.rules.SectionCommentRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: LOCATION
-        value: 0 
+        value: 0
   - id: zcodescan.cobol.rules.ParagraphCommentRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: LOCATION
         value: 0
   - id: zcodescan.cobol.rules.StaticCallNameRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: PROGRAM_NAME
         value: TEST
   - id: zcodescan.cobol.rules.ConditionNamePrefixRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: CONDITION_NAME_PREFIX
-        value: TEST                               
+        value: TEST
   - id: zcodescan.cobol.rules.CompilerDirectivesRule
     severity: MEDIUM
     statements:
@@ -181,4 +178,3 @@ rules:
         value: true
       - name: TitleDirective
         value: true
-
