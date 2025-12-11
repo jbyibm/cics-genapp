@@ -13,7 +13,7 @@ rules:
     severity: HIGH
     statements:
       - name: CopybookName
-        value: lgpolicy
+        value: hshs
   - id: zcodescan.cobol.rules.SqlWhereRule
     severity: HIGH
     statements:
@@ -42,8 +42,8 @@ rules:
     severity: MEDIUM
   - id: zcodescan.cobol.rules.GotoParagraphRule
     severity: MEDIUM
-  #- id: zcodescan.cobol.rules.UnprotectedAuthCredentialRule
-   # severity: HIGH
+  - id: zcodescan.cobol.rules.UnprotectedAuthCredentialRule
+    severity: HIGH
   - id: zcodescan.cobol.rules.BufferOverflowRule
     severity: INFO
   - id: zcodescan.cobol.rules.UninitialzedVariablesRule
@@ -74,8 +74,8 @@ rules:
     severity: HIGH
   - id: zcodescan.cobol.rules.SearchAllRule
     severity: MEDIUM
-  - id: zcodescan.cobol.rules.Level88Rule
-    severity: MEDIUM
+  #- id: zcodescan.cobol.rules.Level88Rule
+  #  severity: MEDIUM
   - id: zcodescan.cobol.rules.MultipleExitsRule
     severity: HIGH
   - id: zcodescan.cobol.rules.NestedIfLimitRule
@@ -83,7 +83,7 @@ rules:
     statements:
       - name: "NestingLimit"
         value: 2
-  # - id: zcodescan.cobol.rules.FiveBasedLevelNumbersRule
+  #- id: zcodescan.cobol.rules.FiveBasedLevelNumbersRule
   #  severity: MEDIUM
   # - id: zcodescan.cobol.rules.ProcedureRule
   #   severity: MEDIUM
@@ -131,8 +131,8 @@ rules:
   #   statements:
   #     - name: LineLimit
   #       value: 30
-  - id: zcodescan.cobol.rules.CheckSqlcodeAfterExecSqlRule
-    severity: HIGH
+ # - id: zcodescan.cobol.rules.CheckSqlcodeAfterExecSqlRule
+   # severity: HIGH
   - id: zcodescan.cobol.rules.CopySuppressRule
     severity: MEDIUM
   - id: zcodescan.cobol.rules.SectionCommentRule
@@ -150,11 +150,11 @@ rules:
     statements:
       - name: PROGRAM_NAME
         value: TEST
-  - id: zcodescan.cobol.rules.ConditionNamePrefixRule
-    severity: MEDIUM
-    statements:
-      - name: CONDITION_NAME_PREFIX
-        value: TEST
+ # - id: zcodescan.cobol.rules.ConditionNamePrefixRule
+ #   severity: MEDIUM
+ #   statements:
+ #     - name: CONDITION_NAME_PREFIX
+ #       value: TEST
   - id: zcodescan.cobol.rules.CompilerDirectivesRule
     severity: MEDIUM
     statements:
