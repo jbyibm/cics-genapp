@@ -137,7 +137,7 @@ rules:
     severity: MEDIUM
   - id: zcodescan.cobol.rules.SectionCommentRule
     severity: LOW
-    statements:
+    parameters:
       - name: LOCATION
         value: 0
   # - id: zcodescan.cobol.rules.ParagraphCommentRule
@@ -147,7 +147,7 @@ rules:
   #       value: 0
   - id: zcodescan.cobol.rules.StaticCallNameRule
     severity: HIGH
-    statements:
+    parameters:
       - name: PROGRAM_NAME
         value: TEST
  # - id: zcodescan.cobol.rules.ConditionNamePrefixRule
