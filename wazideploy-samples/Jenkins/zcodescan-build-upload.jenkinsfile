@@ -152,7 +152,7 @@ pipeline {
                                         -rf cics-genapp/zcodescan-rules.yaml\
                                         -cf $HOME/config.yml\
                                         -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                        -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json -gk"
+                                        -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
                                 echo "$CMD"
                                 zcodescan -v
                                 $CMD
@@ -195,7 +195,7 @@ pipeline {
                                     -rf cics-genapp/zcodescan-rules.yaml\
                                     -cf $HOME/config.yml\
                                     -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                    -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json -gk"
+                                    -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
                                   echo "$CMD"
                                   $CMD
                                   rc=$?
