@@ -171,6 +171,8 @@ pipeline {
                                 fi
                                 exit $rc
                             ''')
+                        if ( rc != 0 )
+                            error("ZCodeScan scan failed!!!")
                         def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
                         // Do not enter into some steps if nothing in the build list
                         hasBuildFiles = files.length > 0 && files[0].length > 0
