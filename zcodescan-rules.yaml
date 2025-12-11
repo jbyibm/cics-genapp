@@ -80,7 +80,7 @@ rules:
     severity: HIGH
   - id: zcodescan.cobol.rules.NestedIfLimitRule
     severity: MEDIUM
-    statements:
+    parameters:
       - name: "NestingLimit"
         value: 2
   #- id: zcodescan.cobol.rules.FiveBasedLevelNumbersRule
