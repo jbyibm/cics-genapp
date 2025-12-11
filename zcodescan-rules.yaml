@@ -6,12 +6,12 @@ rules:
     severity: HIGH
   - id: zcodescan.cobol.rules.RestrictedRoutineRule
     severity: HIGH
-    statements:
+    parameters:
       - name: RoutineName
         value: LGADBC
   - id: zcodescan.cobol.rules.CopybookRule
     severity: HIGH
-    statements:
+    parameters:
       - name: CopybookName
         value: hshs
   - id: zcodescan.cobol.rules.SqlWhereRule
