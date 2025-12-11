@@ -23,13 +23,15 @@
       *----------------------------------------------------------------*
       * Run time (debug) infomation for this invocation
         01  WS-HEADER.
-           03 WS-EYECATCHER            PIC X(16)
+           05 WS-EYECATCHER            PIC X(16)
                                         VALUE 'LGACDB01------WS'.
            03 WS-TRANSID               PIC X(4).
-           03 WS-TERMID                PIC X(4).
-           03 WS-TASKNUM               PIC 9(7).
-           03 WS-FILLER                PIC X.
-           03 WS-CALEN                 PIC S9(4) COMP.
+           05 WS-TERMID                PIC X(4).
+           05 WS-TASKNUM               PIC 9(7).
+           05 WS-FILLER                PIC X.
+           05 WS-CALEN                 PIC S9(4) COMP.
+           05 WS-FIELD-2               PIC S9(14) COMP-3.
+
 
       *
        01  WS-RESP                   PIC S9(8) COMP.
@@ -41,33 +43,42 @@
        01  WS-TIME                     PIC X(8)  VALUE SPACES.
        01  WS-DATE                     PIC X(10) VALUE SPACES.
 
+
+       01 WS-EMPLOYEE-TABLE.
+           05 EMP-ENTRY OCCURS 6 TIMES INDEXED BY IDX-EMP.
+               10 EMP-ID   PIC X(05).
+               10 EMP-NAME PIC X(20).
+
+       77 SEARCH-ID    PIC X(05) VALUE 'E0004'.
+       77 FOUND-FLAG   PIC X VALUE 'N'.
+           88 EMP-FOUND VALUE 'Y'.
       * Error Message structure
        01  ERROR-MSG.
-           03 EM-DATE                  PIC X(8)  VALUE SPACES.
-           03 FILLER                   PIC X     VALUE SPACES.
-           03 EM-TIME                  PIC X(6)  VALUE SPACES.
-           03 FILLER                   PIC X(9)  VALUE ' LGACDB01'.
-           03 EM-VARIABLE.
-             05 FILLER                 PIC X(6)  VALUE ' CNUM='.
-             05 EM-CUSNUM              PIC X(10)  VALUE SPACES.
-             05 FILLER                 PIC X(6)  VALUE ' PNUM='.
-             05 EM-POLNUM              PIC X(10)  VALUE SPACES.
-             05 EM-SQLREQ              PIC X(16) VALUE SPACES.
-             05 FILLER                 PIC X(9)  VALUE ' SQLCODE='.
-             05 EM-SQLRC               PIC +9(5) USAGE DISPLAY.
+           05 EM-DATE                  PIC X(8)  VALUE SPACES.
+           05 FILLER                   PIC X     VALUE SPACES.
+           05 EM-TIME                  PIC X(6)  VALUE SPACES.
+           05 FILLER                   PIC X(9)  VALUE ' LGACDB01'.
+           05 EM-VARIABLE.
+             15 FILLER                 PIC X(6)  VALUE ' CNUM='.
+             15 EM-CUSNUM              PIC X(10)  VALUE SPACES.
+             15 FILLER                 PIC X(6)  VALUE ' PNUM='.
+             15 EM-POLNUM              PIC X(10)  VALUE SPACES.
+             15 EM-SQLREQ              PIC X(16) VALUE SPACES.
+             15 FILLER                 PIC X(9)  VALUE ' SQLCODE='.
+             15 EM-SQLRC               PIC +9(5) USAGE DISPLAY.
 
        01  CDB2AREA.
-           03 D2-REQUEST-ID            PIC X(6).
-           03 D2-RETURN-CODE           PIC 9(2).
-           03 D2-CUSTOMER-NUM          PIC 9(10).
-           03 D2-CUSTSECR-PASS         PIC X(32).
-           03 D2-CUSTSECR-COUNT        PIC X(4).
-           03 D2-CUSTSECR-STATE        PIC X.
-           03 D2-CUSTSECR-DATA         PIC X(32445).
+           05 D2-REQUEST-ID            PIC X(6).
+           05 D2-RETURN-CODE           PIC 9(2).
+           05 D2-CUSTOMER-NUM          PIC 9(10).
+           05 D2-CUSTSECR-PASS         PIC X(32).
+           05 D2-CUSTSECR-COUNT        PIC X(4).
+           05 D2-CUSTSECR-STATE        PIC X.
+           05 D2-CUSTSECR-DATA         PIC X(32445).
 
        01  CA-ERROR-MSG.
-           03 FILLER                   PIC X(9)  VALUE 'COMMAREA='.
-           03 CA-DATA                  PIC X(90) VALUE SPACES.
+           05 FILLER                   PIC X(9)  VALUE 'COMMAREA='.
+           05 CA-DATA                  PIC X(90) VALUE SPACES.
       *----------------------------------------------------------------*
        77 LGACDB02                     PIC X(8)  VALUE 'LGACDB02'.
        77 LGACVS01                     PIC X(8)  VALUE 'LGACVS01'.
@@ -81,8 +92,8 @@
       *----------------------------------------------------------------*
       * Fields to be used to check that commarea is correct length
        01  WS-COMMAREA-LENGTHS.
-           03 WS-CA-HEADER-LEN         PIC S9(4) COMP VALUE +18.
-           03 WS-REQUIRED-CA-LEN       PIC S9(4)      VALUE +0.
+           05 WS-CA-HEADER-LEN         PIC S9(4) COMP VALUE +18.
+           05 WS-REQUIRED-CA-LEN       PIC S9(4)      VALUE +0.
 
 
       *    Include copybook for defintion of customer details length
@@ -109,7 +120,10 @@
            EXEC SQL
                INCLUDE SQLCA
            END-EXEC.
-
+           EXEC SQL
+               DECLARE C1 CURSOR FOR
+                   SELECT NAME FROM EMPLOYEE WHERE EMP_ID > 100
+           END-EXEC
       ******************************************************************
       *    L I N K A G E     S E C T I O N
       ******************************************************************
@@ -137,6 +151,7 @@
            MOVE EIBTRNID TO WS-TRANSID.
            MOVE EIBTRMID TO WS-TERMID.
            MOVE EIBTASKN TO WS-TASKNUM.
+           ACCEPT WS-DATE FROM DATE.
       *----------------------------------------------------------------*
 
 
@@ -164,8 +179,7 @@
       * if less set error return code and return to caller
            IF EIBCALEN IS LESS THAN WS-REQUIRED-CA-LEN
              MOVE '98' TO CA-RETURN-CODE
-             EXEC CICS RETURN END-EXEC
-           END-IF.
+             EXEC CICS RETURN END-EXEC.
 
       * Call routine to Insert row in Customer table                   *
            PERFORM Obtain-CUSTOMER-Number.
@@ -283,13 +297,11 @@
                EXEC SQL
                  SET :DB2-CUSTOMERNUM-INT = IDENTITY_VAL_LOCAL()
                END-EXEC
-                IF SQLCODE NOT EQUAL 0
-               MOVE '90' TO CA-RETURN-CODE
-               PERFORM WRITE-ERROR-MESSAGE
-               EXEC CICS RETURN END-EXEC
-             END-IF
+                 
+              
+             END-IF.
+             
                
-           END-IF.
 
            MOVE DB2-CUSTOMERNUM-INT TO CA-CUSTOMER-NUM.
 
@@ -335,3 +347,13 @@
              END-IF
            END-IF.
            EXIT.
+
+           SEARCH EMP-ENTRY
+             AT END
+               DISPLAY 'Employee ' SEARCH-ID ' not found'
+             WHEN EMP-ID(IDX-EMP) = SEARCH-ID
+               MOVE 'Y' TO FOUND-FLAG
+               DISPLAY 'Found employee: ' EMP-NAME(IDX-EMP)
+           END-SEARCH
+
+           STOP RUN.
