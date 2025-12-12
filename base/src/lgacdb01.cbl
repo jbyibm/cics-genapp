@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID.     LGA01. 
+       PROGRAM-ID.     LGACDB01. 
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -140,7 +140,7 @@
        PROCEDURE DIVISION.
 
       *----------------------------------------------------------------*
-       MAINLINE SECTION.
+       MAINLINE.
 
       *----------------------------------------------------------------*
       * Common code with initialize                                    *
@@ -354,6 +354,4 @@
              WHEN EMP-ID(IDX-EMP) = SEARCH-ID
                MOVE 'Y' TO FOUND-FLAG
                DISPLAY 'Found employee: ' EMP-NAME(IDX-EMP)
-           END-SEARCH
-
-           STOP RUN.
+           END-SEARCH.
