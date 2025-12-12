@@ -205,7 +205,7 @@
 
            IF CA-RETURN-CODE NOT EQUAL 0
              EXEC CICS RETURN END-EXEC
-           END-IF
+           .
 
       *    Return to caller
            EXEC CICS RETURN END-EXEC.
