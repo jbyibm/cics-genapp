@@ -199,11 +199,12 @@ pipeline {
                                   echo "$CMD"
                                   $CMD
                                   rc=$?
+                                  cd cics-genapp
                                   CMD="/opt/sonar/sonar-scanner-7.1.0.4889-linux-x64/bin/sonar-scanner \
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
                                         -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
-                                        -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
+                                        -Dsonar.externalIssuesReportPaths=../BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
                                   echo "$CMD"
                                   $CMD
                                   if [ $rc -gt 3 ]
