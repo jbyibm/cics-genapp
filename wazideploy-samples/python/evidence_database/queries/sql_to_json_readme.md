@@ -359,7 +359,7 @@ jdbc:
   url: jdbc:db2://localhost:50000/DEPLOY
   username: db2inst1
   password: password
-  driver_path: /path/to/db2jcc4.jar
+  driver_paths: /path/to/db2jcc4.jar
 ```
 
 ## 🔍 Troubleshooting

@@ -8,6 +8,7 @@
 #*******************************************************************************
 from typing import Optional
 from datetime import datetime
+import sys
 
 """
 DB2 Evidence Loader - JDBC Implementation
@@ -16,7 +17,7 @@ Uses JayDeBeApi (JDBC) driver
 
 import logging
 import jaydebeapi
-from db2_evidence_base import DB2EvidenceLoaderBase, SQL_GET_IDENTITY
+from db2_evidence_base import DB2EvidenceLoaderBase
 from db2_config import load_config
 
 logger = logging.getLogger(__name__)
@@ -44,24 +45,27 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         jdbc_url = jdbc_config['url']
         username = jdbc_config['username']
         password = jdbc_config['password']
-        driver_path = jdbc_config['driver_path']
+        driver_path_separator = ':'
+        if sys.platform == 'win32':
+            driver_path_separator = ';'
+        driver_paths = driver_path_separator.join(jdbc_config['driver_paths'])
         driver_class = jdbc_config['driver_class']
 
         # Log connection (mask password)
-        logger.info(f"Connecting to DB2 using JDBC driver...")
+        logger.info("Connecting to DB2 using JDBC driver...")
         logger.info(f"  URL: {jdbc_url}")
         logger.info(f"  Username: {username}")
         logger.info(f"  Driver: {driver_class}")
-        if driver_path:
-            logger.info(f"  JAR: {driver_path}")
+        if driver_paths:
+            logger.info(f"  JAR: {driver_paths}")
 
         # Initialize connection
-        if driver_path:
+        if driver_paths:
             self.conn = jaydebeapi.connect(
                 driver_class,
                 jdbc_url,
                 [username, password] if username else [],
-                driver_path
+                driver_paths
             )
         else:
             self.conn = jaydebeapi.connect(
@@ -85,11 +89,6 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
     def _commit(self):
         """Commit transaction"""
         self.conn.commit()
-
-    def _get_identity(self) -> int:
-        """Get last inserted identity value"""
-        self.cursor.execute(SQL_GET_IDENTITY)
-        return self.cursor.fetchone()[0]
 
     def close(self):
         """Close database connections"""
@@ -134,45 +133,3 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
             return iso_str
         except (ValueError, IndexError):
             return None
-
-
-# Example usage
-if __name__ == "__main__":
-    import sys
-
-    # Check arguments
-    if len(sys.argv) < 2:
-        print("Usage: python db2_evidence_loader_jdbc.py <yaml_evidence_file> [config_file]")
-        print("\nExample:")
-        print("  python db2_evidence_loader_jdbc.py evidence.yml")
-        print("  python db2_evidence_loader_jdbc.py evidence.yml my_config.yaml")
-        sys.exit(1)
-
-    yaml_file = sys.argv[1]
-    config_file = sys.argv[2] if len(sys.argv) > 2 else 'db2_config.yaml'
-
-    try:
-        logger.info(f"Starting evidence loading from: {yaml_file}")
-        logger.info(f"Using configuration: {config_file}")
-
-        # Create loader with config file
-        loader = DB2EvidenceLoaderJDBC(config_file=config_file)
-
-        # Load evidence file
-        deploy_id = loader.load_evidence_file(yaml_file)
-
-        print(f"\n✓ Evidence loaded successfully (Deploy ID: {deploy_id})")
-        logger.info(f"Evidence loaded successfully (Deploy ID: {deploy_id})")
-
-        # Close connection
-        loader.close()
-
-    except FileNotFoundError as e:
-        print(f"✗ File not found: {e}")
-        logger.error(f"File not found: {e}")
-        sys.exit(1)
-
-    except Exception as e:
-        print(f"✗ Error during loading: {str(e)}")
-        logger.error(f"Error during loading: {str(e)}", exc_info=True)
-        sys.exit(1)

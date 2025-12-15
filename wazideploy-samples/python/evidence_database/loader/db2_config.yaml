@@ -13,6 +13,9 @@
 # Database Configuration
 # =============================================================================
 
+# Driver
+driver: jdbc
+
 # Database schema
 schema: DEPLOYZ
 
@@ -42,7 +45,7 @@ jdbc:
   # JDBC URL (can be full URL or individual components)
   
   # Option 1: Full JDBC URL
-  url: jdbc:db2://localhost:50000/DEPLOY
+  url: jdbc:db2://163.107.86.75:8102/DBD1LOC:sslConnection=true;
   
   # Option 2: Components (will build URL automatically)
   # hostname: localhost
@@ -54,14 +57,16 @@ jdbc:
   password: ${DB2_PASSWORD}
   
   # Driver configuration
-  driver_path: /opt/drivers/db2jcc4.jar
+  driver_paths: 
+    - c:\clidriver\db2jcc4.jar
+    - c:\clidriver\db2jcc_license_cisuz.jar
   driver_class: com.ibm.db2.jcc.DB2Driver
   
   # Optional: SSL configuration
-  # ssl:
-  #   enabled: true
-  #   trust_store: /path/to/truststore.jks
-  #   trust_store_password: password
+  ssl:
+     enabled: true
+     trust_store: /home/jby/db2truststore.jks
+     trust_store_password: chnageit
 
 # =============================================================================
 # Windows Configuration (for ibm_db driver)

@@ -31,10 +31,6 @@ CREATE TABLE DEPLOYZ.DEPLOY (
     PRIMARY KEY (DEPLOY_ID)
 );
 
-COMMENT ON TABLE DEPLOYZ.DEPLOY IS 'Main deployment records';
-COMMENT ON COLUMN DEPLOYZ.DEPLOY.DEPLOY_ID IS 'Unique deployment identifier';
-COMMENT ON COLUMN DEPLOYZ.DEPLOY.PACKAGE_PATH IS 'Full path to the artifact';
-
 -- =============================================================================
 -- 2. ACTIVITY TABLE
 -- =============================================================================
@@ -53,9 +49,6 @@ CREATE TABLE DEPLOYZ.ACTIVITY (
 
 CREATE INDEX DEPLOYZ.IDX_ACTIVITY_DEPLOY ON DEPLOYZ.ACTIVITY(DEPLOY_ID);
 
-COMMENT ON TABLE DEPLOYZ.ACTIVITY IS 'Deployment activities';
-COMMENT ON COLUMN DEPLOYZ.ACTIVITY.SHORT_NAME IS 'Short name for the activity (max 50 characters)';
-
 -- =============================================================================
 -- 3. ACTION TABLE
 -- =============================================================================
@@ -73,9 +66,6 @@ CREATE TABLE DEPLOYZ.ACTION (
 );
 
 CREATE INDEX DEPLOYZ.IDX_ACTION_ACTIVITY ON DEPLOYZ.ACTION(ACTIVITY_ID);
-
-COMMENT ON TABLE DEPLOYZ.ACTION IS 'Deployment actions';
-COMMENT ON COLUMN DEPLOYZ.ACTION.SHORT_NAME IS 'Short name for the action (max 50 characters)';
 
 -- =============================================================================
 -- 4. STEP TABLE
@@ -96,9 +86,6 @@ CREATE TABLE DEPLOYZ.STEP (
 
 CREATE INDEX DEPLOYZ.IDX_STEP_ACTION ON DEPLOYZ.STEP(ACTION_ID);
 
-COMMENT ON TABLE DEPLOYZ.STEP IS 'Deployment steps';
-COMMENT ON COLUMN DEPLOYZ.STEP.SHORT_NAME IS 'Short name for the step (max 50 characters)';
-
 -- =============================================================================
 -- 5. TAG TABLE (Unique tags)
 -- =============================================================================
@@ -109,9 +96,6 @@ CREATE TABLE DEPLOYZ.TAG (
     PRIMARY KEY (TAG_ID),
     CONSTRAINT UQ_TAG_NAME UNIQUE (TAG_NAME)
 );
-
-COMMENT ON TABLE DEPLOYZ.TAG IS 'Unique tags reference table';
-COMMENT ON COLUMN DEPLOYZ.TAG.TAG_NAME IS 'Unique tag name';
 
 -- =============================================================================
 -- 6. ACTIVITY_TAG TABLE (Many-to-Many relationship)
@@ -128,8 +112,6 @@ CREATE TABLE DEPLOYZ.ACTIVITY_TAG (
 CREATE INDEX DEPLOYZ.IDX_ACTIVITY_TAG_ACTIVITY ON DEPLOYZ.ACTIVITY_TAG(ACTIVITY_ID);
 CREATE INDEX DEPLOYZ.IDX_ACTIVITY_TAG_TAG ON DEPLOYZ.ACTIVITY_TAG(TAG_ID);
 
-COMMENT ON TABLE DEPLOYZ.ACTIVITY_TAG IS 'Junction table linking activities to tags (many-to-many)';
-
 -- =============================================================================
 -- 7. ACTION_TAG TABLE (Many-to-Many relationship)
 -- =============================================================================
@@ -144,8 +126,6 @@ CREATE TABLE DEPLOYZ.ACTION_TAG (
 
 CREATE INDEX DEPLOYZ.IDX_ACTION_TAG_ACTION ON DEPLOYZ.ACTION_TAG(ACTION_ID);
 CREATE INDEX DEPLOYZ.IDX_ACTION_TAG_TAG ON DEPLOYZ.ACTION_TAG(TAG_ID);
-
-COMMENT ON TABLE DEPLOYZ.ACTION_TAG IS 'Junction table linking actions to tags (many-to-many)';
 
 -- =============================================================================
 -- 8. STEP_TAG TABLE (Many-to-Many relationship)
@@ -162,8 +142,6 @@ CREATE TABLE DEPLOYZ.STEP_TAG (
 CREATE INDEX DEPLOYZ.IDX_STEP_TAG_STEP ON DEPLOYZ.STEP_TAG(STEP_ID);
 CREATE INDEX DEPLOYZ.IDX_STEP_TAG_TAG ON DEPLOYZ.STEP_TAG(TAG_ID);
 
-COMMENT ON TABLE DEPLOYZ.STEP_TAG IS 'Junction table linking steps to tags (many-to-many)';
-
 -- =============================================================================
 -- 9. ARTIFACT TABLE (Unique artifacts by APPLICATION_NAME + PATH)
 -- =============================================================================
@@ -177,10 +155,6 @@ CREATE TABLE DEPLOYZ.ARTIFACT (
     PRIMARY KEY (ARTIFACT_ID),
     CONSTRAINT UQ_ARTIFACT_APP_PATH UNIQUE (APPLICATION_NAME, ARTIFACT_PATH)
 );
-
-COMMENT ON TABLE DEPLOYZ.ARTIFACT IS 'Unique artifacts identified by application name and path';
-COMMENT ON COLUMN DEPLOYZ.ARTIFACT.APPLICATION_NAME IS 'Application name - part of uniqueness constraint';
-COMMENT ON COLUMN DEPLOYZ.ARTIFACT.ARTIFACT_PATH IS 'Path to the artifact - unique within application';
 
 -- =============================================================================
 -- 10. STEP_ARTIFACT TABLE (Many-to-Many relationship)
@@ -196,8 +170,6 @@ CREATE TABLE DEPLOYZ.STEP_ARTIFACT (
 
 CREATE INDEX DEPLOYZ.IDX_STEP_ARTIFACT_STEP ON DEPLOYZ.STEP_ARTIFACT(STEP_ID);
 CREATE INDEX DEPLOYZ.IDX_STEP_ARTIFACT_ARTIFACT ON DEPLOYZ.STEP_ARTIFACT(ARTIFACT_ID);
-
-COMMENT ON TABLE DEPLOYZ.STEP_ARTIFACT IS 'Junction table linking steps to artifacts (many-to-many)';
 
 -- =============================================================================
 -- 11. PROPERTIES TABLE (Generic key-value properties)
@@ -215,10 +187,6 @@ CREATE TABLE DEPLOYZ.PROPERTIES (
 
 CREATE INDEX DEPLOYZ.IDX_PROPERTIES_ENTITY ON DEPLOYZ.PROPERTIES(ENTITY_TYPE, ENTITY_ID);
 CREATE INDEX DEPLOYZ.IDX_PROPERTIES_KEY ON DEPLOYZ.PROPERTIES(PROPERTY_KEY);
-
-COMMENT ON TABLE DEPLOYZ.PROPERTIES IS 'Generic properties for activities, actions, and steps';
-COMMENT ON COLUMN DEPLOYZ.PROPERTIES.ENTITY_TYPE IS 'Type of entity: ACTIVITY, ACTION, or STEP';
-COMMENT ON COLUMN DEPLOYZ.PROPERTIES.ENTITY_ID IS 'ID of the related entity';
 
 ALTER TABLE DEPLOYZ.PROPERTIES
 ADD CONSTRAINT CK_PROPERTIES_ENTITY_TYPE 
@@ -246,7 +214,6 @@ CREATE TABLE DEPLOYZ.STEP_RESULT_DETAIL (
 
 CREATE INDEX DEPLOYZ.IDX_RESULT_STEP ON DEPLOYZ.STEP_RESULT_DETAIL(STEP_ID);
 
-COMMENT ON TABLE DEPLOYZ.STEP_RESULT_DETAIL IS 'Detailed results for each step';
 
 -- =============================================================================
 -- VIEWS FOR EASIER QUERYING
@@ -342,6 +309,7 @@ GROUP BY s.STEP_ID, s.STEP_NAME, s.SHORT_NAME;
 -- GRANTS (adjust as needed for your security model)
 -- =============================================================================
 
+-- =============================================================================
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.DEPLOY TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTIVITY TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTION TO USER deployer;
@@ -354,6 +322,7 @@ GROUP BY s.STEP_ID, s.STEP_NAME, s.SHORT_NAME;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_ARTIFACT TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.PROPERTIES TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_RESULT_DETAIL TO USER deployer;
+-- =============================================================================
 
 -- =============================================================================
 -- END OF SCHEMA

@@ -13,14 +13,11 @@ from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
 import json
 
-# SQL Constants
-SQL_GET_IDENTITY = "VALUES IDENTITY_VAL_LOCAL()"
-
 
 class DB2EvidenceLoaderBase(ABC):
     """Base class to load YAML evidence into DB2"""
 
-    def __init__(self, schema: str='DEPLOYZ'):
+    def __init__(self, schema: str='DPYZ'):
         """
         Initialize base loader
         
@@ -46,11 +43,6 @@ class DB2EvidenceLoaderBase(ABC):
     @abstractmethod
     def _commit(self):
         """Commit transaction - to be implemented by subclasses"""
-        pass
-
-    @abstractmethod
-    def _get_identity(self) -> int:
-        """Get last inserted identity value - to be implemented by subclasses"""
         pass
 
     def parse_timestamp(self, timestamp_str: str) -> Optional[datetime]:
@@ -80,41 +72,49 @@ class DB2EvidenceLoaderBase(ABC):
         except (ValueError, IndexError):
             return None
 
-    def _get_or_create_tag(self, tag_name: str) -> int:
+    def get_or_create_tag(self, tag_name: str) -> int:
         """
-        Get existing tag or create new one
-        
-        Args:
-            tag_name: Name of the tag
-            
-        Returns:
-            tag_id
+        Get an existing tag or create a new one if it does not exist.
+    
+        Uses an in-memory cache to reduce database calls.
+        Uses DB2 FINAL TABLE to safely retrieve the generated IDENTITY value.
         """
-        # Check cache first
+        # Check local cache first
         if tag_name in self.tag_cache:
             return self.tag_cache[tag_name]
 
-        # Check if tag exists in database
+        cursor = self.conn.cursor()
+
+        # Check if the tag already exists in the database
         check_sql = f"""
-        SELECT TAG_ID FROM {self.schema}.TAG WHERE TAG_NAME = ?
+        SELECT TAG_ID
+        FROM {self.schema}.TAG
+        WHERE TAG_NAME = ?
         """
-        self._execute(check_sql, [tag_name])
-        existing = self.cursor.fetchone()
+        cursor.execute(check_sql, [tag_name])
+        existing = cursor.fetchone()
 
         if existing:
-            tag_id = existing[0]
+            tag_id = int(existing[0])
             self.tag_cache[tag_name] = tag_id
             return tag_id
 
-        # Create new tag
+        # Insert a new tag and retrieve the generated TAG ID
         insert_sql = f"""
-        INSERT INTO {self.schema}.TAG (TAG_NAME) VALUES (?)
+        SELECT TAG_ID
+        FROM FINAL TABLE (
+            INSERT INTO {self.schema}.TAG (TAG_NAME)
+            VALUES (?)
+        )
         """
-        self._execute(insert_sql, [tag_name])
+        cursor.execute(insert_sql, [tag_name])
         self._commit()
 
-        tag_id = self._get_identity()
+        tag_id = int(cursor.fetchone()[0])
+
+        # Update cache
         self.tag_cache[tag_name] = tag_id
+
         return tag_id
 
     def _link_entity_tags(self, entity_type: str, entity_id: int, tags: List[str]):
@@ -142,7 +142,7 @@ class DB2EvidenceLoaderBase(ABC):
         entity_id_column = entity_type.lower() + '_id'
 
         for tag_name in tags:
-            tag_id = self._get_or_create_tag(tag_name)
+            tag_id = self.get_or_create_tag(tag_name)
 
             sql = f"""
             INSERT INTO {self.schema}.{junction_table} ({entity_id_column}, TAG_ID)
@@ -158,28 +158,33 @@ class DB2EvidenceLoaderBase(ABC):
 
     def insert_deploy(self, evidence: Dict[str, Any]) -> int:
         """
-        Insert main DEPLOY record
-        
-        Args:
-            evidence: Dictionary containing YAML data
-            
-        Returns:
-            Generated deploy_id
+        Insert main DEPLOY record and return generated deploy_id
         """
         metadata = evidence.get('metadata', {})
         annotations = metadata.get('annotations', {})
         engine = annotations.get('engine', {})
         package = annotations.get('package', {})
 
-        # Extract application name from metadata
         self.current_application_name = metadata.get('name', 'NONAME')
 
         sql = f"""
-        INSERT INTO {self.schema}.DEPLOY (
-            DESCRIPTION, APPLICATION_NAME, APPLICATION_VERSION, ENVIRONMENT_NAME, DEPLOY_TIMESTAMP,
-            CREATION_TIMESTAMP, STATUS, ENGINE_VERSION, ENGINE_BUILD,
-            ENGINE_DATE, PACKAGE_PATH, PACKAGE_SHA256
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        SELECT DEPLOY_ID
+        FROM FINAL TABLE (
+            INSERT INTO {self.schema}.DEPLOY (
+                DESCRIPTION,
+                APPLICATION_NAME,
+                APPLICATION_VERSION,
+                ENVIRONMENT_NAME,
+                DEPLOY_TIMESTAMP,
+                CREATION_TIMESTAMP,
+                STATUS,
+                ENGINE_VERSION,
+                ENGINE_BUILD,
+                ENGINE_DATE,
+                PACKAGE_PATH,
+                PACKAGE_SHA256
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        )
         """
 
         params = [
@@ -197,10 +202,12 @@ class DB2EvidenceLoaderBase(ABC):
             package.get('sha256', '')
         ]
 
-        self._execute(sql, params)
+        cursor = self.conn.cursor()
+        cursor.execute(sql, params)
         self._commit()
 
-        return self._get_identity()
+        deploy_id = cursor.fetchone()[0]
+        return int(deploy_id)
 
     def insert_property(self, entity_type: str, entity_id: int, deploy_id: int, prop: Dict[str, str]):
         """
@@ -225,22 +232,23 @@ class DB2EvidenceLoaderBase(ABC):
 
     def insert_activity(self, deploy_id: int, activity: Dict[str, Any]) -> int:
         """
-        Insert an activity
-        
-        Args:
-            deploy_id: Parent deployment ID
-            activity: Activity dictionary
-            
-        Returns:
-            Generated activity_id
+        Insert an activity record and return the generated activity_id.
+        Uses DB2 FINAL TABLE to safely retrieve the IDENTITY value.
         """
         activity_result = activity.get('activity_result', {})
 
         sql = f"""
-        INSERT INTO {self.schema}.ACTIVITY (
-            DEPLOY_ID, ACTIVITY_NAME, SHORT_NAME, DESCRIPTION,
-            STATUS, MESSAGE
-        ) VALUES (?, ?, ?, ?, ?, ?)
+        SELECT ACTIVITY_ID
+        FROM FINAL TABLE (
+            INSERT INTO {self.schema}.ACTIVITY (
+                DEPLOY_ID,
+                ACTIVITY_NAME,
+                SHORT_NAME,
+                DESCRIPTION,
+                STATUS,
+                MESSAGE
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        )
         """
 
         params = [
@@ -252,12 +260,14 @@ class DB2EvidenceLoaderBase(ABC):
             activity_result.get('msg', '')
         ]
 
-        self._execute(sql, params)
+        cursor = self.conn.cursor()
+        cursor.execute(sql, params)
         self._commit()
 
-        activity_id = self._get_identity()
+        # Retrieve the generated ACTIVITY ID
+        activity_id = int(cursor.fetchone()[0])
 
-        # Insert properties using generic table
+        # Insert activity properties (generic PROPERTY table)
         for prop in activity.get('properties', []):
             self.insert_property('ACTIVITY', activity_id, deploy_id, prop)
 
@@ -270,22 +280,23 @@ class DB2EvidenceLoaderBase(ABC):
 
     def insert_action(self, activity_id: int, deploy_id: int, action: Dict[str, Any]) -> int:
         """
-        Insert an action
-        
-        Args:
-            activity_id: Parent activity ID
-            action: Action dictionary
-            
-        Returns:
-            Generated action_id
+        Insert an action record and return the generated action_id.
+        Uses DB2 FINAL TABLE to safely retrieve the IDENTITY value.
         """
         action_result = action.get('action_result', {})
 
         sql = f"""
-        INSERT INTO {self.schema}.ACTION (
-            ACTIVITY_ID, ACTION_NAME, SHORT_NAME, DESCRIPTION,
-            STATUS, MESSAGE
-        ) VALUES (?, ?, ?, ?, ?, ?)
+        SELECT ACTION_ID
+        FROM FINAL TABLE (
+            INSERT INTO {self.schema}.ACTION (
+                ACTIVITY_ID,
+                ACTION_NAME,
+                SHORT_NAME,
+                DESCRIPTION,
+                STATUS,
+                MESSAGE
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        )
         """
 
         params = [
@@ -297,12 +308,14 @@ class DB2EvidenceLoaderBase(ABC):
             action_result.get('msg', '')
         ]
 
-        self._execute(sql, params)
+        cursor = self.conn.cursor()
+        cursor.execute(sql, params)
         self._commit()
 
-        action_id = self._get_identity()
+        # Retrieve the generated ACTION ID
+        action_id = int(cursor.fetchone()[0])
 
-        # Insert properties using generic table
+        # Insert action properties
         for prop in action.get('properties', []):
             self.insert_property('ACTION', action_id, deploy_id, prop)
 
@@ -313,27 +326,45 @@ class DB2EvidenceLoaderBase(ABC):
 
         return action_id
 
+    def get_building_block(self, item: dict) -> str:
+        """
+        Determine the building_block following these rules (in order):
+        1. properties.template
+        2. short_bname
+        3. name
+        """
+
+        for prop in item.get("properties", []):
+            if prop.get("name") == "template" and prop.get("value"):
+                return prop["value"]
+        if item.get("short_bname"):
+            return item["short_bname"]
+        return item.get("name")
+
     def insert_step(self, action_id: int, deploy_id: int, step: Dict[str, Any]) -> int:
         """
-        Insert a step
-        
-        Args:
-            action_id: Parent action ID
-            deploy_id: Parent deployment ID
-            step: Step dictionary
-            
-        Returns:
-            Generated step_id
+        Insert a step record and return the generated step_id.
+        Uses DB2 FINAL TABLE to safely retrieve the IDENTITY value.
         """
         step_result = step.get('step_result', {})
 
         sql = f"""
-        INSERT INTO {self.schema}.STEP (
-            ACTION_ID, STEP_NAME, SHORT_NAME, DESCRIPTION,
-            STATUS, MESSAGE, BUILDING_BLOCK
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        SELECT STEP_ID
+        FROM FINAL TABLE (
+            INSERT INTO {self.schema}.STEP (
+                ACTION_ID,
+                STEP_NAME,
+                SHORT_NAME,
+                DESCRIPTION,
+                STATUS,
+                MESSAGE,
+                BUILDING_BLOCK
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        )
         """
-
+        building_block = step.get('building_block', None)
+        if building_block is None:
+            building_block = self.get_building_block(step)
         params = [
             action_id,
             step.get('name', ''),
@@ -341,15 +372,17 @@ class DB2EvidenceLoaderBase(ABC):
             step.get('description', ''),
             step_result.get('status', ''),
             step_result.get('msg', ''),
-            step.get('building_block', '')[:100]
+            building_block[:100].upper()
         ]
 
-        self._execute(sql, params)
+        cursor = self.conn.cursor()
+        cursor.execute(sql, params)
         self._commit()
 
-        step_id = self._get_identity()
+        # Retrieve the generated STEP ID
+        step_id = int(cursor.fetchone()[0])
 
-        # Insert properties using generic table
+        # Insert step properties
         for prop in step.get('properties', []):
             self.insert_property('STEP', step_id, deploy_id, prop)
 
@@ -362,48 +395,59 @@ class DB2EvidenceLoaderBase(ABC):
 
     def insert_artifact(self, step_id: int, deploy_id: int, artifact: Dict[str, Any]) -> int:
         """
-        Insert an artifact or return existing artifact_id if path already exists for this application
-        Uniqueness is based on APPLICATION_NAME + ARTIFACT_PATH
-        
-        Args:
-            step_id: Parent step ID
-            deploy_id: Parent deployment ID
-            artifact: Artifact dictionary
-            
-        Returns:
-            artifact_id (new or existing)
+        Insert an artifact or return an existing artifact_id if the artifact already exists
+        for the same application.
+    
+        Uniqueness rule:
+            APPLICATION_NAME + ARTIFACT_PATH
+    
+        Uses DB2 FINAL TABLE to safely retrieve the generated IDENTITY value.
         """
-        # Extract artifact properties
+        # Extract artifact properties into a dictionary
         properties = {prop['key']: prop['value'] for prop in artifact.get('properties', [])}
         artifact_path = properties.get('path', '')
 
-        # Check if artifact with this path already exists for this application
+        # Check if an artifact with the same path already exists for this application
         check_sql = f"""
-        SELECT ARTIFACT_ID FROM {self.schema}.ARTIFACT 
-        WHERE APPLICATION_NAME = ? AND ARTIFACT_PATH = ?
+        SELECT ARTIFACT_ID
+        FROM {self.schema}.ARTIFACT
+        WHERE APPLICATION_NAME = ?
+          AND ARTIFACT_PATH = ?
         """
 
-        self._execute(check_sql, [self.current_application_name, artifact_path])
-        existing = self.cursor.fetchone()
+        cursor = self.conn.cursor()
+        cursor.execute(check_sql, [self.current_application_name, artifact_path])
+        existing = cursor.fetchone()
 
         if existing:
-            # Artifact already exists for this application, return existing ID
-            artifact_id = existing[0]
-            print(f"        Artifact already exists for {self.current_application_name}: {artifact_path} (ID: {artifact_id})")
+            # Artifact already exists → reuse existing ID
+            artifact_id = int(existing[0])
 
-            # Insert properties using generic table
+            print(
+                f"        Artifact already exists for {self.current_application_name}: "
+                f"{artifact_path} (ID: {artifact_id})"
+            )
+
+            # Insert artifact properties (generic PROPERTY table)
             for prop in artifact.get('properties', []):
                 self.insert_property('ARTIFACT', artifact_id, deploy_id, prop)
 
-            # Create link between step and existing artifact
+            # Link the existing artifact to the step
             self._link_step_artifact(step_id, artifact_id)
+
             return artifact_id
 
-        # Insert new artifact
-        sql = f"""
-        INSERT INTO {self.schema}.ARTIFACT (
-            APPLICATION_NAME, ARTIFACT_NAME, ARTIFACT_PATH, ARTIFACT_TYPE
-        ) VALUES (?, ?, ?, ?)
+        # Insert a new artifact and retrieve the generated ARTIFACT ID
+        insert_sql = f"""
+        SELECT ARTIFACT_ID
+        FROM FINAL TABLE (
+            INSERT INTO {self.schema}.ARTIFACT (
+                APPLICATION_NAME,
+                ARTIFACT_NAME,
+                ARTIFACT_PATH,
+                ARTIFACT_TYPE
+            ) VALUES (?, ?, ?, ?)
+        )
         """
 
         params = [
@@ -413,15 +457,16 @@ class DB2EvidenceLoaderBase(ABC):
             properties.get('type', '')
         ]
 
-        self._execute(sql, params)
+        cursor.execute(insert_sql, params)
         self._commit()
 
-        artifact_id = self._get_identity()
+        # Retrieve the generated ARTIFACT ID
+        artifact_id = int(cursor.fetchone()[0])
 
-        # Link step to artifact
+        # Link step to the newly created artifact
         self._link_step_artifact(step_id, artifact_id)
 
-        # Insert properties using generic table
+        # Insert artifact properties
         for prop in artifact.get('properties', []):
             self.insert_property('ARTIFACT', artifact_id, deploy_id, prop)
 

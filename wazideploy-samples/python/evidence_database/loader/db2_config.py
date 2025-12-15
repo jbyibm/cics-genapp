@@ -77,8 +77,17 @@ class DB2Config:
 
     @property
     def driver(self) -> str:
-        """Get selected driver: 'ibm_db' or 'jdbc'"""
-        return self.config.get('driver', 'ibm_db')
+        """Get selected driver: 'ibm' or 'jdbc' (default: 'jdbc')"""
+        driver_value = self.config.get('driver', 'jdbc').lower()
+
+        # Normalize driver names
+        if driver_value in ['ibm_db', 'ibm']:
+            return 'ibm'
+        elif driver_value in ['jdbc']:
+            return 'jdbc'
+        else:
+            logging.warning(f"Unknown driver '{driver_value}', defaulting to 'jdbc'")
+            return 'jdbc'
 
     @property
     def schema(self) -> str:
@@ -137,7 +146,7 @@ class DB2Config:
             'url': jdbc_url,
             'username': jdbc_config.get('username', ''),
             'password': jdbc_config.get('password', ''),
-            'driver_path': jdbc_config.get('driver_path'),
+            'driver_paths': jdbc_config.get('driver_paths'),
             'driver_class': jdbc_config.get('driver_class', 'com.ibm.db2.jcc.DB2Driver')
         }
 

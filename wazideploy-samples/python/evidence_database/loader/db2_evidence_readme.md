@@ -252,7 +252,7 @@ jdbc:
   url: jdbc:db2://localhost:50000/DEPLOY
   username: ${DB2_USER}
   password:  ${DB2_PASSWORD}
-  driver_path: /opt/drivers/db2jcc4.jar
+  driver_paths: /opt/drivers/db2jcc4.jar
   driver_class: com.ibm.db2.jcc.DB2Driver
 
 # Logging
@@ -274,7 +274,7 @@ jdbc:
   url: jdbc:db2://${DB_HOST}:${DB_PORT}/${DB_NAME}
   username: ${DB_USER}
   password: ${DB_PASSWORD}
-  driver_path: ${JDBC_DRIVER_PATH}
+  driver_paths: ${JDBC_DRIVER_PATH}
 ```
 
 Then set the environment variables:
@@ -286,7 +286,7 @@ export DB_PORT=50000
 export DB_NAME=DEPLOY
 export DB_USER=db2inst1
 export DB_PASSWORD=secret
-export JDBC_DRIVER_PATH=/opt/drivers/db2jcc4.jar
+export JDBC_DRIVER_PATH=/opt/drivers/db2jcc4.jar;/opt/drivers/db2jcc_license_cisuz.jar
 
 # Windows
 set DB_HOST=localhost
@@ -294,7 +294,7 @@ set DB_PORT=50000
 set DB_NAME=DEPLOY
 set DB_USER=db2inst1
 set DB_PASSWORD=secret
-set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar
+set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar;C:\drivers\db2jcc_license_cisuz.jar
 ```
 
 ### Using IBM DB Driver
