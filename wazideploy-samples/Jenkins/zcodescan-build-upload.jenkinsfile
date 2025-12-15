@@ -189,8 +189,9 @@ pipeline {
                                   export PATH=/opt/java/jdk-21.0.8/bin:$PATH
                                   export JAVA_HOME=/opt/java/jdk-21.0.8
                                   zcodescan -v
+                                  cd cics-genapp
                                   CMD="zcodescan \
-                                    -sfl /tmp/buildList.txt \
+                                    -sf . \
                                     -if $PWD\
                                     -rf cics-genapp/zcodescan-rules.yaml\
                                     -cf $HOME/config.yml\
@@ -199,7 +200,6 @@ pipeline {
                                   echo "$CMD"
                                   $CMD
                                   rc=$?
-                                  cd cics-genapp
                                   CMD="/opt/sonar/sonar-scanner-7.1.0.4889-linux-x64/bin/sonar-scanner \
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
