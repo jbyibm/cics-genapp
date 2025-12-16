@@ -85,7 +85,7 @@
             ansible-playbook deploy.yml -i inventories/ 2>&1
         delegate_to: localhost
         ignore_errors: True
-        register: deployment_result
+        register: deployment_result.rc
         #no_log: True
         environment:
           ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
