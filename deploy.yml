@@ -44,7 +44,7 @@
         delegate_to: localhost
         ignore_errors: True
         register: deployment_result
-        no_log: True
+        #no_log: True
         environment:
           ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
           ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
