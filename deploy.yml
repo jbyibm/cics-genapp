@@ -56,6 +56,7 @@
             #!/bin/bash
             #env
             echo "####################### Start Deployment ####################################"
+            export ANSIBLE_NOCOLOR=True
             cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
             ansible-playbook deploy.yml -i inventories
           prefix_host: true
