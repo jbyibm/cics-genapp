@@ -33,12 +33,13 @@
         no_log: True
         
       - name: Deployment
-        shell: |
-          #!/bin/bash
-          #env
-          echo "####################### Start Deployment ####################################"
-          cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-          ansible-playbook deploy.yml -i inventories/ 2>&1
+        ibm.ibm_zos_wazi_deploy.wd_aap_shell:
+        script: |
+            #!/bin/bash
+            #env
+            echo "####################### Start Deployment ####################################"
+            cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
+            ansible-playbook deploy.yml -i inventories/ 2>&1
         delegate_to: localhost
         ignore_errors: True
         register: deployment_result
