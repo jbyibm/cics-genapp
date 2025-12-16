@@ -57,7 +57,7 @@
             #env
             echo "####################### Start Deployment ####################################"
             cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-            ansible-playbook deploy.yml -i inventories/ 2>&1
+            ansible-playbook deploy.yml -i inventories
           prefix_host: true
           color_logs: false
           color: yellow
