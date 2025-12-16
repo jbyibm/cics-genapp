@@ -34,7 +34,7 @@
         
       - name: Deployment
         ibm.ibm_zos_wazi_deploy.wd_aap_shell:
-        script: |
+          script: |
             #!/bin/bash
             #env
             echo "####################### Start Deployment ####################################"
