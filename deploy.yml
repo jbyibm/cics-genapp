@@ -58,7 +58,9 @@
             echo "####################### Start Deployment ####################################"
             cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
             ansible-playbook deploy.yml -i inventories/ 2>&1
-        delegate_to: localhost
+          prefix_host: true
+          color_logs: false
+          color: yellow
         ignore_errors: True
         register: deployment_result
         #no_log: True
