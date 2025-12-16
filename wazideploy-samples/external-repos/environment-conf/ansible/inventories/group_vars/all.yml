@@ -37,9 +37,8 @@ environment_vars:
 #    binary installation path, e.g, ansible_python_interpreter: "{{PYZ}}/bin/python3.8"
 #
 # Note, PYZ and ZOAU environment variables must be configured.
-################################################################################
-PYZ: "/usr/lpp/IBM/cyp/pyz"
-ZOAU: "/usr/lpp/IBM/zoautil"
+PYZ: "/var/imsapp/python/usr/lpp/IBM/cyp/v3r13/pyz"
+ZOAU: "/var/usr/lpp/IBM/zoautil/v1.3.4.0"
 
   
 ################################################################################
