@@ -74,31 +74,8 @@
           
       - name: Print Deployment Log
         debug:
-          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"   
+          msg: "{{ deployment_result.rc }}"   
           
-      - name: Deployment
-        ibm.ibm_zos_wazi_deploy.wd_aap_shell:
-          script: |
-            #!/bin/bash
-            #env
-            echo "####################### Start Deployment ####################################"
-            cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-            ansible-playbook deploy.yml -i inventories/ 2>&1
-        delegate_to: localhost
-        ignore_errors: True
-        register: deployment_result.rc
-        #no_log: True
-        environment:
-          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
-          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
-          ANSIBLE_CALLBACK_PLUGINS: ''  
-          ANSIBLE_NOCOLOR: True
-          ANSIBLE_FORCE_COLOR: False
-          
-      - name: Print Deployment Log
-        debug:
-          msg: "{{ deployment_result.stdout | regex_replace('\"|\\\\r|\\\\n|\\\\', '`') | split('\n') }}"      
-
 #      - name: Install Wazi Deploy
 #        ansible.builtin.pip:
 #          name: /runner/project/wazideploy-3.0.4.tar.gz
