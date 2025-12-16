@@ -1,11 +1,39 @@
 #!/usr/bin/env python3
-
-import json
-import sys
-import argparse
-from datetime import datetime
-from pathlib import Path
+#*******************************************************************************
+# Licensed Materials - Property of IBM
+# (c) Copyright IBM Corp. 2023, 2025. All Rights Reserved.
+#
+# Note to U.S. Government Users Restricted Rights:
+# Use, duplication or disclosure restricted by GSA ADP Schedule
+# Contract with IBM Corp.
+#*******************************************************************************
 import html
+
+"""
+Simple SQL to JSON converter
+Execute SQL from file and output JSON result
+"""
+
+import sys
+import json
+from pathlib import Path
+from db2_evidence_client import DB2EvidenceClient
+from datetime import datetime
+
+
+class DB2JSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder for DB2 data types"""
+
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
+        elif isinstance(obj, decimal.Decimal):
+            return float(obj)
+        elif isinstance(obj, bytes):
+            return obj.decode('utf-8', errors='replace')
+        elif hasattr(obj, '__dict__'):
+            return obj.__dict__
+        return super().default(obj)
 
 
 def escape_html(text):
@@ -65,7 +93,7 @@ def generate_html(data, title="JSON Table"):
       padding: 32px;
     }}
     .container {{
-      max-width: 1200px;
+      max-width:  100%;
       margin: 0 auto;
     }}
     .card {{
@@ -140,60 +168,97 @@ def generate_html(data, title="JSON Table"):
 </html>"""
 
 
-def main():
+import argparse
+
+
+def parse_args():
     parser = argparse.ArgumentParser(
-        description='📊 Convert JSON file to HTML table',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python json2table.py data.json
-  python json2table.py data.json -o table.html
-  python json2table.py data.json -t "My Data" -o result.html
-        """
+        description="Execute SQL file and output results as JSON or HTML."
     )
 
-    parser.add_argument('input', help='Input JSON file')
-    parser.add_argument('-o', '--output', default='output.html',
-                       help='Output HTML file (default: output.html)')
-    parser.add_argument('-t', '--title', default='JSON Table',
-                       help='Table title (default: "JSON Table")')
+    parser.add_argument('-sf', '--sqlFile', required=True,
+                       help='SQL file to execute (required)')
 
-    args = parser.parse_args()
+    parser.add_argument('-of', '--outputFile', default='Result Table',
+                       help='Output JSON file (optional, default: stdout)')
 
-    # Check if file exists
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"❌ Error: File '{args.input}' does not exist.")
+    parser.add_argument('-cf', '--configFile', default='db2_config.yaml',
+                       help='Configuration file (optional, default: db2_config.yaml)')
+
+    parser.add_argument('-t', '--title', default='Result Table',
+                       help='Table title (default: "Result Table")')
+
+    return parser.parse_args()
+
+
+def main():
+    """Main function"""
+
+    args = parse_args()
+    print("SQL file:", args.sqlFile)
+    print("Output file:", args.outputFile)
+    print("Config file:", args.configFile)
+
+    # Parse arguments
+    sql_file = args.sqlFile
+    output_file = args.outputFile
+    config_file = args.configFile
+    table_tiltle = args.title
+
+    # Check SQL file exists
+    sql_path = Path(sql_file)
+    if not sql_path.exists():
+        print(f"Error: SQL file not found: {sql_file}", file=sys.stderr)
         sys.exit(1)
 
     try:
-        # Read and parse JSON
-        print(f"📖 Reading {args.input}...")
-        with open(input_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        # Read SQL
+        sql = sql_path.read_text(encoding='utf-8')
 
-        # Generate HTML
-        print(f"⚙️  Generating HTML table...")
-        html_content = generate_html(data, args.title)
+        # Create client
+        client = DB2EvidenceClient(config_file=config_file)
 
-        # Write output file
-        output_path = Path(args.output)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+        # Display driver info
+        info = client.get_driver_info()
+        print("\n📊 Driver Info:")
+        print(f"  Type: {info['driver_type'].upper()}")
+        print(f"  Schema: {info['schema']}")
+        print(f"  Config: {info['config_file']}")
 
-        print(f"✅ Table successfully generated: {args.output}")
-        print(f"🌐 Open it in your browser to view!")
+        # Execute Query
+        results = client.loader._query(sql.strip(), [])
 
-    except json.JSONDecodeError as e:
-        print(f"❌ Error: Invalid JSON - {e}")
+        if results is None:
+            print("❌ Error: No results")
+            sys.exit(1)
+
+        # Convert to JSON
+        json_output = json.dumps(results, indent=2, ensure_ascii=False, cls=DB2JSONEncoder)
+
+        # Output
+        if output_file:
+            # Write to file
+            if "html" in output_file:
+                html_output = generate_html(json.loads(json_output), table_tiltle)
+                Path(output_file).write_text(html_output, encoding='utf-8')
+            else:
+                Path(output_file).write_text(json_output, encoding='utf-8')
+            print(f"✓ Results written to: {output_file}")
+            print(f"  Records: {len(results)}")
+        else:
+            # Print to stdout
+            print(json_output)
+
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
-    except ValueError as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
+
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f"Error executing query: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -4,4 +4,4 @@ encoding//wazideploy-samples/python/db2/db2_evidence_query.py=UTF-8
 encoding//wazideploy-samples/python/db2/db2_evidence_upload.py=UTF-8
 encoding//wazideploy-samples/python/evidence_database/loader/db2_evidence_readme.md=UTF-8
 encoding//wazideploy-samples/python/evidence_database/queries/json_to_html.py=UTF-8
-encoding//wazideploy-samples/python/evidence_database/queries/sql_to_json.py=UTF-8
+encoding//wazideploy-samples/python/evidence_database/queries/sql_to_json_or_html.py=UTF-8

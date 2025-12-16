@@ -59,19 +59,38 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         if driver_paths:
             logger.info(f"  JAR: {driver_paths}")
 
+        is_ssl_enabled = False
+        # Config SSL
+        if 'ssl' in jdbc_config and 'enabled' in jdbc_config['ssl'] and jdbc_config['ssl']['enabled']:
+            logger.info("Configuring SSL...")
+            ssl_config = jdbc_config['ssl']
+            trust_store = ssl_config.get('trust_store', None)
+            trust_store_password = ssl_config.get('trust_store_password', 'changeit')
+            if trust_store is not None:
+                import jpype
+                is_ssl_enabled = True
+                jdbc_url += ":retrieveMessagesFromServerOnGetMessage=true;emulateParameterMetaDataForZCalls=1;sslConnection=true;sslClientHostnameValidation=off;"
+                logger.info(f"Starting JVM {jpype.getDefaultJVMPath()}")
+                jpype.startJVM(
+                    jpype.getDefaultJVMPath(),
+                    f"-Djavax.net.ssl.trustStore={trust_store}",
+                    f"-Djavax.net.ssl.trustStorePassword={trust_store_password}",
+                   classpath=driver_paths
+                )
+
         # Initialize connection
-        if driver_paths:
+        if is_ssl_enabled or not driver_class:
             self.conn = jaydebeapi.connect(
                 driver_class,
                 jdbc_url,
-                [username, password] if username else [],
-                driver_paths
+                [username, password] if username else []
             )
         else:
             self.conn = jaydebeapi.connect(
                 driver_class,
                 jdbc_url,
-                [username, password] if username else []
+                [username, password] if username else [],
+                driver_paths
             )
 
         self.cursor = self.conn.cursor()
@@ -85,6 +104,35 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         """Execute SQL with parameters"""
         # JayDeBeApi accepts list for parameters
         self.cursor.execute(sql, params)
+
+    def _query(self, sql: str, params):
+        """Execute SQL with parameters and return results"""
+        sql = sql.strip()
+        self.cursor.execute(sql, params)
+
+        # Check if it's a SELECT query
+        if self.cursor.description is None:
+            return None
+
+        # Get column names and convert Java strings to Python strings
+        columns = [str(desc[0]) for desc in self.cursor.description]  # <- str() conversion
+
+        # Fetch all rows
+        rows = self.cursor.fetchall()
+
+        # Convert to list of dictionaries
+        results = []
+        for row in rows:
+            row_dict = {}
+            for col_name, value in zip(columns, row):
+                # Convert value if it's a Java object
+                if value is not None:
+                    if hasattr(value, '__class__') and 'java' in str(value.__class__):
+                        value = str(value)  # Convert Java objects to string
+                row_dict[col_name] = value
+            results.append(row_dict)
+
+        return results
 
     def _commit(self):
         """Commit transaction"""

@@ -41,6 +41,10 @@ class DB2EvidenceLoaderBase(ABC):
         pass
 
     @abstractmethod
+    def _query(self, sql: str, params):
+        """Execute SQL with parameters and return results"""
+
+    @abstractmethod
     def _commit(self):
         """Commit transaction - to be implemented by subclasses"""
         pass

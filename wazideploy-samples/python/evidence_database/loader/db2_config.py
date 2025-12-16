@@ -104,13 +104,23 @@ class DB2Config:
         ibm_config = self.config.get('ibm_db', {})
 
         conn_parts = [
-            f"DATABASE={ibm_config.get('database', 'DEPLOY')}",
+            f"DATABASE={ibm_config.get('database', 'DBD1LOC')}",
             f"HOSTNAME={ibm_config.get('hostname', 'localhost')}",
             f"PORT={ibm_config.get('port', 50000)}",
             f"PROTOCOL={ibm_config.get('protocol', 'TCPIP')}",
             f"UID={ibm_config.get('uid', '')}",
             f"PWD={ibm_config.get('pwd', '')}"
+
         ]
+
+        # Config SSL
+        if 'ssl' in ibm_config and 'enabled' in ibm_config['ssl'] and ibm_config['ssl']['enabled']:
+            logging.info("Configuring SSL...")
+            ssl_config = ibm_config['ssl']
+            conn_parts.append("SecurityTransportMode=SSL"),
+            conn_parts.append(f"SSLClientKeystoredb={ssl_config.get('ssl_client_keystore_db', '')}")
+            conn_parts.append(f"SSLClientKeystash={ssl_config.get('ssl_client_keystash', '')}")
+            conn_parts.append("ConnectTimeout=30")
 
         return ';'.join(conn_parts) + ';'
 
@@ -147,7 +157,8 @@ class DB2Config:
             'username': jdbc_config.get('username', ''),
             'password': jdbc_config.get('password', ''),
             'driver_paths': jdbc_config.get('driver_paths'),
-            'driver_class': jdbc_config.get('driver_class', 'com.ibm.db2.jcc.DB2Driver')
+            'driver_class': jdbc_config.get('driver_class', 'com.ibm.db2.jcc.DB2Driver'),
+            'ssl': jdbc_config.get('ssl', None)
         }
 
     def get_windows_config(self) -> Dict[str, Any]:

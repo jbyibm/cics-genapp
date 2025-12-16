@@ -24,9 +24,9 @@ schema: DEPLOYZ
 # =============================================================================
 ibm_db:
   # Connection string format
-  database: DEPLOY
-  hostname: localhost
-  port: 50000
+  database: DBD1LOC
+  hostname: 163.107.84.46
+  port: 8102
   protocol: TCPIP
   uid: ${DB2_USER}
   pwd: ${DB2_PASSWORD}
@@ -38,6 +38,12 @@ ibm_db:
   # uid: ${DB_USER}
   # pwd: ${DB_PASSWORD}
 
+  # Optional: SSL configuration
+  #ssl:
+  #   enabled: true
+  #   ssl_client_keystore_db: c:\clidriver\db2truststore.kdb
+  #   ssl_client_keystash: c:\clidriver\db2truststore.sth
+
 # =============================================================================
 # JDBC Driver Configuration (used when driver: jdbc)
 # =============================================================================
@@ -45,7 +51,7 @@ jdbc:
   # JDBC URL (can be full URL or individual components)
   
   # Option 1: Full JDBC URL
-  url: jdbc:db2://163.107.86.75:8102/DBD1LOC:sslConnection=true;
+  url: jdbc:db2://163.107.84.46:8102/DBD1LOC
   
   # Option 2: Components (will build URL automatically)
   # hostname: localhost
@@ -65,8 +71,8 @@ jdbc:
   # Optional: SSL configuration
   ssl:
      enabled: true
-     trust_store: /home/jby/db2truststore.jks
-     trust_store_password: chnageit
+     trust_store: c:\clidriver\db2truststore.jks
+     trust_store_password: changeit
 
 # =============================================================================
 # Windows Configuration (for ibm_db driver)

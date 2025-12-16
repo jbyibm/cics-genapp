@@ -89,6 +89,24 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
         # ibm_db_dbi requires tuple for parameters
         self.cursor.execute(sql, tuple(params))
 
+    def _query(self, sql: str, params):
+        """Execute SQL with parameters"""
+        with db_conn.cursor() as cursor:
+            cursor.execute(sql, params or ())
+
+            if cursor.description is None:
+                return None
+
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
+
+            results = []
+            for row in rows:
+                row_dict = dict(zip(columns, row))
+                results.append(row_dict)
+
+            return results
+
     def _commit(self):
         """Commit transaction"""
         self.dbi_conn.commit()
