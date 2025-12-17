@@ -133,7 +133,7 @@ def generate_html(data, title="JSON Table"):
 <body>
   <div class="container">
     <div class="header">
-      <h1>📊 {escape_html(title)}</h1>
+      <h1>[Chart] {escape_html(title)}</h1>
       <p>Automatically generated table from JSON</p>
     </div>
     <div class="table-wrapper">
@@ -149,7 +149,7 @@ def generate_html(data, title="JSON Table"):
       </table>
     </div>
     <div class="stats">
-      {len(table_data)} row(s) • {len(headers)} column(s) • Generated on {now}
+      {len(table_data)} row(s) * {len(headers)} column(s) * Generated on {now}
     </div>
   </div>
 </body>
@@ -158,7 +158,7 @@ def generate_html(data, title="JSON Table"):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='📊 Convert JSON file to HTML table',
+        description='[Chart] Convert JSON file to HTML table',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -179,17 +179,17 @@ Examples:
     # Check if file exists
     input_path = Path(args.input)
     if not input_path.exists():
-        print(f"❌ Error: File '{args.input}' does not exist.")
+        print(f"[X] Error: File '{args.input}' does not exist.")
         sys.exit(1)
 
     try:
         # Read and parse JSON
-        print(f"📖 Reading {args.input}...")
+        print(f"[Book] Reading {args.input}...")
         with open(input_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
         # Generate HTML
-        print(f"⚙️  Generating HTML table...")
+        print(f"[Settings]  Generating HTML table...")
         html_content = generate_html(data, args.title)
 
         # Write output file
@@ -197,17 +197,17 @@ Examples:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
-        print(f"✅ Table successfully generated: {args.output}")
-        print(f"🌐 Open it in your browser to view!")
+        print(f"[OK] Table successfully generated: {args.output}")
+        print(f"[Globe] Open it in your browser to view!")
 
     except json.JSONDecodeError as e:
-        print(f"❌ Error: Invalid JSON - {e}")
+        print(f"[X] Error: Invalid JSON - {e}")
         sys.exit(1)
     except ValueError as e:
-        print(f"❌ Error: {e}")
+        print(f"[X] Error: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f"[X] Unexpected error: {e}")
         sys.exit(1)
 
 

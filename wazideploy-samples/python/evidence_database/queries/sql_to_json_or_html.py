@@ -139,7 +139,7 @@ def generate_html(data, title="JSON Table"):
     <div class="card">
       <div class="card-header">
         <h1>{escape_html(title)}</h1>
-        <div class="meta">{len(table_data)} row(s) • {len(headers)} column(s)</div>
+        <div class="meta">{len(table_data)} row(s) * {len(headers)} column(s)</div>
       </div>
       <div class="card-body">
         <!-- Carbon data table container -->
@@ -220,7 +220,7 @@ def main():
 
         # Display driver info
         info = client.get_driver_info()
-        print("\n📊 Driver Info:")
+        print("\n[Chart] Driver Info:")
         print(f"  Type: {info['driver_type'].upper()}")
         print(f"  Schema: {info['schema']}")
         print(f"  Config: {info['config_file']}")
@@ -229,7 +229,7 @@ def main():
         results = client.loader._query(sql.strip(), [])
 
         if results is None:
-            print("❌ Error: No results")
+            print("[X] Error: No results")
             sys.exit(1)
 
         # Convert to JSON
@@ -243,7 +243,7 @@ def main():
                 Path(output_file).write_text(html_output, encoding='utf-8')
             else:
                 Path(output_file).write_text(json_output, encoding='utf-8')
-            print(f"✓ Results written to: {output_file}")
+            print(f"[OK] Results written to: {output_file}")
             print(f"  Records: {len(results)}")
         else:
             # Print to stdout

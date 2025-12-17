@@ -57,14 +57,16 @@ The project uses a **Template Method** pattern with:
 
 ```
 project/
-│
-├── db2_config.yaml           # Configuration file (REQUIRED)
-├── db2_config.py             # Configuration loader
-├── db2_evidence_base.py      # Abstract base class
-├── db2_evidence_ibm.py       # IBM DB implementation
-├── db2_evidence_jdbc.py      # JDBC implementation
-├── db2_schema_ddl.sql        # Database schema DDL
-└── README.md                 # This file
+
+ db2_config.yaml           # Configuration file (REQUIRED)
+ db2_config.py             # Configuration loader
+ db2_evidence_base.py      # Abstract base class
+ db2_evidence_ibm.py       # IBM DB implementation
+ db2_evidence_jdbc.py      # JDBC implementation
+ db2_schema_ddl_zos.sql    # Database schema DDL for DB2 z/OS
+ db2_schema_ddl_lux.sql    # Database schema DDL for DB2 LUW
+ db2_evidence_client.py      # Loader CLI
+ README.md                 # This file
 ```
 
 ## Database Schema
@@ -72,12 +74,12 @@ project/
 The database uses the following structure:
 
 ```
-DEPLOY (1) ──┬──→ ACTIVITY (N) ──┬──→ ACTION (N) ──┬──→ STEP (N)
-             │                    │                 | │
-             └──→ PROPERTIES      └──→ PROPERTIES   | └──→ STEP_ARTIFACT (junction)
-                                                    └──→ PROPERTIES  |
-                                                                     └──→ ARTIFACT (unique by PATH)
-                                                                            └──→ PROPERTIES
+DEPLOY (1) -> ACTIVITY (N) -> ACTION (N) -> STEP (N)
+                                                  | 
+             -> PROPERTIES      -> PROPERTIES   | -> STEP_ARTIFACT (junction)
+                                                    -> PROPERTIES  |
+                                                                     -> ARTIFACT (unique by PATH)
+                                                                            -> PROPERTIES
 ```
 
 **Key Points:**
@@ -201,7 +203,7 @@ pip install JayDeBeApi
 pip install JPype1  # Required for JayDeBeApi
 ```
 
-**For z/OS See:** [Python® AI Toolkit for IBM® z/OS®](https://ibm-z-oss-oda.github.io/python_ai_toolkit_zos/)
+**For z/OS See:** [Python(R) AI Toolkit for IBM(R) z/OS(R)](https://ibm-z-oss-oda.github.io/python_ai_toolkit_zos/)
 
 ```bash
 pip install jaydebeapi --index-url https://downloads.pyaitoolkit.ibm.net:443/repository/python_ai_toolkit_zos/simple
@@ -442,13 +444,13 @@ ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
 
 | Feature | IBM DB (`ibm_db`) | JDBC (`JayDeBeApi`) |
 |---------|-------------------|---------------------|
-| **Performance** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐ Very Good |
-| **Installation** | ⭐⭐⭐ Medium (requires CLI) | ⭐⭐⭐⭐ Easy (just JAR) |
-| **Portability** | ⭐⭐⭐ OS-dependent | ⭐⭐⭐⭐⭐ Cross-platform |
-| **Compatibility** | ⭐⭐⭐⭐⭐ Native DB2 | ⭐⭐⭐⭐ Standard JDBC |
-| **Windows** | ⭐⭐⭐ Complex setup | ⭐⭐⭐⭐⭐ Simple |
-| **Linux** | ⭐⭐⭐⭐⭐ Native | ⭐⭐⭐⭐ Requires Java |
-| **z/OS** | ⭐⭐⭐⭐⭐ Native For DB2 on z/OS | ⭐⭐⭐⭐ Requires Java |
+| **Performance** |  Excellent |  Very Good |
+| **Installation** |  Medium (requires CLI) |  Easy (just JAR) |
+| **Portability** |  OS-dependent |  Cross-platform |
+| **Compatibility** |  Native DB2 |  Standard JDBC |
+| **Windows** |  Complex setup |  Simple |
+| **Linux** |  Native |  Requires Java |
+| **z/OS** |  Native For DB2 on z/OS |  Requires Java |
 
 ### When to Use Which Driver?
 

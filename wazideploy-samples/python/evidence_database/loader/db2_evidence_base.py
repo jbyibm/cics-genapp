@@ -424,7 +424,7 @@ class DB2EvidenceLoaderBase(ABC):
         existing = cursor.fetchone()
 
         if existing:
-            # Artifact already exists → reuse existing ID
+            # Artifact already exists -> reuse existing ID
             artifact_id = int(existing[0])
 
             print(

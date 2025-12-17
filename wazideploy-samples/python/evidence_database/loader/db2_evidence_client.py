@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
         # Display driver info
         info = client.get_driver_info()
-        print("\n📊 Driver Info:")
+        print("\n[Chart] Driver Info:")
         print(f"  Type: {info['driver_type'].upper()}")
         print(f"  Schema: {info['schema']}")
         print(f"  Config: {info['config_file']}")
@@ -178,7 +178,7 @@ if __name__ == "__main__":
         # Load evidence file
         deploy_id = client.load_evidence_file(yaml_file)
 
-        print("\n✅ Evidence loaded successfully!")
+        print("\n[OK] Evidence loaded successfully!")
         print(f"   Deploy ID: {deploy_id}")
         logger.info(f"Evidence loaded successfully (Deploy ID: {deploy_id})")
 
@@ -186,11 +186,11 @@ if __name__ == "__main__":
         client.close()
 
     except FileNotFoundError as e:
-        print(f"\n❌ File not found: {e}")
+        print(f"\n[X] File not found: {e}")
         logger.error(f"File not found: {e}")
         sys.exit(1)
 
     except Exception as e:
-        print(f"\n❌ Error: {str(e)}")
+        print(f"\n[X] Error: {str(e)}")
         logger.error(f"Error during loading: {str(e)}", exc_info=True)
         sys.exit(1)

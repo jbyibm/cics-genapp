@@ -18,16 +18,17 @@
 -- 3. Set schema: SET SCHEMA DPYZ;
 -- =============================================================================
 
-DROP DATABASE DPYZ001;
-DROP STOGROUP DPYSTG;
-CREATE STOGROUP DPYSTG VOLUMES ('*') VCAT DBD1;
-CREATE DATABASE DPYZ001 STOGROUP DPYSTG BUFFERPOOL BP16K0 CCSID UNICODE;
+-- DROP DATABASE DPYZ001;
+-- DROP STOGROUP DPYSTG;
+-- CREATE STOGROUP DPYSTG VOLUMES ('*') VCAT DBD1;
+-- CREATE DATABASE DPYZ001 STOGROUP DPYSTG BUFFERPOOL BP16K0 CCSID UNICODE;
 
 SET SCHEMA DEPLOYZ;
 
 -- =============================================================================
 -- 1. DEPLOY TABLE (Main deployment information)
 -- =============================================================================
+
 
 CREATE
    TABLESPACE DPYZ135

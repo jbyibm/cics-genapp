@@ -14,6 +14,7 @@
 -- 1. DEPLOY TABLE (Main deployment information)
 -- =============================================================================
 
+
 CREATE TABLE DEPLOYZ.DEPLOY (
     DEPLOY_ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
     DESCRIPTION VARCHAR(1000),
