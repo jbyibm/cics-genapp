@@ -18,7 +18,7 @@ import sys
 import json
 from pathlib import Path
 from db2_evidence_client import DB2EvidenceClient
-from datetime import datetime
+import datetime
 
 
 class DB2JSONEncoder(json.JSONEncoder):
@@ -67,7 +67,7 @@ def generate_html(data, title="JSON Table"):
         body_rows.append(f'                <tr class="bx--table-row">\n{cells}\n                </tr>')
 
     body_html = '\n'.join(body_rows)
-    now = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+    now = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S')
 
     # Use Carbon CDN CSS (unpkg) and minimal layout wrapper
     return f"""<!DOCTYPE html>

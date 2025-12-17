@@ -268,7 +268,6 @@ logging:
 # Options
 options:
   verbose: true
-  stop_on_error: false
 ```
 ### Using Environment Variables in Configuration
 
@@ -332,11 +331,12 @@ python.exe db2_evidence_ibm.py evidences.yml my_config.yaml
 export DB2_USER=YOUR_DB2_USER
 export DB2_PASSWORD=YOUR_DB2_PASSWORD
 
+NOTES ONLY JVM 8 WORK FRO ME
 # Using default db2_config.yaml
 # For z/OS uncomment these lines
-# export CLASSPATH=/opt/drivers/db2jcc4.jar
+# unset CLASSPATH
 # export JAVA_HOME=/usr/lpp/java/J8.0_64
-# export LIBPATH=$JAVA_HOME/bin/j9vm:$LIBPATH
+# export LIBPATH=$JAVA_HOME/bin/j9vm
 python3 db2_evidence_jdbc.py evidences.yml
 
 # Using custom config file

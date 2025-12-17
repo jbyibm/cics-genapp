@@ -13,8 +13,8 @@
 # Database Configuration
 # =============================================================================
 
-# Driver to use
-driver: ibm_db
+# Driver
+driver: jdbc
 
 # Database schema
 schema: DEPLOYZ
@@ -23,7 +23,7 @@ schema: DEPLOYZ
 # IBM DB Driver Configuration (used when driver: ibm_db)
 # =============================================================================
 ibm_db:
-  # Connection string format (for z/OS)
+  # Connection string format
   database: ""
   hostname: ""
   port: ""
@@ -48,8 +48,10 @@ ibm_db:
 # JDBC Driver Configuration (used when driver: jdbc)
 # =============================================================================
 jdbc:
+  # JDBC URL (can be full URL or individual components)
+  
   # JDBC URL
-  url: jdbc:db2://jby-workshop-zos-31-ubs:8102/DBD1LOC
+  url: jdbc:db2://127.0.0.1:8102/DBD1LOC
   url_options: 
     -  sslConnection=true
     -  sslTrustStoreLocation=/u/ibmuser/db2truststore.jks
@@ -61,19 +63,42 @@ jdbc:
   
   # Driver configuration
   driver_paths: 
-    - /u/ibmuser/db2jcc4.jar
-    - /u/ibmuser/db2jcc_license_cisuz.jar
+    - /u/ibmuser/db2jcc4.jar 
+    - /u/ibmuser/db2jcc_license_cisuz.jar 
   driver_class: com.ibm.db2.jcc.DB2Driver
   
   jvm_args:
     - "-Xmx512m"
   
 # =============================================================================
+# Windows Configuration (for ibm_db driver)
+# =============================================================================
+windows:
+  # Path to DB2 CLI driver (required for ibm_db on Windows)
+  clidriver: c:\clidriver
+  
+  # Set to true to enable automatic DLL loading
+  auto_configure: true
+
+# =============================================================================
 # Logging Configuration
 # =============================================================================
 logging:
   level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-  format: '%(asctime)s --- %(name)s - %(levelname)s - %(message)s'
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
   
   # Optional: log to file
   # file: evidence_loader.log
+
+# =============================================================================
+# Processing Options
+# =============================================================================
+options:
+  # Print progress during loading
+  verbose: true
+  
+  # Stop on first error or continue
+  stop_on_error: false
+  
+  # Batch commit size (0 = commit after each insert)
+  batch_size: 0

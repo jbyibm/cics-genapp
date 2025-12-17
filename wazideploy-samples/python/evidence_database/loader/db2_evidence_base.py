@@ -8,6 +8,7 @@ import json
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from abc import ABC, abstractmethod
+import logging
 
 
 class DB2EvidenceLoaderBase(ABC):
@@ -276,7 +277,7 @@ class DB2EvidenceLoaderBase(ABC):
 
         if rows:
             artifact_id = int(rows[0]['ARTIFACT_ID'])
-            print(
+            logging.info(
                 f"        Artifact already exists for {self.current_application_name}: "
                 f"{artifact_path} (ID: {artifact_id})"
             )
@@ -386,24 +387,24 @@ class DB2EvidenceLoaderBase(ABC):
     def load_evidence_file(self, yaml_file_path: str) -> int:
         with open(yaml_file_path, 'r') as f:
             evidence = yaml.safe_load(f)
-        print(f"Loading evidence: {evidence['metadata']['name']}")
+        logging.info(f"Loading evidence: {evidence['metadata']['name']}")
 
         deploy_id = self.insert_deploy(evidence)
-        print(f"  Deploy ID created: {deploy_id} for application: {self.current_application_name}")
+        logging.info(f"  Deploy ID created: {deploy_id} for application: {self.current_application_name}")
 
         for activity in evidence.get('activities', []):
             activity_name = activity.get('name', '')
-            print(f"  Processing activity: {activity_name}")
+            logging.info(f"  Processing activity: {activity_name}")
             activity_id = self.insert_activity(deploy_id, activity)
 
             for action in activity.get('actions', []):
                 action_name = action.get('name', '')
-                print(f"    Processing action: {action_name}")
+                logging.info(f"    Processing action: {action_name}")
                 action_id = self.insert_action(activity_id, deploy_id, action)
 
                 for step in action.get('steps', []):
                     step_name = step.get('name', '')
-                    print(f"      Processing step: {step_name}")
+                    logging.info(f"      Processing step: {step_name}")
                     step_id = self.insert_step(action_id, deploy_id, step)
 
                     for artifact in step.get('artifacts', []):

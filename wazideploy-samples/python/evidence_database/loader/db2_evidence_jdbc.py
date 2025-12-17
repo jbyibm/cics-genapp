@@ -20,8 +20,6 @@ import jaydebeapi
 from db2_evidence_base import DB2EvidenceLoaderBase
 from db2_config import load_config
 
-logger = logging.getLogger(__name__)
-
 
 class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
     """DB2 Evidence Loader using JayDeBeApi (JDBC)"""
@@ -52,49 +50,29 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         driver_class = jdbc_config['driver_class']
 
         # Log connection (mask password)
-        logger.info("Connecting to DB2 using JDBC driver...")
-        logger.info(f"  URL: {jdbc_url}")
-        logger.info(f"  Username: {username}")
-        logger.info(f"  Driver: {driver_class}")
+        logging.info("Connecting to DB2 using JDBC driver...")
+        logging.info(f"  URL: {jdbc_url}")
+        logging.info(f"  Username: {username}")
+        logging.info(f"  Driver: {driver_class}")
         if driver_paths:
-            logger.info(f"  JAR: {driver_paths}")
+            logging.info(f"  JAR: {driver_paths}")
 
-        is_ssl_enabled = False
-        # Config SSL
-        if 'ssl' in jdbc_config and 'enabled' in jdbc_config['ssl'] and jdbc_config['ssl']['enabled']:
-            logger.info("Configuring SSL...")
-            ssl_config = jdbc_config['ssl']
-            trust_store = ssl_config.get('trust_store', None)
-            trust_store_password = ssl_config.get('trust_store_password', 'changeit')
-            if trust_store is not None:
-                import jpype
-                is_ssl_enabled = True
-                jdbc_url += ":retrieveMessagesFromServerOnGetMessage=true;emulateParameterMetaDataForZCalls=1;sslConnection=true;sslClientHostnameValidation=off;"
-                logger.info(f"Starting JVM {jpype.getDefaultJVMPath()}")
-                jpype.startJVM(
-                    jpype.getDefaultJVMPath(),
-                    f"-Djavax.net.ssl.trustStore={trust_store}",
-                    f"-Djavax.net.ssl.trustStorePassword={trust_store_password}",
-                   classpath=driver_paths
-                )
+        jdbc_url = f"{jdbc_url}:"
+        url_options = jdbc_config.get('url_options', [])
+        if len(url_options) > 0:
+            jdbc_url += ";".join(url_options) + ";"
 
-        # Initialize connection
-        if is_ssl_enabled or not driver_class:
-            self.conn = jaydebeapi.connect(
-                driver_class,
-                jdbc_url,
-                [username, password] if username else []
-            )
-        else:
-            self.conn = jaydebeapi.connect(
-                driver_class,
-                jdbc_url,
-                [username, password] if username else [],
-                driver_paths
-            )
+        jvm_args = jdbc_config.get('jvm_args', [])
 
+        self.conn = jaydebeapi.connect(
+            driver_class,
+            jdbc_url,
+            [username, password] if username else [],
+            driver_paths,
+            jvm_args
+        )
         self.cursor = self.conn.cursor()
-        logger.info("Connected successfully")
+        logging.info("Connected successfully")
 
     def _execute(self, sql: str, params):
         """Execute SQL with parameters"""
@@ -145,7 +123,7 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         if self.conn:
             try:
                 self.conn.close()
-                logger.info("Connection closed")
+                logging.info("Connection closed")
             except:
                 pass
 

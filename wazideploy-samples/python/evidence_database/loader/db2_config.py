@@ -72,6 +72,7 @@ class DB2Config:
         logging.basicConfig(
             level=level,
             format=format_str,
+            force=True,
             filename=log_config.get('file')
         )
 
@@ -103,6 +104,8 @@ class DB2Config:
         """
         ibm_config = self.config.get('ibm_db', {})
 
+        if ibm_config.get('database', True) or ibm_config.get('database') == "":
+            return ""
         conn_parts = [
             f"DATABASE={ibm_config.get('database', 'DBD1LOC')}",
             f"HOSTNAME={ibm_config.get('hostname', 'localhost')}",
@@ -133,32 +136,14 @@ class DB2Config:
         """
         jdbc_config = self.config.get('jdbc', {})
 
-        # Build JDBC URL if components provided
-        if 'url' not in jdbc_config and 'hostname' in jdbc_config:
-            hostname = jdbc_config.get('hostname', 'localhost')
-            port = jdbc_config.get('port', 50000)
-            database = jdbc_config.get('database', 'DEPLOY')
-            jdbc_url = f"jdbc:db2://{hostname}:{port}/{database}"
-
-            # Add SSL parameters if configured
-            ssl_config = jdbc_config.get('ssl', {})
-            if ssl_config.get('enabled'):
-                ssl_params = [
-                    "sslConnection=true",
-                    f"sslTrustStoreLocation={ssl_config.get('trust_store', '')}",
-                    f"sslTrustStorePassword={ssl_config.get('trust_store_password', '')}"
-                ]
-                jdbc_url += ':' + ';'.join(ssl_params) + ';'
-        else:
-            jdbc_url = jdbc_config.get('url', 'jdbc:db2://localhost:50000/DEPLOY')
-
         return {
-            'url': jdbc_url,
+            'url': jdbc_config.get('url', 'jdbc:db2://localhost:50000/DEPLOY'),
             'username': jdbc_config.get('username', ''),
             'password': jdbc_config.get('password', ''),
             'driver_paths': jdbc_config.get('driver_paths'),
             'driver_class': jdbc_config.get('driver_class', 'com.ibm.db2.jcc.DB2Driver'),
-            'ssl': jdbc_config.get('ssl', None)
+            'jvm_args': jdbc_config.get('jvm_args', []),
+            'url_options': jdbc_config.get('url_options', []),
         }
 
     def get_windows_config(self) -> Dict[str, Any]:
@@ -168,18 +153,6 @@ class DB2Config:
     def get_options(self) -> Dict[str, Any]:
         """Get processing options"""
         return self.config.get('options', {})
-
-    def is_verbose(self) -> bool:
-        """Check if verbose mode is enabled"""
-        return self.get_options().get('verbose', True)
-
-    def should_stop_on_error(self) -> bool:
-        """Check if should stop on first error"""
-        return self.get_options().get('stop_on_error', False)
-
-    def get_batch_size(self) -> int:
-        """Get batch commit size"""
-        return self.get_options().get('batch_size', 0)
 
     def __str__(self) -> str:
         """String representation (masks passwords)"""
