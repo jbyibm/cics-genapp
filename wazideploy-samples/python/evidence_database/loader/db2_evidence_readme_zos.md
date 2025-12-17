@@ -310,6 +310,10 @@ pip3 install pyyaml -> in WaziDeplot SMPE install
 # Set credentials
 set DB2_USER=YOUR_DB2_USER
 set DB2_PASSWORD=YOUR_DB2_PASSWORD
+export IBM_DB_HOME=DB2V13
+export STEPLIB=DBD1.SDSNEXIT:DB2V13.SDSNLOAD:DB2V13.SDSNLOD2
+export DSNAOINI=$HOME/odbcini
+
 
 # Using default db2_config.yaml
 python.exe db2_evidence_ibm.py evidences.yml

@@ -96,10 +96,6 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         self.cursor = self.conn.cursor()
         logger.info("Connected successfully")
 
-    def _init_connection(self):
-        # Nothing to do but we need to override the super abstract method.
-        pass
-
     def _execute(self, sql: str, params):
         """Execute SQL with parameters"""
         # JayDeBeApi accepts list for parameters

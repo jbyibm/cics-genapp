@@ -7,15 +7,8 @@
 # Contract with IBM Corp.
 #*******************************************************************************
 
-"""
-DB2 Evidence Loader - IBM DB Implementation
-Uses ibm_db and ibm_db_dbi drivers
-"""
-
-import os
-import sys
 import logging
-
+import ibm_db
 from db2_evidence_base import DB2EvidenceLoaderBase
 from db2_config import load_config
 
@@ -23,112 +16,35 @@ logger = logging.getLogger(__name__)
 
 
 class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
-    """DB2 Evidence Loader using ibm_db driver"""
 
-    def __init__(self, config_file: str='db2_config.yaml'):
-        """
-        Initialize DB2 connection using ibm_db from configuration file
-        
-        Args:
-            config_file: Path to YAML configuration file
-        """
-        # Load configuration
+    def __init__(self, config_file='db2_config.yaml'):
         self.config = load_config(config_file)
-
-        # Setup Windows environment if needed
-        self._setup_windows_environment()
-
-        # Initialize base class with schema from config
         super().__init__(self.config.schema)
 
-        # Build connection string and connect
-        db_connection_string = self.config.get_ibm_db_connection_string()
+        conn_str = self.config.get_ibm_db_connection_string()
+        self.conn = ibm_db.connect(conn_str, "", "")
+        if not self.conn:
+            raise RuntimeError("DB2 connection failed")
 
-        import ibm_db
-        import ibm_db_dbi
-        logger.info("Connecting to DB2 using ibm_db driver...")
-        self.conn = ibm_db.connect(db_connection_string, "", "")
-        self.dbi_conn = ibm_db_dbi.Connection(self.conn)
-        self.cursor = self.dbi_conn.cursor()
-        logger.info("Connected successfully")
-
-    def _init_connection(self):
-        # Nothing to do but we need to override the super abstract method.
-        pass
-
-    def _setup_windows_environment(self):
-        """Setup Windows DLL environment for ibm_db"""
-        if sys.platform != 'win32':
-            return
-
-        win_config = self.config.get_windows_config()
-        if not win_config.get('auto_configure', True):
-            return
-
-        clidriver = win_config.get('clidriver', r'C:\clidriver')
-
-        if not os.path.exists(clidriver):
-            logger.warning(f"CLI driver not found at: {clidriver}")
-            return
-
-        logger.info(f"Configuring Windows environment for CLI driver: {clidriver}")
-        os.environ['IBM_DB_HOME'] = clidriver
-        os.environ['IBM_DB_LIB'] = os.path.join(clidriver, 'lib')
-        os.environ['IBM_DB_INCLUDE'] = os.path.join(clidriver, 'include')
-        os.environ['PATH'] = (os.path.join(clidriver, 'bin\\amd64.VC12.CRT') + ';' +
-                             os.path.join(clidriver, 'bin') + ';' +
-                             os.environ.get('PATH', ''))
-
-        try:
-            os.add_dll_directory(os.path.join(clidriver, 'bin'))
-        except (AttributeError, OSError) as e:
-            logger.warning(f"Could not add DLL directory: {e}")
+        logger.info("Connected using ibm_db")
 
     def _execute(self, sql: str, params):
-        """Execute SQL with parameters"""
-        # ibm_db_dbi requires tuple for parameters
-        self.cursor.execute(sql, tuple(params))
+        stmt = ibm_db.prepare(self.conn, sql)
+        ibm_db.execute(stmt, tuple(params or ()))
 
     def _query(self, sql: str, params):
-        """Execute SQL with parameters"""
-        with db_conn.cursor() as cursor:
-            cursor.execute(sql, params or ())
+        stmt = ibm_db.prepare(self.conn, sql)
+        ibm_db.execute(stmt, tuple(params or ()))
 
-            if cursor.description is None:
-                return None
-
-            columns = [desc[0] for desc in cursor.description]
-            rows = cursor.fetchall()
-
-            results = []
-            for row in rows:
-                row_dict = dict(zip(columns, row))
-                results.append(row_dict)
-
-            return results
+        results = []
+        row = ibm_db.fetch_assoc(stmt)
+        while row:
+            results.append(row)
+            row = ibm_db.fetch_assoc(stmt)
+        return results
 
     def _commit(self):
-        """Commit transaction"""
-        self.dbi_conn.commit()
+        ibm_db.commit(self.conn)
 
     def close(self):
-        """Close database connections"""
-        if self.cursor:
-            try:
-                self.cursor.close()
-            except:
-                pass
-
-        if self.dbi_conn:
-            try:
-                self.dbi_conn.close()
-            except:
-                pass
-
-        if self.conn:
-            try:
-                import ibm_db
-                ibm_db.close(self.conn)
-                logger.info("Connection closed")
-            except:
-                pass  # Connection already closed
+        ibm_db.close(self.conn)
