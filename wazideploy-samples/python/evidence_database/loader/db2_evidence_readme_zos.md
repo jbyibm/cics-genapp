@@ -303,7 +303,7 @@ set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar;C:\drivers\db2jcc_license_cisuz.jar
 ```
 
 ### Using IBM DB Driver
-
+pip3 install pyyaml -> in WaziDeplot SMPE install
 #### Command Line
 
 ```bash
