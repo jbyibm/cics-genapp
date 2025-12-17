@@ -234,15 +234,15 @@ pipeline {
                                         -Dsonar.externalIssuesReportPaths=./BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
                                   echo "$CMD"
                                   $CMD
-                                  if [ $rc -gt 3 ]
-                                  then
-                                    exit $rc
-                                  elif [ $rc -lt 0 ]
-                                  then
-                                    exit $rc
-                                  else
-                                    rc=0
-                                  fi
+                                  #if [ $rc -gt 3 ]
+                                  #then
+                                  #  exit $rc
+                                  #elif [ $rc -lt 0 ]
+                                  #then
+                                  #  exit $rc
+                                  #else
+                                  #  rc=0
+                                  #fi
                                   #exit $rc
                                   exit 0
                             ''')
