@@ -1,6 +1,5 @@
-FIXME
- - lib to install ptyhon
- - config db2 zos
+# **NOTES** NOT UP TO DATE
+
 # DB2 Evidence Loader
 
 Python tool to load YAML evidence files into a DB2 database.
