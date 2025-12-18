@@ -216,7 +216,7 @@ def main():
         sql = sql_path.read_text(encoding='utf-8')
 
         # Create client
-        client = DB2EvidenceClient(config_file=config_file)
+        client = DB2EvidenceLoaderClient(config_file=config_file)
 
         # Display driver info
         info = client.get_driver_info()
