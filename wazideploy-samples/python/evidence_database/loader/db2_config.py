@@ -104,7 +104,7 @@ class DB2Config:
         """
         ibm_config = self.config.get('ibm_db', {})
 
-        if ibm_config.get('database', True) or ibm_config.get('database') == "":
+        if ibm_config.get('database', None) is None or ibm_config.get('database') == "":
             return ""
         conn_parts = [
             f"DATABASE={ibm_config.get('database', 'DBD1LOC')}",

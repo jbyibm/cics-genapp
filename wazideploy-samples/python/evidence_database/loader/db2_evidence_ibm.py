@@ -8,10 +8,11 @@
 #*******************************************************************************
 
 import logging
-import ibm_db
 from db2_evidence_base import DB2EvidenceLoaderBase
 from db2_config import load_config
 import re
+import os
+import sys
 
 
 class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
@@ -19,15 +20,47 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
     def __init__(self, config_file='db2_config.yaml'):
         self.config = load_config(config_file)
         super().__init__(self.config.schema)
-
+        if sys.platform == 'win32':
+            self._setup_windows_environment()
+        import ibm_db
         conn_str = self.config.get_ibm_db_connection_string()
+        logging.info("Connecting to DB2 using ibm_db driver...")
         self.conn = ibm_db.connect(conn_str, "", "")
         if not self.conn:
             raise RuntimeError("DB2 connection failed")
 
         logging.info("Connected using ibm_db")
 
+    def _setup_windows_environment(self):
+        """Setup Windows DLL environment for ibm_db"""
+        if sys.platform != 'win32':
+            return
+
+        win_config = self.config.get_windows_config()
+        if not win_config.get('auto_configure', True):
+            return
+
+        clidriver = win_config.get('clidriver', r'C:\clidriver')
+
+        if not os.path.exists(clidriver):
+            logging.warning(f"CLI driver not found at: {clidriver}")
+            return
+
+        logging.info(f"Configuring Windows environment for CLI driver: {clidriver}")
+        os.environ['IBM_DB_HOME'] = clidriver
+        os.environ['IBM_DB_LIB'] = os.path.join(clidriver, 'lib')
+        os.environ['IBM_DB_INCLUDE'] = os.path.join(clidriver, 'include')
+        os.environ['PATH'] = (os.path.join(clidriver, 'bin\\amd64.VC12.CRT') + ';' +
+                             os.path.join(clidriver, 'bin') + ';' +
+                             os.environ.get('PATH', ''))
+
+        try:
+            os.add_dll_directory(os.path.join(clidriver, 'bin'))
+        except (AttributeError, OSError) as e:
+            logging.warning(f"Could not add DLL directory: {e}")
+
     def _execute(self, sql: str, params):
+        import ibm_db
         stmt = ibm_db.prepare(self.conn, sql)
         if not stmt:
             raise Exception(f"Prepare failed: {ibm_db.stmt_errormsg()}")
@@ -36,6 +69,7 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
         return stmt
 
     def _query(self, sql: str, params):
+        import ibm_db
         results = []
         stmt = self._execute(sql, params)
         num_fields = ibm_db.num_fields(stmt)
@@ -66,7 +100,9 @@ class DB2EvidenceLoaderIBM(DB2EvidenceLoaderBase):
         return results
 
     def _commit(self):
+        import ibm_db
         ibm_db.commit(self.conn)
 
     def close(self):
+        import ibm_db
         ibm_db.close(self.conn)

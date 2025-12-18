@@ -131,7 +131,7 @@ Run the DDL script to create all tables:
 
 ```bash
 # Execute the schema creation script
-db2 -tvf db2_schema_ddl.sql
+db2 -tvf db2_schema_ddl_luw.sql
 
 ```
 
