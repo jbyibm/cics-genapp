@@ -19,7 +19,7 @@ from typing import Optional
 from db2_config import load_config
 
 
-class DB2EvidenceClient:
+class DB2EvidenceLoaderClient:
     """
     Generic client for loading evidence files into DB2.
     Uses driver specified in config file (default: jdbc).
@@ -133,15 +133,15 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python db2_evidence_client.py -e evidence.yml
-  python db2_evidence_client.py -e evidence.yml -c my_config.yaml
-  python db2_evidence_client.py -e evidence.yml -c my_config.yaml -d jdbc
-  python db2_evidence_client.py --evidence evidence.yml --driver ibm
+  python3 db2_evidence_client.py -e evidence.yml
+  python3 db2_evidence_client.py -e evidence.yml -c my_config.yaml
+  python3 db2_evidence_client.py -e evidence.yml -c my_config.yaml -d jdbc
+  python3 db2_evidence_client.py --evidence evidence.yml --driver ibm
 
 Driver selection priority:
   1. Command line argument (if provided)
   2. Config file 'driver' parameter
-  3. Default: 'jdbc'
+  3. Default: 'ibm_db'
         """
     )
 
@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     try:
         # Create client
-        client = DB2EvidenceClient(config_file=config_file, driver=driver)
+        client = DB2EvidenceLoaderClient(config_file=config_file, driver=driver)
 
         logging.info("Starting DB2 Evidence Client...")
         logging.info(f"Evidence file: {yaml_file}")

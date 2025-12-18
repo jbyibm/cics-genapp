@@ -1,13 +1,9 @@
-FIXME
- - lib to install ptyhon
- - config db2 zos
 # DB2 Evidence Loader
 
 Python tool to load YAML evidence files into a DB2 database.
 
 **NOTES**:
-- With minor changes, it should  also be applicable for other database providers.
-- In the guide we use Db2 for Linux, UNIX, with minor changes it should  also be applicable for Db2 for z/OS.
+- In the guide we is fro using Db2 for z/OS only.
 - The Python source code, DB2 schema, and configuration files are mentioned solely as example use cases. They should not be interpreted as any form of design commitment.
 - This this sample code that may contains issues. Not to use in production.
 
@@ -17,23 +13,17 @@ Python tool to load YAML evidence files into a DB2 database.
 - [File Structure](#file-structure)
 - [Database Schema](#database-schema)
 - [Database Setup](#database-setup)
-  - [Step 1: Create Database (if needed)](#step-1-create-database-if-needed)
-  - [Step 2: Create Schema](#step-2-create-schema)
-  - [Step 3: Create Tables](#step-3-create-tables)
-  - [Step 4: Verify Tables](#step-4-verify-tables)
-- [Installation and Configuration](#installation-and-configuration)
-  - [Option 1: IBM DB Driver (ibm_db)](#option-1-ibm-db-driver-ibm_db)
-  - [Option 2: JDBC Driver (JayDeBeApi)](#option-2-jdbc-driver-jaydebeapi)
-- [Usage](#usage)
+- [Installation and Configuration of the CLI](#installation-and-configuration-of-the-cli)
+  - [IBM DB Driver](#ibm-db-driver)
+  - [JDBC Driver](#jdbc-driver)
+- [CLI Usage](#cli-usage)
   - [Configuration File](#configuration-file)
-  - [Using Environment Variables](#using-environment-variables-in-configuration)
   - [Using IBM DB Driver](#using-ibm-db-driver)
   - [Using JDBC Driver](#using-jdbc-driver)
 - [Querying Samples](#querying-samples)
 - [Driver Comparison](#driver-comparison)
 - [Additional Resources](#additional-resources)
 - [License](#license)
-
 
 ---
 
@@ -43,6 +33,7 @@ The project uses a **Template Method** pattern with:
 - **`DB2EvidenceLoaderBase`**: Abstract class containing all business logic
 - **`DB2EvidenceLoaderIBM`**: Implementation using `ibm_db` driver
 - **`DB2EvidenceLoaderJDBC`**: Implementation using `JayDeBeApi` (JDBC) driver
+- **`DB2EvidenceLoaderClient`**: Implementation of the client line command (CLI)
 
 ### Artifact Uniqueness
 
@@ -64,7 +55,6 @@ project/
  db2_evidence_ibm.py       # IBM DB implementation
  db2_evidence_jdbc.py      # JDBC implementation
  db2_schema_ddl_zos.sql    # Database schema DDL for DB2 z/OS
- db2_schema_ddl_lux.sql    # Database schema DDL for DB2 LUW
  db2_evidence_client.py      # Loader CLI
  README.md                 # This file
 ```
@@ -91,80 +81,74 @@ DEPLOY (1) -> ACTIVITY (N) -> ACTION (N) -> STEP (N)
 
 ## Database Setup
 
-Before using the evidence loader, you must create the database and schema.
+To correctly use a the evidence loader with Db2 for z/OS®, a Db2 storage group and a Db2 database must be created. After the tables are created in the Db2 database, users must be granted to access these tables.
 
-### Step 1: Create Database (if needed)
+### Create the Db2 storage group and the Db2 database
 
-#### On Linux/Unix where DB2 is installed:
-```bash
-# Switch to DB2 instance owner
-su - db2inst1
+To do so, you can use the `db2_schema_ddl_zos.sql` script, which is available. This script contains sample commented `CREATE STOGROUP` and `CREATE DATABASE` statements that you can uncomment from the script (if you plan to run this script for the tables creation) or extract from the script and run manually.
 
-# Create database
-db2 create database DEPLOY using codeset UTF-8 territory en PAGESIZE 8192
+The following items give guidelines on how to customize the provided commands:
 
-# Verify database was created
-db2 list database directory | grep DEPLOY
-```
-
-
-### Step 2: Create Schema
-
-Create the schema that will contain all tables:
+####  Create a storage group
 
 ```sql
--- Connect to database
-db2 connect to DEPLOY user db2inst1
-
--- Verify connection
-db2 "SELECT CURRENT SERVER FROM SYSIBM.SYSDUMMY1"
-
--- Create schema
-db2 "CREATE SCHEMA DEPLOYZ AUTHORIZATION db2inst1"
-
--- Verify schema was created
-db2 "SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WHERE SCHEMANAME = 'DEPLOYZ'"
+CREATE STOGROUP <storage group name> VOLUMES ('*') VCAT <HLQ name>;
 ```
 
-### Step 3: Create Tables
+In this command, specify the following parameters:
+* The storage group name.
+* The name of the high-level qualifier of your Db2 files. This qualifier must exist on your system, and the the evidence loader user must have full access to it.
 
-Run the DDL script to create all tables:
+#### Create the database statements
 
-```bash
-# Execute the schema creation script
-db2 -tvf db2_schema_ddl.sql
+To create the database statements, enter the following command.
 
-```
-
-### Step 4: Verify Tables
-
-Check that all tables were created successfully:
+You must create the database with UNICODE as the CCSID. The following example shows Db2 SQL `create` statements:
 
 ```sql
--- List all tables in DEPLOYZ schema
-db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABNAME"
-
--- Expected output:
--- TABNAME
---------------------------
--- ACTION
--- ACTIVITY
--- ARTIFACT
--- DEPLOY
--- PROPERTIES
--- STEP
--- STEP_ARTIFACT
--- STEP_RESULT_DETAIL
--- V_ARTIFACT_USAGE
--- V_DEPLOYMENT_HIERARCHY
--- V_STEP_ARTIFACTS
-
-  11 record(s) selected.
+CREATE DATABASE <database name> STOGROUP <storage group name> BUFFERPOOL <buffer pool name> CCSID UNICODE;  
+COMMIT;
 ```
 
-## Installation and Configuration
+In this command, specify the following parameters:
+* The database name. This name is used during table creation so the script must be changed to match.
+* The storage group name.
+* The buffer pool name. On z/OS, a 16 K page size or larger is required. This buffer pool is used for creating tables. Table spaces are created in the default 16 K buffer pool, unless you selected a larger buffer pool.
 
-### Option 1: IBM DB Driver (ibm_db)
+#### Create the Db2 tables required by the evidence loader
+
+The minimum authority to create the tables and indexes in the next step requires `DBADM` access to the database and `USE` access to the storage group.
+
+```sql
+GRANT USE OF STOGROUP <storage group name> TO <loaderuser>;
+GRANT DBADM ON DATABASE <database name> TO <loaderuser>;
+```
+
+#### Grant Db2 authorizations to the evidence loader tables
+
+It is recommended to set the minimum authority for users to access the database, which requires DELETE, INSERT, SELECT, and UPDATE on the database tables.
+
+
+## Installation and Configuration of the CLI
+
+### IBM DB Driver
+
+#### About ibm_db
+
+**ibm_db** is a Python driver that provides interfaces for connecting to IBM Db2 databases for both LUW (Linux, Unix, Windows) and z/OS platforms. It uses the IBM Data Server Driver for ODBC and CLI APIs and includes **ibm_db_dbi**, a Python DB-API 2.0 compliant driver. The package supports SSL connections, various authentication methods, and both synchronous and asynchronous operations for database interactions.
+
+<blockquote>
+<strong>⚠️ NOTE</strong><br>
+<ul><li>This is the highly recommended option.</li><ul>
+</blockquote>
+
+#### Installation on z/OS
+
+For z/OS systems, **ibm_db** requires IBM Python (3.9+) and a properly configured ODBC driver. The ODBC driver must be set up with bound packages (using the DSNTIJCL JCL from SDSNSAMP), and PTFs UI72588 (v11) or UI72589 (v12) must be applied. Environment variables `IBM_DB_HOME` (Db2 HLQ) and `DSNAOINI` (path to odbc.ini configuration file) must be defined. Refer to the [IBM Db2 for z/OS ODBC Guide](https://www.ibm.com/docs/en/SSEPEK_12.0.0/pdf/db2z_12_odbcbook.pdf) for detailed ODBC configuration instructions.
+
+#### Prerequisites
+
+- **Python**: 3.9+
 
 #### Installation
 
@@ -172,41 +156,40 @@ db2 "SELECT TABNAME FROM SYSCAT.TABLES WHERE TABSCHEMA = 'DEPLOYZ' ORDER BY TABN
 pip install ibm_db
 ```
 
-#### Configuration (Windows)
-
-The IBM DB driver requires DB2 CLI libraries on Windows:
-
-1. **Download DB2 CLI Driver**
-   - Download from: [IBM Data Server Driver Package](https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/v12.1.2/)
-   - Extract to `C:\clidriver` (or another directory)
-
-
 #### Useful Links
 
 - **Official Documentation**: https://github.com/ibmdb/python-ibmdb
+- **Official Documentation for z/OS**: https://github.com/ibmdb/python-ibmdb/blob/master/INSTALL.md#inszos
 - **API Reference**: https://github.com/ibmdb/python-ibmdb/wiki/APIs
 - **Installation Guide**: https://github.com/ibmdb/python-ibmdb#installation
 - **Troubleshooting** (usefull for z/OS DB2 support): https://github.com/ibmdb/python-ibmdb/blob/master/README.md#troubleshooting
 
-#### Prerequisites
-
-- **Python**: 3.6+
 
 ---
 
-### Option 2: JDBC Driver (JayDeBeApi)
+### JDBC Driver
+
+#### About JayDeBeApi
+
+**JayDeBeApi** is a Python module that enables database connectivity using Java JDBC drivers, providing a Python DB-API v2.0 compliant interface. It works with both CPython (via JPype for Java integration) and Jython, allowing unified database access across different Python implementations. The module supports any database with a JDBC driver, requiring only the driver class name, JDBC URL, credentials, and JAR file path. Unlike native drivers like ibm_db, JayDeBeApi offers cross-platform compatibility through JDBC and can connect to any database that has a Java JDBC driver available.
+
+
+
+#### Prerequisites
+
+- **IDM Java JDK**: version 8. 
+    - **⚠️ NOTE:** Only this version works on z/OS.
+- **Python**: 3.9+
+- **JAR File**: `db2jcc4.jar` and `db2jcc_license_cisuz.jar`
+
 
 #### Installation
-
-```bash
-pip install JayDeBeApi
-pip install JPype1  # Required for JayDeBeApi
-```
 
 **For z/OS See:** [Python(R) AI Toolkit for IBM(R) z/OS(R)](https://ibm-z-oss-oda.github.io/python_ai_toolkit_zos/)
 
 ```bash
 pip install jaydebeapi --index-url https://downloads.pyaitoolkit.ibm.net:443/repository/python_ai_toolkit_zos/simple
+
 ```
 
 #### Configuration
@@ -214,7 +197,9 @@ pip install jaydebeapi --index-url https://downloads.pyaitoolkit.ibm.net:443/rep
 1. **Download DB2 JDBC Driver**
    - Download `db2jcc4.jar` from: [IBM Data Server Driver for JDBC](https://www.ibm.com/support/pages/db2-jdbc-driver-versions-and-downloads)
    - Or extract from DB2 installation: `<DB2_HOME>/java/db2jcc4.jar`
-   - Save to an accessible directory (e.g., `/opt/drivers/db2jcc4.jar`)
+   - Save to an accessible directory (e.g., `/u/ibmuser/db2jcc4.jar`)
+   - You also need `db2jcc_license_cisuz.jar`. It sould be on you z/OS: `<DB2_HOME>/java/db2jcc_license_cisuz.jar`
+   - Save to an accessible directory (e.g., `/u/ibmuser/db2jcc_license_cisuz.jar`)
 
 #### Useful Links
 
@@ -224,101 +209,69 @@ pip install jaydebeapi --index-url https://downloads.pyaitoolkit.ibm.net:443/rep
 - **DB2 JDBC Developer Guide**: https://www.ibm.com/docs/en/db2/12.1.x?topic=apis-installing-data-server-driver-jdbc-sqlj
 - **JayDeBeApi Examples**: https://github.com/baztian/jaydebeapi/blob/master/README.rst
 
-#### Prerequisites
-
-- **Java JDK**: 8 or higher (JRE is sufficient)
-- **Python**: 3.6+
-- **JAR File**: `db2jcc4.jar` or `db2jcc.jar`
-
 ---
 
-## Usage
+## CLI Usage
 
 ### Configuration File
 
-Update the `db2_config.yaml` file with your database connection settings:
+The configuration file supports two connection methods to DB2 for z/OS:
+   - ibm_db: Native Python driver using ODBC/CLI (requires configured ODBC)
+   - jdbc: Java-based driver using JDBC (requires db2jcc4 and  db2jcc_license_cisuz JAR files)
+ 
+ Set the 'driver' parameter to your preferred method. For z/OS systems,
+ Environment variables can be used for sensitive data (${VAR_NAME}).
 
-```yaml
 
-# Database schema
-schema: DEPLOYZ
+Update the [`db2_config.yaml`](db2_config.yaml) file with your database connection settings:
 
-# IBM DB configuration (if driver: ibm_db)
-ibm_db:
-  database: DEPLOY
-  hostname: localhost
-  port: 50000
-  protocol: TCPIP
-  uid: ${DB2_USER}
-  pwd:  ${DB2_PASSWORD}
+### Prerequisites
 
-# JDBC configuration (if driver: jdbc)
-jdbc:
-  url: jdbc:db2://localhost:50000/DEPLOY
-  username: ${DB2_USER}
-  password:  ${DB2_PASSWORD}
-  driver_paths: /opt/drivers/db2jcc4.jar
-  driver_class: com.ibm.db2.jcc.DB2Driver
-
-# Logging
-logging:
-  level: INFO
-  format: '%(asctime)s - %(levelname)s - %(message)s'
-
-# Options
-options:
-  verbose: true
+You need to install PyYAML library
 ```
-### Using Environment Variables in Configuration
-
-You can use environment variables in your `db2_config.yaml`:
-
-```yaml
-jdbc:
-  url: jdbc:db2://${DB_HOST}:${DB_PORT}/${DB_NAME}
-  username: ${DB_USER}
-  password: ${DB_PASSWORD}
-  driver_paths: ${JDBC_DRIVER_PATH}
+pip3 install pyyaml
 ```
 
-Then set the environment variables:
-
-```bash
-# Unix
-export DB_HOST=localhost
-export DB_PORT=50000
-export DB_NAME=DEPLOY
-export DB_USER=db2inst1
-export DB_PASSWORD=secret
-export JDBC_DRIVER_PATH=/opt/drivers/db2jcc4.jar;/opt/drivers/db2jcc_license_cisuz.jar
-
-# Windows
-set DB_HOST=localhost
-set DB_PORT=50000
-set DB_NAME=DEPLOY
-set DB_USER=db2inst1
-set DB_PASSWORD=secret
-set JDBC_DRIVER_PATH=C:\drivers\db2jcc4.jar;C:\drivers\db2jcc_license_cisuz.jar
-```
 
 ### Using IBM DB Driver
-pip3 install pyyaml -> in WaziDeplot SMPE install
+
+
 #### Command Line
 
+Before triggering the CLI, ensure that the following environment variables are set and properly adapted to the your DB2 environment.
+
 ```bash
-# Set credentials
-set DB2_USER=YOUR_DB2_USER
-set DB2_PASSWORD=YOUR_DB2_PASSWORD
 export IBM_DB_HOME=DB2V13
 export STEPLIB=DBD1.SDSNEXIT:DB2V13.SDSNLOAD:DB2V13.SDSNLOD2
 export DSNAOINI=$HOME/odbcini
+```
+Command Line Syntax:
 
+```bash
+usage: db2_evidence_client.py [-h] -e YAML_EVIDENCE_FILE [-c CONFIG_FILE] [-d {ibm_db,jdbc}]
 
-# Using default db2_config.yaml
-python.exe db2_evidence_ibm.py evidences.yml
+DB2 Evidence Client - Process evidence YAML files
 
-# Using custom config file
-python.exe db2_evidence_ibm.py evidences.yml my_config.yaml
+options:
+  -h, --help            show this help message and exit
+  -e, --evidence YAML_EVIDENCE_FILE
+                        Path to evidence YAML file (required)
+  -c, --config CONFIG_FILE
+                        Path to config file (default: db2_config.yaml)
+  -d, --driver {ibm_db,jdbc}
+                        Driver to use: 'ibm_db' or 'jdbc' (overrides config file)
+
+Examples:
+  python3 db2_evidence_client.py -e evidence.yml
+  python3 db2_evidence_client.py -e evidence.yml -c my_config.yaml
+  python3 db2_evidence_client.py -e evidence.yml -c my_config.yaml -d jdbc
+  python3 db2_evidence_client.py --evidence evidence.yml --driver ibm
+
+Driver selection priority:
+  1. Command line argument (if provided)
+  2. Config file 'driver' parameter
+  3. Default: 'ibm_db'
+
 ```
 
 
@@ -326,28 +279,54 @@ python.exe db2_evidence_ibm.py evidences.yml my_config.yaml
 
 #### Command Line
 
+Before triggering the CLI, ensure that the following environment variables are set and properly adapted to the your DB2 environment.
+
+
+
 ```bash
-# Set credentials
 export DB2_USER=YOUR_DB2_USER
 export DB2_PASSWORD=YOUR_DB2_PASSWORD
-
-NOTES ONLY JVM 8 WORK FRO ME
-# Using default db2_config.yaml
-# For z/OS uncomment these lines
-# unset CLASSPATH
-# export JAVA_HOME=/usr/lpp/java/J8.0_64
-# export LIBPATH=$JAVA_HOME/bin/j9vm
-python3 db2_evidence_jdbc.py evidences.yml
-
-# Using custom config file
-python3 db2_evidence_jdbc.py evidences.yml my_config.yaml
+unset CLASSPATH
+export JAVA_HOME=/usr/lpp/java/J8.0_64
+export LIBPATH=$JAVA_HOME/bin/j9vm
 ```
 
+Command Line Syntax:
+
+```bash
+usage: db2_evidence_client.py [-h] -e YAML_EVIDENCE_FILE [-c CONFIG_FILE] [-d {ibm_db,jdbc}]
+
+DB2 Evidence Client - Process evidence YAML files
+
+options:
+  -h, --help            show this help message and exit
+  -e, --evidence YAML_EVIDENCE_FILE
+                        Path to evidence YAML file (required)
+  -c, --config CONFIG_FILE
+                        Path to config file (default: db2_config.yaml)
+  -d, --driver {ibm_db,jdbc}
+                        Driver to use: 'ibm_db' or 'jdbc' (overrides config file)
+
+Examples:
+  python3 db2_evidence_client.py -e evidence.yml
+  python3 db2_evidence_client.py -e evidence.yml -c my_config.yaml
+  python3 db2_evidence_client.py -e evidence.yml -c my_config.yaml -d jdbc
+  python3 db2_evidence_client.py --evidence evidence.yml --driver ibm
+
+Driver selection priority:
+  1. Command line argument (if provided)
+  2. Config file 'driver' parameter
+  3. Default: 'ibm_db'
+
+```
 
 ## Querying Samples
 
 ```sql
--- Lists all artifacts deployed in a specific environment, including the application name and versionSELECT DISTINCT 
+-- =============================================================================
+-- Lists all artifacts deployed in a specific environment, including the 
+-- application name and version
+-- =============================================================================
 SELECT DISTINCT 
     d.APPLICATION_NAME,
     d.APPLICATION_VERSION,
@@ -363,7 +342,9 @@ JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
 WHERE d.ENVIRONMENT_NAME = 'PROD'
 ORDER BY d.APPLICATION_NAME, d.APPLICATION_VERSION, art.ARTIFACT_NAME;
 
+-- =============================================================================
 -- In which environments is the artifact named "LGACDB02" deployed
+-- =============================================================================
 SELECT DISTINCT 
     d.ENVIRONMENT_NAME,
     d.APPLICATION_NAME,
@@ -379,7 +360,10 @@ JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
 WHERE art.ARTIFACT_NAME = 'LGACDB02'
 ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP DESC;
 
--- In which environments is the artifact named "LGACDB02" of type "CICSLOAD" deployed
+-- =============================================================================
+-- In which environments the artifact named "LGACDB02" of type "CICSLOAD"
+-- is deployed
+-- =============================================================================
 SELECT DISTINCT 
     d.ENVIRONMENT_NAME,
     d.APPLICATION_NAME,
@@ -397,21 +381,10 @@ WHERE art.ARTIFACT_NAME = 'LGACDB02'
   AND art.ARTIFACT_TYPE = 'CICSLOAD'
 ORDER BY d.ENVIRONMENT_NAME, d.DEPLOY_TIMESTAMP DESC;
 
--- List the properties (PROPERTIES) of an activity for a deployment with a specific DEPLOY_TIMESTAMP
-SELECT 
-    act.ACTIVITY_ID,
-    act.ACTIVITY_NAME,
-    p.PROPERTY_KEY,
-    p.PROPERTY_VALUE
-FROM DEPLOYZ.DEPLOY d
-JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
-JOIN DEPLOYZ.PROPERTIES p 
-    ON p.ENTITY_TYPE = 'ACTIVITY' 
-   AND p.ENTITY_ID = act.ACTIVITY_ID
-WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-12 13:22:35.0')
-ORDER BY act.ACTIVITY_ID, p.PROPERTY_KEY;
+-- =============================================================================
+-- List the properties of a specific artifact (by name and type)
+-- =============================================================================
 
--- List the properties of a specific artifact (by name and type) for a given deployment timestamp
 SELECT 
     d.DEPLOY_ID,
     d.ENVIRONMENT_NAME,
@@ -436,8 +409,76 @@ JOIN DEPLOYZ.PROPERTIES p
     ON p.ENTITY_TYPE = 'ARTIFACT'
    AND p.ENTITY_ID = art.ARTIFACT_ID
    AND p.DEPLOY_ID = d.DEPLOY_ID
-WHERE d.DEPLOY_TIMESTAMP = TIMESTAMP('2025-11-12 13:22:35.0') and art.ARTIFACT_NAME = 'LGACDB02'
+WHERE  art.ARTIFACT_NAME = 'LGACDB02'
 ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
+
+-- =============================================================================
+-- Production Artifacts - Detailed list of ACTIVE and DELETED artifacts
+-- Logic: Last action on each artifact determines its status
+-- =============================================================================
+
+
+WITH ARTIFACT_TIMELINE AS (
+    SELECT
+        art.ARTIFACT_ID,
+        art.ARTIFACT_NAME,
+        art.ARTIFACT_PATH,
+        art.ARTIFACT_TYPE,
+        d.APPLICATION_NAME,
+        d.DEPLOY_ID,
+        d.DEPLOY_TIMESTAMP,
+        s.STEP_NAME,
+        s.BUILDING_BLOCK,
+        CASE
+            WHEN s.BUILDING_BLOCK = 'MEMBER_DELETE' THEN 'DELETED'
+            ELSE 'DEPLOYED'
+        END AS ACTION_TYPE,
+        ROW_NUMBER() OVER (
+            PARTITION BY art.ARTIFACT_ID
+            ORDER BY d.DEPLOY_TIMESTAMP DESC
+        ) AS RECENCY_RANK
+    FROM DEPLOYZ.DEPLOY d
+    INNER JOIN DEPLOYZ.ACTIVITY act ON d.DEPLOY_ID = act.DEPLOY_ID
+    INNER JOIN DEPLOYZ.ACTION a ON act.ACTIVITY_ID = a.ACTIVITY_ID
+    INNER JOIN DEPLOYZ.STEP s ON a.ACTION_ID = s.ACTION_ID
+    INNER JOIN DEPLOYZ.STEP_ARTIFACT sa ON s.STEP_ID = sa.STEP_ID
+    INNER JOIN DEPLOYZ.ARTIFACT art ON sa.ARTIFACT_ID = art.ARTIFACT_ID
+    WHERE d.ENVIRONMENT_NAME = 'PROD'
+),
+ARTIFACT_STATUS AS (
+    SELECT
+        APPLICATION_NAME,
+        ARTIFACT_ID,
+        ARTIFACT_NAME,
+        ARTIFACT_PATH,
+        ARTIFACT_TYPE,
+        DEPLOY_TIMESTAMP AS LAST_ACTION_DATE,
+        BUILDING_BLOCK AS LAST_BUILDING_BLOCK,
+        MAX(CASE WHEN ACTION_TYPE = 'DELETED' THEN 1 ELSE 0 END)
+            OVER (PARTITION BY ARTIFACT_ID) AS HAS_MEMBER_DELETE,
+        MAX(CASE WHEN BUILDING_BLOCK = 'MEMBER_COPY' AND ACTION_TYPE = 'DEPLOYED' THEN 1 ELSE 0 END)
+            OVER (PARTITION BY ARTIFACT_ID) AS HAS_MEMBER_COPY_AFTER_DELETE
+    FROM ARTIFACT_TIMELINE
+    WHERE RECENCY_RANK = 1
+)
+SELECT
+    APPLICATION_NAME,
+    ARTIFACT_ID,
+    ARTIFACT_NAME,
+    ARTIFACT_PATH,
+    ARTIFACT_TYPE,
+    CASE
+        WHEN HAS_MEMBER_DELETE = 1 AND HAS_MEMBER_COPY_AFTER_DELETE = 0
+            THEN 'DELETED'
+        ELSE 'DEPLOYED'
+    END AS STATUS,
+    LAST_ACTION_DATE,
+    LAST_BUILDING_BLOCK
+FROM ARTIFACT_STATUS
+ORDER BY
+    LAST_ACTION_DATE DESC,
+    APPLICATION_NAME,
+    ARTIFACT_NAME;
 
 
 ```
@@ -452,9 +493,7 @@ ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
 | **Installation** |  Medium (requires CLI) |  Easy (just JAR) |
 | **Portability** |  OS-dependent |  Cross-platform |
 | **Compatibility** |  Native DB2 |  Standard JDBC |
-| **Windows** |  Complex setup |  Simple |
-| **Linux** |  Native |  Requires Java |
-| **z/OS** |  Native For DB2 on z/OS |  Requires Java |
+| **z/OS** |  Native For DB2 on z/OS |  Requires Java 8 only |
 
 ### When to Use Which Driver?
 

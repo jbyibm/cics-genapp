@@ -7,7 +7,15 @@
 # Contract with IBM Corp.
 #*******************************************************************************
 
-# DB2 Evidence Loader - Configuration File
+#*******************************************************************************
+# This configuration file supports two connection methods to DB2 for z/OS:
+#   - ibm_db: Native Python driver using ODBC/CLI (requires configured ODBC)
+#   - jdbc: Java-based driver using JDBC (requires db2jcc JAR files)
+# 
+# Set the 'driver' parameter to your preferred method. For z/OS systems,
+# JDBC is often preferred due to SSL support and ease of configuration.
+# Environment variables can be used for sensitive data (${VAR_NAME}).
+#*******************************************************************************
 
 # =============================================================================
 # Database Configuration
