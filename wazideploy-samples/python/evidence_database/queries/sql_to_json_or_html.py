@@ -7,7 +7,6 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #*******************************************************************************
-import html
 
 """
 Simple SQL to JSON converter
@@ -19,6 +18,7 @@ import json
 from pathlib import Path
 from db2_evidence_client import DB2EvidenceLoaderClient
 import datetime
+import logging
 
 
 class DB2JSONEncoder(json.JSONEncoder):
@@ -38,6 +38,7 @@ class DB2JSONEncoder(json.JSONEncoder):
 
 def escape_html(text):
     """Escape HTML special characters"""
+    import html
     return html.escape(str(text))
 
 
@@ -179,7 +180,7 @@ def parse_args():
     parser.add_argument('-sf', '--sqlFile', required=True,
                        help='SQL file to execute (required)')
 
-    parser.add_argument('-of', '--outputFile', default='Result Table',
+    parser.add_argument('-of', '--outputFile', default='ResultTable.html',
                        help='Output JSON file (optional, default: stdout)')
 
     parser.add_argument('-cf', '--configFile', default='db2_config.yaml',
@@ -195,9 +196,9 @@ def main():
     """Main function"""
 
     args = parse_args()
-    print("SQL file:", args.sqlFile)
-    print("Output file:", args.outputFile)
-    print("Config file:", args.configFile)
+    logging.info("SQL file:", args.sqlFile)
+    logging.info("Output file:", args.outputFile)
+    logging.info("Config file:", args.configFile)
 
     # Parse arguments
     sql_file = args.sqlFile
@@ -208,7 +209,7 @@ def main():
     # Check SQL file exists
     sql_path = Path(sql_file)
     if not sql_path.exists():
-        print(f"Error: SQL file not found: {sql_file}", file=sys.stderr)
+        logging.info(f"Error: SQL file not found: {sql_file}", file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -220,16 +221,16 @@ def main():
 
         # Display driver info
         info = client.get_driver_info()
-        print("\n[Chart] Driver Info:")
-        print(f"  Type: {info['driver_type'].upper()}")
-        print(f"  Schema: {info['schema']}")
-        print(f"  Config: {info['config_file']}")
+        logging.info("[Chart] Driver Info:")
+        logging.info(f"  Type: {info['driver_type'].upper()}")
+        logging.info(f"  Schema: {info['schema']}")
+        logging.info(f"  Config: {info['config_file']}")
 
         # Execute Query
         results = client.loader._query(sql.strip(), [])
 
         if results is None:
-            print("[X] Error: No results")
+            logging.info("[X] Error: No results")
             sys.exit(1)
 
         # Convert to JSON
@@ -239,14 +240,19 @@ def main():
         if output_file:
             # Write to file
             if "html" in output_file:
+                import html
                 html_output = generate_html(json.loads(json_output), table_tiltle)
                 Path(output_file).write_text(html_output, encoding='utf-8')
+            elif "yaml" in output_file or "yml" in output_file:
+                import yaml
+                with open(output_file, 'w') as outfile:
+                    yaml.dump(results, outfile, default_flow_style=False)
             else:
                 Path(output_file).write_text(json_output, encoding='utf-8')
-            print(f"[OK] Results written to: {output_file}")
-            print(f"  Records: {len(results)}")
+            logging.info(f"[OK] Results written to: {output_file}")
+            logging.info(f"  Records: {len(results)}")
         else:
-            # Print to stdout
+            # logging.info to stdout
             print(json_output)
 
     except FileNotFoundError as e:
