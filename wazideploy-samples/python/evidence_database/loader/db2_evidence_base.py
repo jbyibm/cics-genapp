@@ -223,19 +223,69 @@ class DB2EvidenceLoaderBase(ABC):
             self.insert_property('ACTION', action_id, deploy_id, prop)
 
         self._link_entity_tags('ACTION', action_id, action.get('tags', []))
+
+        # Link states to action
+        self._link_action_states(action_id, action.get('states', []))
+
         return action_id
+
+    def _link_action_states(self, action_id: int, states: List[str]):
+        """Link states to an action via ACTION_STATE table"""
+        if not states:
+            return
+
+        # Remove duplicates
+        unique_states = list(set(states))
+
+        for state_name in unique_states:
+            # Get STATE_ID from STATE table
+            state_rows = self._query(
+                f"""
+                SELECT STATE_ID FROM {self.schema}.STATE
+                WHERE STATE_NAME = ?
+                """,
+                [state_name]
+            )
+
+            if state_rows:
+                state_id = int(state_rows[0]['STATE_ID'])
+
+                # Check if already exists
+                existing = self._query(
+                    f"""
+                    SELECT 1 FROM {self.schema}.ACTION_STATE
+                    WHERE ACTION_ID = ? AND STATE_ID = ?
+                    """,
+                    [action_id, state_id]
+                )
+
+                # Only insert if not exists
+                if not existing:
+                    self._query(
+                        f"""
+                        INSERT INTO {self.schema}.ACTION_STATE (ACTION_ID, STATE_ID)
+                        VALUES (?, ?)
+                        """,
+                        [action_id, state_id]
+                    )
+
+        self._commit()
 
     def insert_step(self, action_id: int, deploy_id: int, step: Dict[str, Any]) -> int:
         result = step.get('step_result', {})
         building_block = step.get('building_block') or self.get_building_block(step)
+        if 'MEMBER_DELETE' == building_block:
+            crud_action = 'DELETE'
+        else:
+            crud_action = 'UPDATE'
 
         rows = self._query(
             f"""
             SELECT STEP_ID FROM FINAL TABLE (
                 INSERT INTO {self.schema}.STEP (
                     ACTION_ID, STEP_NAME, SHORT_NAME,
-                    DESCRIPTION, STATUS, MESSAGE, BUILDING_BLOCK
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    DESCRIPTION, STATUS, MESSAGE, CRUD_ACTION, BUILDING_BLOCK
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             )
             """,
             [
@@ -245,6 +295,7 @@ class DB2EvidenceLoaderBase(ABC):
                 step.get('description', ''),
                 result.get('status', ''),
                 result.get('msg', ''),
+                crud_action,
                 building_block[:100].upper()
             ]
         )

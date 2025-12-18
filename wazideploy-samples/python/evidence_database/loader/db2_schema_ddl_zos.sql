@@ -29,7 +29,6 @@ SET SCHEMA DEPLOYZ;
 -- 1. DEPLOY TABLE (Main deployment information)
 -- =============================================================================
 
-
 CREATE
    TABLESPACE DPYZ135
       IN DPYZ001
@@ -120,11 +119,68 @@ CREATE INDEX IDX_ACTIVITY_DEPLOY
   ON DEPLOYZ.ACTIVITY(DEPLOY_ID);
 
 -- =============================================================================
--- 3. ACTION TABLE
+-- 3. STATE TABLE (Generic states - Fixed table with 4 values)
 -- =============================================================================
 
 CREATE
    TABLESPACE DPYZ137
+      IN DPYZ001
+      USING STOGROUP DPYSTG
+      PRIQTY -1
+      SECQTY -1
+      ERASE NO
+      FREEPAGE 0
+      PCTFREE 10
+      GBPCACHE CHANGED
+      COMPRESS NO
+      LOGGED
+      DSSIZE 4 G
+      SEGSIZE 64
+      MAXPARTITIONS 16
+      BUFFERPOOL BP16K0
+      LOCKSIZE ANY
+      LOCKMAX SYSTEM
+      CLOSE NO
+      CCSID UNICODE
+      MAXROWS 255;
+
+CREATE TABLE DEPLOYZ.STATE (
+    STATE_ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+    STATE_NAME VARCHAR(50) NOT NULL,
+    DESCRIPTION VARCHAR(500)
+) DATA CAPTURE NONE IN DPYZ001.DPYZ137;
+
+CREATE UNIQUE INDEX STATE_PK_NDX
+  ON DEPLOYZ.STATE (STATE_ID);
+
+ALTER TABLE DEPLOYZ.STATE
+  ADD CONSTRAINT STATE_PK PRIMARY KEY (STATE_ID);
+
+CREATE UNIQUE INDEX STATE_NAME_UK_NDX
+  ON DEPLOYZ.STATE (STATE_NAME);
+
+ALTER TABLE DEPLOYZ.STATE
+  ADD CONSTRAINT STATE_NAME_UK UNIQUE (STATE_NAME);
+
+-- Insert fixed states
+INSERT INTO DEPLOYZ.STATE (STATE_NAME, DESCRIPTION) VALUES 
+    ('CREATED', 'State for creation operations');
+    
+INSERT INTO DEPLOYZ.STATE (STATE_NAME, DESCRIPTION) VALUES 
+    ('UPDATED', 'State for update operations');
+    
+INSERT INTO DEPLOYZ.STATE (STATE_NAME, DESCRIPTION) VALUES 
+    ('RENAMED', 'State for rename operations');
+    
+INSERT INTO DEPLOYZ.STATE (STATE_NAME, DESCRIPTION) VALUES 
+    ('DELETED', 'State for deletion operations');
+
+-- =============================================================================
+-- 4. ACTION TABLE
+-- =============================================================================
+
+CREATE
+   TABLESPACE DPYZ147
       IN DPYZ001
       USING STOGROUP DPYSTG
       PRIQTY -1
@@ -153,7 +209,7 @@ CREATE TABLE DEPLOYZ.ACTION (
     DESCRIPTION VARCHAR(1000),
     STATUS VARCHAR(50),
     MESSAGE VARCHAR(2000)
-) DATA CAPTURE NONE IN DPYZ001.DPYZ137;
+) DATA CAPTURE NONE IN DPYZ001.DPYZ147;
 
 CREATE UNIQUE INDEX ACTION_PK_NDX
   ON DEPLOYZ.ACTION (ACTION_ID);
@@ -165,7 +221,57 @@ CREATE INDEX IDX_ACTION_ACTIVITY
   ON DEPLOYZ.ACTION(ACTIVITY_ID);
 
 -- =============================================================================
--- 4. STEP TABLE
+-- 5. ACTION_STATE TABLE (Many-to-Many relationship between ACTION and STATE)
+-- =============================================================================
+
+CREATE
+   TABLESPACE DPYZ148
+      IN DPYZ001
+      USING STOGROUP DPYSTG
+      PRIQTY -1
+      SECQTY -1
+      ERASE NO
+      FREEPAGE 0
+      PCTFREE 10
+      GBPCACHE CHANGED
+      COMPRESS NO
+      LOGGED
+      DSSIZE 4 G
+      SEGSIZE 64
+      MAXPARTITIONS 16
+      BUFFERPOOL BP16K0
+      LOCKSIZE ANY
+      LOCKMAX SYSTEM
+      CLOSE NO
+      CCSID UNICODE
+      MAXROWS 255;
+
+CREATE TABLE DEPLOYZ.ACTION_STATE (
+    ACTION_STATE_ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+    ACTION_ID INTEGER NOT NULL,
+    STATE_ID INTEGER NOT NULL
+) DATA CAPTURE NONE IN DPYZ001.DPYZ148;
+
+CREATE UNIQUE INDEX ACTION_STATE_PK_NDX
+  ON DEPLOYZ.ACTION_STATE (ACTION_STATE_ID);
+
+ALTER TABLE DEPLOYZ.ACTION_STATE
+  ADD CONSTRAINT ACTION_STATE_PK PRIMARY KEY (ACTION_STATE_ID);
+
+CREATE UNIQUE INDEX ACTION_STATE_UK_NDX
+  ON DEPLOYZ.ACTION_STATE (ACTION_ID, STATE_ID);
+
+ALTER TABLE DEPLOYZ.ACTION_STATE
+  ADD CONSTRAINT ACTION_STATE_UK UNIQUE (ACTION_ID, STATE_ID);
+
+CREATE INDEX IDX_ACTION_STATE_ACTION
+  ON DEPLOYZ.ACTION_STATE(ACTION_ID);
+
+CREATE INDEX IDX_ACTION_STATE_STATE
+  ON DEPLOYZ.ACTION_STATE(STATE_ID);
+
+-- =============================================================================
+-- 6. STEP TABLE
 -- =============================================================================
 
 CREATE
@@ -198,7 +304,8 @@ CREATE TABLE DEPLOYZ.STEP (
     DESCRIPTION VARCHAR(1000),
     STATUS VARCHAR(50),
     MESSAGE VARCHAR(2000),
-    BUILDING_BLOCK VARCHAR(100) DEFAULT ''
+    BUILDING_BLOCK VARCHAR(100) DEFAULT '',
+    CRUD_ACTION VARCHAR(100) DEFAULT 'UPDATE'
 ) DATA CAPTURE NONE IN DPYZ001.DPYZ138;
 
 CREATE UNIQUE INDEX STEP_PK_NDX
@@ -211,7 +318,7 @@ CREATE INDEX IDX_STEP_ACTION
   ON DEPLOYZ.STEP(ACTION_ID);
 
 -- =============================================================================
--- 5. TAG TABLE (Unique tags)
+-- 7. TAG TABLE (Unique tags)
 -- =============================================================================
 
 CREATE
@@ -254,7 +361,7 @@ ALTER TABLE DEPLOYZ.TAG
   ADD CONSTRAINT UQ_TAG_NAME UNIQUE (TAG_NAME);
 
 -- =============================================================================
--- 6. ACTIVITY_TAG TABLE (Many-to-Many relationship)
+-- 8. ACTIVITY_TAG TABLE (Many-to-Many relationship)
 -- =============================================================================
 
 CREATE
@@ -297,7 +404,7 @@ ALTER TABLE DEPLOYZ.ACTIVITY_TAG
   ADD CONSTRAINT ACTIVITY_TAG_PK PRIMARY KEY (ACTIVITY_ID, TAG_ID);
 
 -- =============================================================================
--- 7. ACTION_TAG TABLE (Many-to-Many relationship)
+-- 9. ACTION_TAG TABLE (Many-to-Many relationship)
 -- =============================================================================
 
 CREATE
@@ -340,7 +447,7 @@ ALTER TABLE DEPLOYZ.ACTION_TAG
   ADD CONSTRAINT ACTION_TAG_PK PRIMARY KEY (ACTION_ID, TAG_ID);
 
 -- =============================================================================
--- 8. STEP_TAG TABLE (Many-to-Many relationship)
+-- 10. STEP_TAG TABLE (Many-to-Many relationship)
 -- =============================================================================
 
 CREATE
@@ -383,7 +490,7 @@ ALTER TABLE DEPLOYZ.STEP_TAG
   ADD CONSTRAINT STEP_TAG_PK PRIMARY KEY (STEP_ID, TAG_ID);
 
 -- =============================================================================
--- 9. ARTIFACT TABLE (Unique artifacts by APPLICATION_NAME + PATH)
+-- 11. ARTIFACT TABLE (Unique artifacts by APPLICATION_NAME + PATH)
 -- =============================================================================
 
 CREATE
@@ -429,7 +536,7 @@ ALTER TABLE DEPLOYZ.ARTIFACT
   ADD CONSTRAINT UQ_ARTIFACT_APP_PATH UNIQUE (APPLICATION_NAME, ARTIFACT_PATH);
 
 -- =============================================================================
--- 10. STEP_ARTIFACT TABLE (Many-to-Many relationship)
+-- 12. STEP_ARTIFACT TABLE (Many-to-Many relationship)
 -- =============================================================================
 
 CREATE
@@ -472,7 +579,7 @@ ALTER TABLE DEPLOYZ.STEP_ARTIFACT
   ADD CONSTRAINT STEP_ARTIFACT_PK PRIMARY KEY (STEP_ID, ARTIFACT_ID);
 
 -- =============================================================================
--- 11. PROPERTIES TABLE (Generic key-value properties)
+-- 13. PROPERTIES TABLE (Generic key-value properties)
 -- =============================================================================
 
 CREATE
@@ -523,7 +630,7 @@ ADD CONSTRAINT CK_PROPERTIES_ENTITY_TYPE
 CHECK (ENTITY_TYPE IN ('ACTIVITY', 'ACTION', 'STEP', 'ARTIFACT'));
 
 -- =============================================================================
--- 12. STEP_RESULT_DETAIL TABLE
+-- 14. STEP_RESULT_DETAIL TABLE
 -- =============================================================================
 
 CREATE
@@ -580,6 +687,18 @@ ALTER TABLE DEPLOYZ.ACTION
   ADD CONSTRAINT FK_ACTION_ACTIVITY
   FOREIGN KEY (ACTIVITY_ID)
   REFERENCES DEPLOYZ.ACTIVITY(ACTIVITY_ID)
+  ON DELETE CASCADE;
+
+ALTER TABLE DEPLOYZ.ACTION_STATE
+  ADD CONSTRAINT FK_ACTION_STATE_ACTION
+  FOREIGN KEY (ACTION_ID)
+  REFERENCES DEPLOYZ.ACTION(ACTION_ID)
+  ON DELETE CASCADE;
+
+ALTER TABLE DEPLOYZ.ACTION_STATE
+  ADD CONSTRAINT FK_ACTION_STATE_STATE
+  FOREIGN KEY (STATE_ID)
+  REFERENCES DEPLOYZ.STATE(STATE_ID)
   ON DELETE CASCADE;
 
 ALTER TABLE DEPLOYZ.STEP
@@ -738,6 +857,18 @@ LEFT JOIN DEPLOYZ.STEP_TAG st ON s.STEP_ID = st.STEP_ID
 LEFT JOIN DEPLOYZ.TAG s_t ON st.TAG_ID = s_t.TAG_ID
 GROUP BY s.STEP_ID, s.STEP_NAME, s.SHORT_NAME;
 
+-- View: Actions with their states (using LISTAGG for DB2 compatibility)
+CREATE VIEW DEPLOYZ.V_ACTION_STATES AS
+SELECT 
+    a.ACTION_ID,
+    a.ACTION_NAME,
+    a.SHORT_NAME,
+    LISTAGG(st.STATE_NAME, ',') WITHIN GROUP (ORDER BY st.STATE_NAME) AS STATES
+FROM DEPLOYZ.ACTION a
+LEFT JOIN DEPLOYZ.ACTION_STATE ast ON a.ACTION_ID = ast.ACTION_ID
+LEFT JOIN DEPLOYZ.STATE st ON ast.STATE_ID = st.STATE_ID
+GROUP BY a.ACTION_ID, a.ACTION_NAME, a.SHORT_NAME;
+
 -- =============================================================================
 -- GRANTS (adjust as needed for your security model)
 -- =============================================================================
@@ -745,7 +876,9 @@ GROUP BY s.STEP_ID, s.STEP_NAME, s.SHORT_NAME;
 -- =============================================================================
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.DEPLOY TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTIVITY TO USER deployer;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STATE TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTION TO USER deployer;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTION_STATE TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.TAG TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTIVITY_TAG TO USER deployer;
@@ -754,8 +887,8 @@ GROUP BY s.STEP_ID, s.STEP_NAME, s.SHORT_NAME;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ARTIFACT TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_ARTIFACT TO USER deployer;
 -- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.PROPERTIES TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_RESULT_DETAIL TO USER deployer;
--- =============================================================================
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_RESULT_DETAIL TO USER deployer
+
 
 COMMIT;
 

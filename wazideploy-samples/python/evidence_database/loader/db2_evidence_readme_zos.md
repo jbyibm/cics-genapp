@@ -27,6 +27,7 @@ Python tool to load YAML evidence files into a DB2 database.
 
 ---
 
+
 ## Architecture
 
 The project uses a **Template Method** pattern with:
@@ -416,7 +417,6 @@ ORDER BY art.ARTIFACT_ID, p.PROPERTY_KEY;
 -- Production Artifacts - Detailed list of ACTIVE and DELETED artifacts
 -- Logic: Last action on each artifact determines its status
 -- =============================================================================
-
 
 WITH ARTIFACT_TIMELINE AS (
     SELECT
