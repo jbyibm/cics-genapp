@@ -79,7 +79,7 @@ class DB2EvidenceLoaderJDBC(DB2EvidenceLoaderBase):
         # JayDeBeApi accepts list for parameters
         self.cursor.execute(sql, params)
 
-    def _query(self, sql: str, params):
+    def  _query(self, sql: str, params, return_ids:bool=True):
         """Execute SQL with parameters and return results"""
         sql = sql.strip()
         self.cursor.execute(sql, params)

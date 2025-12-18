@@ -37,7 +37,7 @@ class DB2EvidenceLoaderBase(ABC):
         pass
 
     @abstractmethod
-    def _query(self, sql: str, params):
+    def _query(self, sql: str, params, return_ids:bool=True):
         pass
 
     @abstractmethod
@@ -266,7 +266,8 @@ class DB2EvidenceLoaderBase(ABC):
                         INSERT INTO {self.schema}.ACTION_STATE (ACTION_ID, STATE_ID)
                         VALUES (?, ?)
                         """,
-                        [action_id, state_id]
+                        [action_id, state_id],
+                        False
                     )
 
         self._commit()
