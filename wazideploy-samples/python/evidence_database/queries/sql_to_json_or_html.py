@@ -17,7 +17,7 @@ Execute SQL from file and output JSON result
 import sys
 import json
 from pathlib import Path
-from db2_evidence_client import DB2EvidenceClient
+from db2_evidence_client import DB2EvidenceLoaderClient
 import datetime
 
 
