@@ -381,9 +381,13 @@ class DB2EvidenceLoaderBase(ABC):
     # STEP RESULT DETAIL
     # ------------------------------------------------------------------
 
-    def insert_step_result_detail(self, step_id: int, result: Dict[str, Any]):
+    def insert_step_result_detail(self, step_id: int, activity_name: str, action_name: str, step_name: str, result: Dict[str, Any]):
         results_data = result.get('results', {})
-
+        try:
+            results_detail = json.dumps(results_data)
+        except Exception as ex:
+            logging.warning(f"Cannot serialize the step result detail as JSON format for activity:{activity_name}, action:{action_name}, step: {step_name}\n\t{str(ex)}")
+            results_detail = str(results_data)
         self._execute(
             f"""
             INSERT INTO {self.schema}.STEP_RESULT_DETAIL (
@@ -396,7 +400,7 @@ class DB2EvidenceLoaderBase(ABC):
                 str(result.get('msg', ''))[:2000],
                 str(results_data.get('command', ''))[:4000]
                 if isinstance(results_data, dict) else '',
-                json.dumps(results_data)[:4000]
+                results_detail[:4000]
             ]
         )
         self._commit()
@@ -463,6 +467,6 @@ class DB2EvidenceLoaderBase(ABC):
                         self.insert_artifact(step_id, deploy_id, artifact)
 
                     for result in step.get('step_result', {}).get('results', []):
-                        self.insert_step_result_detail(step_id, result)
+                        self.insert_step_result_detail(step_id, activity_name, action_name, step_name, result)
 
         return deploy_id
