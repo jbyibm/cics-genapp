@@ -386,8 +386,13 @@ class DB2EvidenceLoaderBase(ABC):
         try:
             results_detail = json.dumps(results_data)
         except Exception as ex:
-            logging.warning(f"Cannot serialize the step result detail as JSON format for activity:{activity_name}, action:{action_name}, step: {step_name}\n\t{str(ex)}")
-            results_detail = str(results_data)
+            try:
+                yaml_results_data = yaml.safe_dump(results_data)
+                results_detail = json.dumps(yaml.safe_dump(yaml_results_data))
+            except Exception as ex:
+                logging.warning(f"Cannot serialize the step result detail as JSON format for activity:{activity_name}, action:{action_name}, step: {step_name}\n\t{str(ex)}")
+                results_detail = str(results_data)
+
         self._execute(
             f"""
             INSERT INTO {self.schema}.STEP_RESULT_DETAIL (
