@@ -1,110 +1,58 @@
 #*******************************************************************************
 # Licensed Materials - Property of IBM
-# (c) Copyright IBM Corp. 2023. All Rights Reserved.
+# (c) Copyright IBM Corp. 2023, 2026. All Rights Reserved.
 #
 # Note to U.S. Government Users Restricted Rights:
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #*******************************************************************************
 ---
-- hosts: "all"
-  gather_facts: "no"
+- hosts: "{{ wd_hosts if wd_hosts is defined else 'all' }}"
+  gather_facts: "{{ wd_gather_facts if wd_gather_facts is defined else 'no' }}"
+  serial: "{{ wd_serial if wd_serial is defined else 5 }}"
+  vars:
+      ansible_remote_tmp: "/tmp/jby/{{tower_job_id }}"
+  collections:
+    - ibm.ibm_zos_core
+    - ibm.ibm_zos_wazi_deploy
   tasks:
-      - name: Execute script with real-time logs
-        ibm.ibm_zos_wazi_deploy.wd_aap_shell:
-          script: |
-            #!/bin/bash
-            echo "Script starting"
-            ls -la /tmp
-            for i in 1 2 3 4 5 6 7 8 9 10 11 12
-            do
-                echo "Sleep 2s"
-                sleep 5
-            done
-            echo "Script finished"
-          prefix_host: true
-          color_logs: false
-          color: yellow
-        register: result
-      
-      - name: Build Var File
+      - name: Print Python Version
         shell: |
           #!/bin/bash
-          echo "{{ my_var }}" | base64 -d > /tmp/var.yml
-          cat /tmp/var.yml
+          python3 -V
+          env
+          ansible --version
+          ls -l $ANSIBLE_CALLBACK_PLUGINS
         delegate_to: localhost
-        #no_log: True
+      - name: Install Wazi Deploy
+        ansible.builtin.pip:
+          name: /runner/project/wazideploy-3.0.7.tar.gz
+        delegate_to: localhost
         
-      - name: Load Var File
-        include_vars:
-           file: "/tmp/var.yml"
-        no_log: True
-
-      - name: Dump Var File
+      - name: Generate Package and Deployment Plan
         shell: |
-          mkdir -p  $HOME/.ssh
-          echo "{{ my_data | b64decode }}" > $HOME/.ssh/id_rsa
-          chmod 700 $HOME/.ssh
-          chmod 700 $HOME/.ssh/id_rsa
+          #!/bin/bash
+          cd /runner/project
+          wazideploy-generate\
+            --deploymentMethod ./wazideploy-samples/external-repos/deployment-method/static-deployment-method.yml\
+            --manifests ./wazideploy-samples/application-manifest/application-manifest-static.yml\
+            --deploymentPlan ./deployment-plan.yml\
+            --deploymentPlanReport ./deployment-plan-report.html\
+            --packageOutputFile ./package.tar\
+            --configFile ./config.yml
         delegate_to: localhost
-        #no_log: True
 
+      - set_fact:
+          wd_deployment_plan_file: ./deployment-plan.yml
+          wd_package_file: ./package.tar
 
-      - name: Deployment
-        ibm.ibm_zos_wazi_deploy.wd_aap_shell:
-          script: |
-            #!/bin/bash
-            #env
-            echo "####################### Start Deployment ####################################"
-            export ANSIBLE_NOCOLOR=True
-            cd  /runner/project/wazideploy-samples/external-repos/environment-conf/ansible
-            ansible-playbook deploy.yml -i inventories
-          prefix_host: true
-          color_logs: false
-          color: yellow
-        ignore_errors: True
-        register: deployment_result
-        #no_log: True
-        environment:
-          ANSIBLE_CONFIG: '/runner/project/wazideploy-samples/external-repos/environment-conf/ansible/ansible.cfg'
-          ANSIBLE_STDOUT_CALLBACK: 'ibm.ibm_zos_wazi_deploy.cb_evidences'
-          ANSIBLE_CALLBACK_PLUGINS: ''  
-          ANSIBLE_NOCOLOR: True
-          ANSIBLE_FORCE_COLOR: False
+      - import_role:
+          name: ibm.ibm_zos_wazi_deploy.zos_deploy
           
-      - name: Print Deployment Log
-        debug:
-          msg: "{{ deployment_result.rc }}"   
-          
-#      - name: Install Wazi Deploy
-#        ansible.builtin.pip:
-#          name: /runner/project/wazideploy-3.0.4.tar.gz
-#        delegate_to: localhost
-        
-#      - name: Generate Package and Deployment Plan
-#        shell: |
-#          #!/bin/bash
-#          cd /runner/project
-#          wazideploy-generate\
-#            --deploymentMethod ./wazideploy-samples/external-repos/deployment-method/static-deployment-method.yml\
-#            --manifests ./wazideploy-samples/application-manifest/application-manifest-static.yml\
-#            --deploymentPlan ./deployment-plan.yml\
-#            --deploymentPlanReport ./deployment-plan-report.html\
-#            --packageOutputFile ./package.tar\
-#            --configFile ./config.yml
-#        delegate_to: localhost
-#
-#      - set_fact:
-#          wd_deployment_plan_file: ./deployment-plan.yml
-#          wd_package_file: ./package.tar
-#
-#      - import_role:
-#          name: ibm.ibm_zos_wazi_deploy.zos_deploy
-#          
-#      - name: Display Evidences
-#        shell: |
-#          #!/bin/bash
-#          cat /runner/project/ansible.cfg
-#          cat {{wd_evidence_file}}
-#        delegate_to: localhost
+      - name: Display Evidences
+        shell: |
+          #!/bin/bash
+          cat /runner/project/ansible.cfg
+          cat {{wd_evidence_file}}
+        delegate_to: localhost
           
