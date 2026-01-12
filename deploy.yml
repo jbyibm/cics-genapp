@@ -49,10 +49,18 @@
       - import_role:
           name: ibm.ibm_zos_wazi_deploy.zos_deploy
           
-      - name: Display Evidences
+      - name: Read evidences file
         shell: |
-          #!/bin/bash
-          cat /runner/project/ansible.cfg
-          cat {{wd_evidence_file}}
+          cat {{ wd_evidence_file }}
+        register: evidences_content
+        delegate_to: localhost
+        changed_when: false
+      
+      - name: Display evidences in stdout
+        debug:
+          msg: |
+            ====== Evidences file ======
+            {{ evidences_content.stdout }}
+            ===========================
         delegate_to: localhost
           
