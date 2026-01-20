@@ -7,7 +7,7 @@ def zAppBuildGitRepo = 'https://github.com/IBM/dbb-zappbuild.git'
 def zAppBuildGitBranch = 'main'
 def dbbGitRepo = 'https://github.com/IBM/dbb.git'
 def dbbGitBranch = 'main'
-def gitCredId = 'git_hub_cred'
+def gitCredId = 'jby-git-hub'
 
 // Private
 def appName="cics-genapp"
