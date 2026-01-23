@@ -218,7 +218,7 @@ pipeline {
                                   fi
                                   exit $rc
                             ''')
-                        junit "${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_zunit.xml"
+                        junit "BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_zunit.xml"
                         if ( rc != 0 )
                             error("ZCodeScan failed!!!")
                     }
