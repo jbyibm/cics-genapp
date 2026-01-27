@@ -5,15 +5,15 @@ domains:
       - name: "Naming Conventions"
         rules:
           - id: "custom.cobol.rules.jar.ProgramIdRule"
-            name: "(Java) The length of the PROGRAM-ID must be ${length}"
+            name: "(JAVA) The maximal length of the PROGRAM-ID must be ${length}"
             description: |
-              The length of the PROGRAM-ID must be fixed
+              The maximal length of the PROGRAM-ID must be fixed
             severity: BLOCKER
             software_quality: MAINTAINABILITY
             cleancode_attribute: DISTINCT
             parameters:
             - name: "length"
-              value: "6"
+              value: 6
               description: |
                 The maximal length of the PROGRAM-ID.
             implementation:
@@ -21,11 +21,6 @@ domains:
               path: "ProgramIdRule.jar"
               class_name: "custom.cobol.rules.java.ProgramIdRule"
               
-              
-  - name: "Cobol Code Review"
-    categories:
-      - name: "Naming Conventions"
-        rules:
           - id: "custom.cobol.rules.regex.ProgramIdRule"
             name: "(RegEx) The maximal length of the PROGRAM-ID must be ${length}"
             description: |
@@ -35,35 +30,16 @@ domains:
             cleancode_attribute: DISTINCT
             parameters:
             - name: "length"
-              value: "6"
+              value: 6
               description: |
                 The maximal length of the PROGRAM-ID.
             - name: "xxxx"
-              value: "10"
+              value: 10
               description: |
                 The maximal length of the PROGRAM-ID.
             implementation:
               language: REGEX
-              extensions:
-              - ".cbl"
               regex:
                  line: True
                  excludes:
-                   - 'PROGRAM-ID.\s+([A-Z0-9]){${length}}[A-Z0-9]+'
-      - name: "Program Structure"
-        rules:
-          - id: "custom.cobol.rules.regex.DataDivisionNotEmpty"
-            name: "The DATA DIVISION must not be empty"
-            description: |
-              The DATA DIVISION must not be empty
-            severity: MEDIUM
-            software_quality: MAINTAINABILITY
-            cleancode_attribute: DISTINCT
-            implementation:
-              language: REGEX
-              extensions:
-              - ".cbl"
-              regex:
-                 line: False
-                 includes:
-                    - 'DATA DIVISION.\s*\w+\s*PROCEDURE DIVISION'
+                   - 'PROGRAM-ID.\s+([A-Z0-9]){${length}}[A-Z0-9]+'              
