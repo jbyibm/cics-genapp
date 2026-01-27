@@ -66,14 +66,14 @@ rules:
 #    severity: MEDIUM
 #  - id: zcodescan.cobol.rules.PerformWithoutThroughRule
 #    severity: MEDIUM
-  - id: zcodescan.cobol.rules.PerformWithThroughRule
-    severity: MEDIUM
-  - id: "zcodescan.cobol.rules.InitializeRule"
-    severity: MEDIUM
+#  - id: zcodescan.cobol.rules.PerformWithThroughRule
+#    severity: MEDIUM
+#  - id: "zcodescan.cobol.rules.InitializeRule"
+#    severity: MEDIUM
 #  - id: "zcodescan.cobol.rules.EvaluateNotIfRule"
 #    severity: MEDIUM
-  - id: "zcodescan.cobol.rules.IfElseRule"
-    severity: MEDIUM
+#  - id: "zcodescan.cobol.rules.IfElseRule"
+#    severity: MEDIUM
 #  - id: zcodescan.cobol.rules.CancelRule
 #    severity: MEDIUM
 #  - id: zcodescan.cobol.rules.ExitParagraphRule
@@ -86,23 +86,23 @@ rules:
 #    severity: MEDIUM
 #  - id: zcodescan.cobol.rules.MultipleExitsRule
 #    severity: MEDIUM    
-  - id: zcodescan.cobol.rules.NestedIfLimitRule
-    severity: MEDIUM
-    statements:
-      - name: "NestingLimit"
-        value: 2
-  - id: zcodescan.cobol.rules.FileNameConventionRule
-    severity: MEDIUM
-    statements:
-      - name: "ConventionMask"
-        value: "ACT.*"
+#  - id: zcodescan.cobol.rules.NestedIfLimitRule
+#    severity: MEDIUM
+#    statements:
+#      - name: "NestingLimit"
+#        value: 2
+#  - id: zcodescan.cobol.rules.FileNameConventionRule
+#    severity: MEDIUM
+#    statements:
+#      - name: "ConventionMask"
+#        value: "ACT.*"
 #  - id: zcodescan.cobol.rules.FiveBasedLevelNumbersRule
 #    severity: MEDIUM
-  - id: zcodescan.cobol.rules.ProcedureRule
-    severity: MEDIUM
-    statements:
-      - name: "LineLimit"
-        value: 100
+#  - id: zcodescan.cobol.rules.ProcedureRule
+#    severity: MEDIUM
+#    statements:
+#      - name: "LineLimit"
+#        value: 100
 #  - id: zcodescan.cobol.rules.AlterRule
 #    severity: HIGH
 #  - id: zcodescan.cobol.rules.AvoidSectionInProcedureDivisionRule
@@ -137,63 +137,63 @@ rules:
 #    severity: MEDIUM
 #  - id: zcodescan.cobol.rules.EntryRule
 #    severity: MEDIUM
-  - id: zcodescan.cobol.rules.PerformExceptPerformSectionRule
-    severity: MEDIUM
+#  - id: zcodescan.cobol.rules.PerformExceptPerformSectionRule
+#    severity: MEDIUM
 #  - id: zcodescan.cobol.rules.NextSentenceInScopedRangeRule
 #    severity: MEDIUM
-  - id: zcodescan.cobol.rules.CopybookRule
-    severity: MEDIUM
-    statements:
-      - name: CopybookName
-        value: lgpolicy
-  - id: zcodescan.cobol.rules.RestrictedRoutineRule
-    severity: HIGH
-    statements:
-      - name: RoutineName
-        value: LGADBC
-  - id: zcodescan.cobol.rules.InlinePerformLineLimitRule
-    severity: MEDIUM
-    statements:
-      - name: LineLimit
-        value: 30
+#  - id: zcodescan.cobol.rules.CopybookRule
+#    severity: MEDIUM
+#    statements:
+#      - name: CopybookName
+#        value: lgpolicy
+#  - id: zcodescan.cobol.rules.RestrictedRoutineRule
+#    severity: HIGH
+#    statements:
+#      - name: RoutineName
+#        value: LGADBC
+#  - id: zcodescan.cobol.rules.InlinePerformLineLimitRule
+#    severity: MEDIUM
+#    statements:
+#      - name: LineLimit
+#        value: 30
 #  - id: zcodescan.cobol.rules.CheckSqlcodeAfterExecSqlRule
 #    severity: HIGH
 #  - id: zcodescan.cobol.rules.CopySuppressRule
 #    severity: MEDIUM
-  - id: zcodescan.cobol.rules.SectionCommentRule
-    severity: MEDIUM
-    statements:
-      - name: LOCATION
-        value: 0 
-  - id: zcodescan.cobol.rules.ParagraphCommentRule
-    severity: MEDIUM
-    statements:
-      - name: LOCATION
-        value: 0
-  - id: zcodescan.cobol.rules.StaticCallNameRule
-    severity: MEDIUM
-    statements:
-      - name: PROGRAM_NAME
-        value: TEST
-  - id: zcodescan.cobol.rules.ConditionNamePrefixRule
-    severity: MEDIUM
-    statements:
-      - name: CONDITION_NAME_PREFIX
-        value: TEST                               
-  - id: zcodescan.cobol.rules.CompilerDirectivesRule
-    severity: MEDIUM
-    statements:
-      - name: BasisDirective
-        value: true
-      - name: ProcessDirective
-        value: true
-      - name: CopyDirective
-        value: true
-      - name: ReplaceDirective
-        value: true
-      - name: ServicelabelDirective
-        value: true
-      - name: ServiceloadDirective
-        value: true
-      - name: TitleDirective
-        value: true
+#  - id: zcodescan.cobol.rules.SectionCommentRule
+#    severity: MEDIUM
+#    statements:
+#      - name: LOCATION
+#        value: 0 
+#  - id: zcodescan.cobol.rules.ParagraphCommentRule
+#    severity: MEDIUM
+#    statements:
+#      - name: LOCATION
+#        value: 0
+#  - id: zcodescan.cobol.rules.StaticCallNameRule
+#    severity: MEDIUM
+#    statements:
+#      - name: PROGRAM_NAME
+#        value: TEST
+#  - id: zcodescan.cobol.rules.ConditionNamePrefixRule
+#    severity: MEDIUM
+#    statements:
+#      - name: CONDITION_NAME_PREFIX
+#        value: TEST                               
+#  - id: zcodescan.cobol.rules.CompilerDirectivesRule
+#    severity: MEDIUM
+#    statements:
+#      - name: BasisDirective
+#        value: true
+#      - name: ProcessDirective
+#        value: true
+#      - name: CopyDirective
+#        value: true
+#      - name: ReplaceDirective
+#        value: true
+#      - name: ServicelabelDirective
+#        value: true
+#      - name: ServiceloadDirective
+#        value: true
+#      - name: TitleDirective
+#        value: true
