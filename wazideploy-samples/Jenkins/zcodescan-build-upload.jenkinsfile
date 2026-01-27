@@ -142,6 +142,7 @@ pipeline {
                         if ( rc != 0 )
                             error("DBB build failed!!!")
                         rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                #-crdf cics-genapp/zcodescan/rules-domains\
                                 cd ${WORKSPACE}
                                 . /u/jenkins/python_wazideploy/beta/env/bin/activate
                                 export JAVA_HOME=/usr/lpp/java/J21.0_64
@@ -150,7 +151,6 @@ pipeline {
                                         -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                         -if $PWD\
                                         -rfo cics-genapp/zcodescan/rules\
-                                        -crdf cics-genapp/zcodescan/rules-domains\
                                         -crjf cics-genapp/zcodescan/jars\
                                         -cf $HOME/config.yml\
                                         -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
