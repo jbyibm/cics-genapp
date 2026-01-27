@@ -188,12 +188,13 @@ pipeline {
                         writeFile file: '/tmp/buildList.txt', text:content
                             def rc = sh (returnStatus: true, script: '''#!/bin/bash
                                   cd ${WORKSPACE}
+                                  sed -i "s/cics-genapp.//" /tmp/buildList.txt
                                   export PATH=/opt/java/jdk-21.0.8/bin:$PATH
                                   export JAVA_HOME=/opt/java/jdk-21.0.8
                                   zcodescan -v
                                   cd cics-genapp
                                   CMD="zcodescan \
-                                    -sf . \
+                                    -sfl /tmp/buildList.txt \
                                     -if $PWD\
                                     -rfo zcodescan/rules\
                                     -crdf zcodescan/rules-domains\
