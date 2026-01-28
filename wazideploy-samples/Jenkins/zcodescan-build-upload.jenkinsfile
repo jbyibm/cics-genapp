@@ -159,8 +159,8 @@ pipeline {
                                 zcodescan -v
                                 $CMD
                                 rc=$?
-                                chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
-                                chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json
+                                chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                                chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
                                 chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
                                 if [ $rc -gt 3 ]
                                 then
@@ -209,7 +209,7 @@ pipeline {
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
                                         -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
-                                        -Dsonar.externalIssuesReportPaths=../BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
+                                        -Dsonar.externalIssuesReportPaths=../BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json"
                                   echo "$CMD"
                                   $CMD
                                   if [ $rc -gt 3 ]
