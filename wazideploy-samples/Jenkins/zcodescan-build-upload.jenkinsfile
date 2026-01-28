@@ -154,7 +154,7 @@ pipeline {
                                         -crjf cics-genapp/zcodescan/jars\
                                         -cf $HOME/config.yml\
                                         -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                        -et sonarqube,zunit"
+                                        -et sonarqube,junit"
                                 echo "$CMD"
                                 zcodescan -v
                                 $CMD
@@ -201,7 +201,7 @@ pipeline {
                                     -crjf zcodescan/jars\
                                     -cf $HOME/config.yml\
                                     -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                    -et sonarqube,zunit"
+                                    -et sonarqube,junit"
                                   echo "$CMD"
                                   $CMD
                                   rc=$?
@@ -223,7 +223,7 @@ pipeline {
                                   fi
                                   exit $rc
                             ''')
-                        junit "BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_zunit.xml"
+                        junit "BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_junit.xml"
                         if ( rc != 0 )
                             error("ZCodeScan failed!!!")
                     }
