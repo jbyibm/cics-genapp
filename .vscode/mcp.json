@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "zopeneditor-mcp-server-0.0.01": {
+      "type": "http",
+      "url": "http://localhost:3009/mcp"
+    }
+  }
+}

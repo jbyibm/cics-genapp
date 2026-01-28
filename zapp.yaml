@@ -8,3 +8,21 @@ propertyGroups:
         type: local
         locations:
           - 'base/src'
+          - 'base/pli'
+profiles:
+  - name: cics-genapp
+    type: zcodescan
+    settings:
+      rules:
+        - type: local
+          locations:
+          - "**/rules/zcodescan-${app-name}-rules.yaml"
+      customRuleModels:
+        - type: local
+          locations:
+          - "**/rules*domains.yaml"
+      customRuleJars:
+        - type: local
+          locations:
+          - "zcodescan/**/*.jar"          
+     

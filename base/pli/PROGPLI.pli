@@ -1,0 +1,77 @@
+ xx: PROC OPTIONS(MAIN);
+   /**********************************************************/
+   /* Programme utilisant %INCLUDE (comme COPY en COBOL)     */
+   /**********************************************************/
+
+   DCL SYSPRINT FILE STREAM OUTPUT;
+
+   /* Inclusion du copybook avec les déclarations communes */
+   %INCLUDE DECVAR;
+
+   /* Variables locales spécifiques à ce programme */
+   DCL MONTANT_HT  FIXED DEC(9,2);
+   DCL MONTANT_TTC FIXED DEC(9,2);
+   DCL I           FIXED BIN(31);
+
+   ON ERROR BEGIN;
+      PUT SKIP LIST('ERREUR DETECTEE');
+      WS_CODE_RET = RC_ERROR;
+      STOP;
+   END;
+
+   PUT SKIP LIST('=================================');
+   PUT SKIP LIST('Programme : PROGPLI');
+   PUT SKIP LIST('Société : ', SOCIETE);
+   PUT SKIP LIST('=================================');
+   PUT SKIP;
+
+   /* Utilisation des variables du copybook */
+   EMPLOYE.NUM_EMP = 'E12345';
+   EMPLOYE.NOM = 'DUPONT';
+   EMPLOYE.PRENOM = 'Jean';
+   EMPLOYE.SALAIRE = 3500.00;
+   EMPLOYE.DATE_EMB = '2020-01-15';
+
+   PUT SKIP LIST('--- Informations Employé ---');
+   PUT SKIP LIST('Numéro : ', EMPLOYE.NUM_EMP);
+   PUT SKIP LIST('Nom : ', TRIM(EMPLOYE.NOM));
+   PUT SKIP LIST('Prénom : ', TRIM(EMPLOYE.PRENOM));
+   PUT SKIP LIST('Salaire : ', EMPLOYE.SALAIRE);
+   PUT SKIP LIST('Date embauche : ', EMPLOYE.DATE_EMB);
+   PUT SKIP;
+
+   /* Calcul avec la constante du copybook */
+   MONTANT_HT = 1000.00;
+   MONTANT_TTC = MONTANT_HT * (1 + TAUX_TVA/100);
+
+   PUT SKIP LIST('--- Calcul TVA ---');
+   PUT SKIP LIST('Montant HT : ', MONTANT_HT);
+   PUT SKIP LIST('Taux TVA : ', TAUX_TVA, '%');
+   PUT SKIP LIST('Montant TTC : ', MONTANT_TTC);
+   PUT SKIP;
+
+   /* Boucle utilisant les constantes du copybook */
+   PUT SKIP LIST('--- Test de boucle ---');
+   DO I = 1 TO 5;
+      WS_COMPTEUR = WS_COMPTEUR + 1;
+      PUT SKIP LIST('Itération ', I, ' - Compteur : ', WS_COMPTEUR);
+   END;
+   PUT SKIP;
+
+   /* Utilisation des codes retour standards */
+   IF WS_COMPTEUR = 5 THEN
+      WS_CODE_RET = RC_OK;
+   ELSE
+      WS_CODE_RET = RC_WARNING;
+
+   PUT SKIP LIST('Code retour final : ', WS_CODE_RET);
+
+   IF WS_CODE_RET = RC_OK THEN
+      PUT SKIP LIST('Traitement terminé avec succès');
+
+   PUT SKIP;
+   PUT SKIP LIST('=================================');
+   PUT SKIP LIST('FIN DU PROGRAMME');
+   PUT SKIP LIST('=================================');
+
+ END xx;

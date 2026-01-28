@@ -265,14 +265,14 @@ pipeline {
             post {
                 always {
                     node (zOsAgentLabel) {
-                        dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
-                            archiveArtifacts allowEmptyArchive: true,
-                                            artifacts: '**/*.log,**/*.json,**/*.html',
-                                            excludes: '**/*clist',
-                                            onlyIfSuccessful: false
-                        }
-                    }
-               }
+	                    dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
+	                        archiveArtifacts allowEmptyArchive: true,
+	                                        artifacts: '**/*.log,**/*.json,**/*.html',
+	                                        excludes: '**/*clist',
+	                                        onlyIfSuccessful: false
+	                    }
+	                }
+                }
             }
         }
 

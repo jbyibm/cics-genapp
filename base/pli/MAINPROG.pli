@@ -1,0 +1,55 @@
+ MAINPRO: PROC OPTIONS(MAIN);
+   /**********************************************************/
+   /* Programme principal qui appelle un sous-programme      */
+   /**********************************************************/
+
+   DCL SYSPRINT FILE STREAM OUTPUT;
+
+   /* Déclaration des variables */
+   DCL NUM1 FIXED DEC(7,2);
+   DCL NUM2 FIXED DEC(7,2);
+   DCL RESULTAT FIXED DEC(7,2);
+   DCL CODE_RETOUR FIXED BIN(15);
+
+   /* Déclaration du point d'entrée du sous-programme */
+   DCL SUBPROG ENTRY(FIXED DEC(7,2),
+                     FIXED DEC(7,2),
+                     FIXED DEC(7,2),
+                     FIXED BIN(15));
+
+   ON ERROR BEGIN;
+      PUT SKIP LIST('ERREUR DETECTEE DANS LE PROGRAMME PRINCIPAL');
+      STOP;
+   END;
+
+   /* Initialisation des variables */
+   NUM1 = 150.50;
+   NUM2 = 75.25;
+   RESULTAT = 0;
+   CODE_RETOUR = 0;
+
+   PUT SKIP LIST('=== PROGRAMME PRINCIPAL MAINPROG ===');
+   PUT SKIP LIST('Nombre 1 : ', NUM1);
+   PUT SKIP LIST('Nombre 2 : ', NUM2);
+   PUT SKIP;
+
+   /* Appel du sous-programme */
+   PUT SKIP LIST('Appel du sous-programme SUBPROG...');
+
+   CALL SUBPROG(NUM1, NUM2, RESULTAT, CODE_RETOUR);
+
+   /* Vérification du code retour */
+   IF CODE_RETOUR = 0 THEN DO;
+      PUT SKIP LIST('Appel réussi !');
+      PUT SKIP LIST('Résultat retourné : ', RESULTAT);
+   END;
+   ELSE DO;
+      PUT SKIP LIST('ERREUR - Code retour : ', CODE_RETOUR);
+   END;
+
+   PUT SKIP;
+   PUT SKIP LIST('=== FIN DU PROGRAMME PRINCIPAL ===');
+
+   STOP;
+
+ END MAINPRO;

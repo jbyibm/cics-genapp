@@ -1,0 +1,45 @@
+ SUBPROG: PROC(PARAM1, PARAM2, RESULT, RETCODE);
+   /**********************************************************/
+   /* Sous-programme appelé par MAINPROG                     */
+   /* Calcule la somme et le produit de deux nombres         */
+   /**********************************************************/
+
+   DCL SYSPRINT FILE STREAM OUTPUT;
+
+   /* Déclaration des paramètres */
+   DCL PARAM1 FIXED DEC(7,2);
+   DCL PARAM2 FIXED DEC(7,2);
+   DCL RESULT FIXED DEC(7,2);
+   DCL RETCODE FIXED BIN(15);
+
+   /* Variables locales */
+   DCL SOMME FIXED DEC(7,2);
+   DCL PRODUIT FIXED DEC(7,2);
+
+   ON ERROR BEGIN;
+      PUT SKIP LIST('ERREUR DANS LE SOUS-PROGRAMME');
+      RETCODE = 8;
+      RETURN;
+   END;
+
+   PUT SKIP LIST('*** Entrée dans SUBPROG ***');
+   PUT SKIP LIST('Paramètre 1 reçu : ', PARAM1);
+   PUT SKIP LIST('Paramètre 2 reçu : ', PARAM2);
+
+   /* Calculs */
+   SOMME = PARAM1 + PARAM2;
+   PRODUIT = PARAM1 * PARAM2;
+
+   PUT SKIP LIST('Somme calculée : ', SOMME);
+   PUT SKIP LIST('Produit calculé : ', PRODUIT);
+
+   /* Retourne la somme comme résultat */
+   RESULT = SOMME;
+   RETCODE = 0;
+
+   PUT SKIP LIST('*** Sortie de SUBPROG ***');
+   PUT SKIP;
+
+   RETURN;
+
+ END SUBPROG;

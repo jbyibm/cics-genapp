@@ -1,0 +1,3 @@
+ lgacdb0:proc options(main) reorder;
+ dcl blah fixed decimal;
+ end lgacdb0;

@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID.     LGACD01. 
+       PROGRAM-ID.     LGACDB01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -34,7 +34,7 @@
       *
        01  WS-RESP                   PIC S9(8) COMP.
        01  LastCustNum               PIC S9(8) COMP.
-       01  GENAcount                 PIC X(16) Value 'GENACUSTNUM'.
+       01  GENAcount                 PIC X(16) Value 'Ä'.
        01  GENApool                  PIC X(8)  Value 'GENA'.
       * Variables for time/date processing
        01  WS-ABSTIME                  PIC S9(8) COMP VALUE +0.
@@ -68,6 +68,7 @@
        01  CA-ERROR-MSG.
            03 FILLER                   PIC X(9)  VALUE 'COMMAREA='.
            03 CA-DATA                  PIC X(90) VALUE SPACES.
+       01  LABEL1                    PIC X(16) VALUE 'XÄXXXXXXXXXXXXXX'.
       *----------------------------------------------------------------*
        77 LGACDB02                     PIC X(8)  VALUE 'LGACDB02'.
        77 LGACVS01                     PIC X(8)  VALUE 'LGACVS01'.
@@ -287,7 +288,7 @@
 
            MOVE DB2-CUSTOMERNUM-INT TO CA-CUSTOMER-NUM.
 
-       
+
       *================================================================*
 
       *================================================================*
