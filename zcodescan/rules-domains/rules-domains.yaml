@@ -40,6 +40,7 @@ domains:
             implementation:
               language: REGEX
               regex:
-                 line: True
-                 excludes:
-                   - 'PROGRAM-ID.\s+([A-Z0-9]){${length}}[A-Z0-9]+'              
+                 patterns:
+                    - pattern: 'PROGRAM-ID.\s+([A-Z0-9]){${length}}[A-Z0-9]+'
+                      include: False
+                      line: True                      
