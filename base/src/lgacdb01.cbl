@@ -1,7 +1,7 @@
        PROCESS SQL
       ******************************************************************
       *                                                                *
-      * (C) Copyright IBM Corp. 2011, 2024                             *
+      * (C) Copyright IBM Corp. 2011, 2025                             *
       *                                                                *
       *                    ADD Customer Details                        *
       *                                                                *
@@ -10,7 +10,7 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID.     LGACB01. 
+       PROGRAM-ID.     LGACB01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
       *
@@ -21,7 +21,7 @@
       *----------------------------------------------------------------*
       * Common defintions                                              *
       *----------------------------------------------------------------*
-       
+
       * Common defintions                                              *
       *----------------------------------------------------------------*
       * Run time (debug) infomation for this invocation
@@ -130,7 +130,7 @@
       ******************************************************************
       *    L I N K A G E     S E C T I O N
       ******************************************************************
-      
+
        LINKAGE SECTION.
 
        01  DFHCOMMAREA.
@@ -301,15 +301,15 @@
                EXEC SQL
                  SET :DB2-CUSTOMERNUM-INT = IDENTITY_VAL_LOCAL()
                END-EXEC
-                 
-              
+
+
              END-IF.
-             
-               
+
+
 
            MOVE DB2-CUSTOMERNUM-INT TO CA-CUSTOMER-NUM.
 
-       
+
       *================================================================*
 
       *================================================================*
