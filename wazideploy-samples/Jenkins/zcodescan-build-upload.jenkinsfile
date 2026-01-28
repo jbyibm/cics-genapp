@@ -154,7 +154,7 @@ pipeline {
                                         -crjf cics-genapp/zcodescan/jars\
                                         -cf $HOME/config.yml\
                                         -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                        -et sonarqube -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
+                                        -et sonarqube,zunit"
                                 echo "$CMD"
                                 zcodescan -v
                                 $CMD
@@ -201,7 +201,7 @@ pipeline {
                                     -crjf zcodescan/jars\
                                     -cf $HOME/config.yml\
                                     -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                    -et sonarqube,zunit -ef ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp-sonarqube.json"
+                                    -et sonarqube,zunit"
                                   echo "$CMD"
                                   $CMD
                                   rc=$?
