@@ -218,7 +218,7 @@ pipeline {
                                     --manifestName "${APP_NAME}"\
                                     --manifestDescription "${APP_NAME}"\
                                     --manifest ${WORKSPACE}/BUILD-${BUILD_NUMBER}/package/wazideploy_manifest.yml\
-                                    --packageName "${APP_NAME}.${RELEASE_VERSION}.${BUILD_NUMBER}.tar"\
+                                    --archiveName "${APP_NAME}.${RELEASE_VERSION}.${BUILD_NUMBER}.tar"\
                                     --uploadType archive"
                             echo $CMD
                             $CMD
