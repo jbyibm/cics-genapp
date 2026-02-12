@@ -1,0 +1,84 @@
+    /*
+     * Sample test file providing examples of
+     * Rule violations for RTC Enhancement 64886
+     * Rule 6 : Avoid using data elements of type BIT in
+     * arithmetic operations. */
+ RULE6: Procedure options (main);
+    DECLARE
+        01 A DECIMAL PRECISION(5),
+        01 B DECIMAL PRECISION(3),
+        01 C FIXED DECIMAL PRECISION(2),
+        01 C1 CHARACTER ('01'B),
+        01 C2 CHARACTER ('00'B),
+        01 C3 CHARACTER ('10'B),
+        01 C4 CHARACTER ('11'B),
+        01 ARR CHARACTER (10);
+
+    /* The following are not rule violations. */
+   IF(A + B)
+        THEN C1 = 'A';
+
+   IF(ADD(A, B, C))
+        THEN C1 = 'B';
+
+   /* The following are rule violations. */
+   IF(C1 + C2)
+        THEN C1 = 'C';
+
+    IF(C1 * C2 + C3)
+        THEN C1 = 'D';
+
+    IF(C1 ** C2 ** C3 + C1 - C3 / C2)
+        THEN C1 = 'E';
+
+    IF(SUBTRACT(C1, C2, C))
+        THEN C1 = 'F';
+
+    IF(DIVIDE(C1, C3, C))
+        THEN C1 = 'G';
+
+    /* MIXED VIOLATIONS. */
+
+    /* C1 AND C3 */
+    IF(A + C1 ** C3 / B)
+        THEN C1 = 'H';
+
+    /* C1 */
+    IF(MULTIPLY(C1, A, C))
+        THEN C1 = 'I';
+
+    /* C2 and C1 */
+    IF(C1 & C2 + A | ADD(C1, A, C))
+        THEN C1 = 'J';
+
+
+    /* Additional cases added for defect 66313 */
+
+    /* Any instance of C1, C2, and C3 in if statements */
+    IF(A + UNSIGNED(C1, C2, C3) < B)
+        THEN C1 = 'A';
+
+
+    IF(ERF(C1) | ERFC(C2) | HUGE(C3))
+        THEN C1 = 'B';
+
+    IF(IMAG(C1) | IMAG(A) | ISFINITE(C1))
+        THEN C1 = 'C';
+
+    IF(ISINF(A) & ISINF(C1) | ISNORMAL(C2) | ISZERO(C3))
+        THEN C2 = 'D';
+
+    IF(MAXEXP(C2) + MINEXP(C3) | PRED(A) < PRED(C1) & RADIX(C3))
+        THEN C1 = 'E';
+
+    IF(RAISE2(A, C2) | RANDOM(C3) < REAL(C1) > ROUND(A,C1) |
+        ROUND(C1))
+        THEN C1 = 'F';
+
+    IF(SIGN(C1) | SIGNED(C2) < SUM(ARR))
+        THEN C2 = 'G';
+
+    IF(TINY(C1))
+        THEN C3 = 'H';
+
+ END RULE6;
