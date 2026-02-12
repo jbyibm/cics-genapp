@@ -1,0 +1,18 @@
+ %PROCESS;
+ *PROCESS;
+    /*
+     * Sample test file providing examples of
+     * Rule violations for RTC Enhancement 64886
+     * Rule 10 : Avoid using the PROCESS directive*/
+
+ RULE10: Procedure options (main);
+        DCL A decimal precision(4),
+            B decimal precision(3);
+   END RULE10;
+
+        RULENESTED: PROCEDURE;
+        DCL C decimal precision(2),
+            D decimal precision(1);
+
+        END RULENESTED;
+
