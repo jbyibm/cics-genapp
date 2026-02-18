@@ -1,3 +1,3 @@
 * text eol=crlf
 
-*.cbl text eol=lf zos-working-tree-encoding=ibm-1140 git-encoding=windows-1252
+*.cbl text eol=lf zos-working-tree-encoding=ibm-1140 git-encoding=ISO8859-1
