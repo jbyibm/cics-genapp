@@ -1,8 +1,0 @@
-{
-  "workbench.panel.defaultLocation": "bottom",
-  "zopeneditor.zapp.variables": {
-    "app-name": "genapp",
-    "zopeneditor.logger": "DEBUG",
-    "zopeneditor.mcp.enabled": true
-  }
-}
