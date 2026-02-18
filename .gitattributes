@@ -1,22 +1,3 @@
 * text eol=crlf
 
-*.cbl zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.cpy zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.bms zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.pli zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.mfs zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.bnd zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.lnk zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.txt zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.groovy zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.sh zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.properties zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.asm zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.jcl zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.mac zos-working-tree-encoding=ibm-1047 working-tree-encoding=windows-1252
-*.json zos-working-tree-encoding=utf-8 working-tree-encoding=utf-8
-*.yaml zos-working-tree-encoding=utf-8 working-tree-encoding=utf-8
-
-# binary managed files
-*.rec binary
-*.png binary
+*.cbl zos-working-tree-encoding=ibm-1140 git-encoding=windows-1252
