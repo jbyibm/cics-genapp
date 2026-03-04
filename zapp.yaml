@@ -16,7 +16,7 @@ profiles:
       rules:
         - type: local
           locations:
-          - "**/rules/zcodescan-${app-name}-rules.yaml"
+          - "**/rules/zcodescan-genapp-rules.yaml"
       customRuleModels:
         - type: local
           locations:
