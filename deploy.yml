@@ -23,7 +23,8 @@
           env
           ansible --version
           whoami
-          ls -l $ANSIBLE_CALLBACK_PLUGINS
+          id
+          
         delegate_to: localhost
       - name: Install Wazi Deploy
         ansible.builtin.pip:
