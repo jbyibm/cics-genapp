@@ -69,6 +69,10 @@
         shell: |
           #!/bin/bash
           ls /root/.local/lib/python3.8/site-packages
+          /usr/bin/python3 - <<'PY'
+          from wazideploy.service.utilities import Utilities
+          print("OK Utilities import")
+          PYY
         delegate_to: localhost
 
       - import_role:
