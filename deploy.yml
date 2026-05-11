@@ -13,9 +13,6 @@
   serial: "{{ wd_serial if wd_serial is defined else 5 }}"
   vars:
       ansible_remote_tmp: "/tmp/jby/{{tower_job_id }}"
-  collections:
-    - ibm.ibm_zos_core
-    - ibm.ibm_zos_wazi_deploy
   tasks:
       - name: Debug runtime user
         shell: |
@@ -87,8 +84,7 @@
         shell: "head -1 /usr/local/bin/ansible-playbook; which python3; which ansible-playbook"
         delegate_to: localhost
      
-      - import_role:
-          name: ibm.ibm_zos_wazi_deploy.zos_deploy
+      - include_tasks: "task_deploy.yml"
           
       - name: Read evidences file
         shell: |

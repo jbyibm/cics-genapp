@@ -1,0 +1,9 @@
+---
+-  name: "[Perform Deployment]"
+   collections:
+    - ibm.ibm_zos_core
+    - ibm.ibm_zos_wazi_deploy
+    - community.general
+   block:
+      - import_role:
+          name: ibm.ibm_zos_wazi_deploy.zos_deploy
