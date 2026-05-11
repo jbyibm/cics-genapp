@@ -16,22 +16,18 @@
     - ibm.ibm_zos_core
     - ibm.ibm_zos_wazi_deploy
   tasks:
-      - name: Debug runtime processes
+      - name: Debug runtime user
         shell: |
           echo "=== ID ==="
           id
-      
           echo "=== WHOAMI ==="
           whoami
-      
-          echo "=== ANSIBLE RUNNER ==="
-          ps -ef | grep ansible-runner | grep -v grep
-      
-          echo "=== PODMAN ==="
-          ps -ef | grep podman | grep -v grep
-        register: runtime_debug
+          echo "=== CMDLINE ==="
+          cat /proc/1/cmdline | tr '\0' ' '
+          echo "=== STATUS ==="
+          cat /proc/self/status | egrep 'Uid|Gid'
         delegate_to: localhost
-      
+        register: runtime_debug
       - debug:
           var: runtime_debug.stdout_lines
       - name: Print Python Version
