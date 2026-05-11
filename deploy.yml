@@ -64,6 +64,11 @@
           wd_deployment_plan_file: ./deployment-plan.yml
           wd_package_file: ./package.tar
 
+      - name: Print Python Version
+        shell: |
+          #!/bin/bash
+          ls /root/.local/lib/python3.8/site-packages
+          
       - import_role:
           name: ibm.ibm_zos_wazi_deploy.zos_deploy
           
