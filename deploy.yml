@@ -6,6 +6,7 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #*******************************************************************************
+Ajouter PYTHONPATH ou PYTHONUSERBASE dans les variables d'environnement Ansible pour pointer vers ~/.local/lib/python3.x/site-packages.
 ---
 - hosts: "{{ wd_hosts if wd_hosts is defined else 'all' }}"
   gather_facts: "{{ wd_gather_facts if wd_gather_facts is defined else 'no' }}"
@@ -68,7 +69,8 @@
         shell: |
           #!/bin/bash
           ls /root/.local/lib/python3.8/site-packages
-          
+        delegate_to: localhost
+
       - import_role:
           name: ibm.ibm_zos_wazi_deploy.zos_deploy
           
