@@ -72,12 +72,28 @@
           /usr/bin/python3 -c "from wazideploy.service.utilities import Utilities; print('OK Utilities import')"
         delegate_to: localhost
 
+
+      - name: Show ansible playbook python
+        debug:
+          msg: "{{ ansible_playbook_python }}"
+          
+      
+      - name: Test import with ansible_playbook_python
+        shell: "{{ ansible_playbook_python }} -c \"import sys; print(sys.executable); from wazideploy.service.utilities import Utilities; print('OK Utilities import')\""
+        delegate_to: localhost
+        
+      
+      - name: Show ansible-playbook shebang
+        shell: "head -1 /usr/local/bin/ansible-playbook; which python3; which ansible-playbook"
+        delegate_to: localhost
+  
+
       - name: Test import with ansible python
         shell: /usr/local/bin/python3 -c "import sys; print(sys.executable); from wazideploy.service.utilities import Utilities; print('OK Utilities import')"
-        delegate_to: localhost
+        delegate_to: localhostt
 
-      - debug:
-          msg: "{{ ansible_playbook_python }}"
+
+
 
       - import_role:
           name: ibm.ibm_zos_wazi_deploy.zos_deploy
