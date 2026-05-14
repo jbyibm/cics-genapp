@@ -80,19 +80,22 @@
         delegate_to: localhost
         
       
-      - name: Show ansible-playbook shebang
-        shell: "head -1 /usr/local/bin/ansible-playbook; which python3; which ansible-playbook"
-        delegate_to: localhost
-     
-      - include_tasks: "task_deploy.yml"
-          
+#      - name: Show ansible-playbook shebang
+#        shell: "head -1 /usr/local/bin/ansible-playbook; which python3; which ansible-playbook"
+#        delegate_to: localhost
+#     
+#      - include_tasks: "task_deploy.yml"
+
+      - import_role:
+          name: ibm.ibm_zos_wazi_deploy.zos_deploy
+
       - name: Read evidences file
         shell: |
           cat {{ wd_evidence_file }}
         register: evidences_content
         delegate_to: localhost
         changed_when: false
-      
+
       - name: Display evidences in stdout
         debug:
           msg: |
