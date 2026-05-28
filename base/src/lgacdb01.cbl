@@ -229,7 +229,7 @@
              Initialize DB2-CUSTOMERNUM-INT
            ELSE
              Move LastCustNum  To DB2-CUSTOMERNUM-INT
-           .
+           End-If.
 
 
       *================================================================*
