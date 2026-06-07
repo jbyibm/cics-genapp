@@ -38,17 +38,18 @@
           id
           
         delegate_to: localhost
-      - name: Install Wazi Deploy
-        ansible.builtin.pip:
-          name: /runner/project/wazideploy-3.0.8-py3-none-any.whl
-          extra_args: "--user  --force-reinstall"
-          #extra_args: "--target /tmp/pythonlibs"
-        delegate_to: localhost
+#      - name: Install Wazi Deploy
+#        ansible.builtin.pip:
+#          name: /runner/project/wazideploy-3.0.8-py3-none-any.whl
+#          extra_args: "--user  --force-reinstall"
+##          extra_args: "--target /tmp/pythonlibs"
+#        delegate_to: localhost
         
       - name: Generate Package and Deployment Plan
         shell: |
           #!/bin/bash
           export PATH=$HOME/.local/bin:$PATH:/tmp/pythonlibs:/tmp/pythonlibs/bin
+          pip3 install /runner/project/wazideploy-3.0.8-py3-none-any.whl --user  --force-reinstall
           ls $HOME/.local/bin
           export PYTHONPATH=/tmp/pythonlibs
           cd /runner/project
