@@ -48,7 +48,8 @@
       - name: Generate Package and Deployment Plan
         shell: |
           #!/bin/bash
-          export PATH=$HOME/.local/bin:$PATH:/tmp/pythonlibs
+          ls /tmp/pythonlibs/*
+          export PATH=$HOME/.local/bin:$PATH:/tmp/pythonlibs:/tmp/pythonlibs/bin
           cd /runner/project
           wazideploy-generate\
             --deploymentMethod ./wazideploy-samples/external-repos/deployment-method/static-deployment-method.yml\
