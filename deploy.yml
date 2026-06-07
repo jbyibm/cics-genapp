@@ -40,7 +40,7 @@
         delegate_to: localhost
       - name: Install Wazi Deploy
         ansible.builtin.pip:
-          name: /runner/project/wazideploy-3.0.7.2-py3-none-any.whl
+          name: /runner/project/wazideploy-3.0.8-py3-none-any.whl
           #extra_args: "--user"
         delegate_to: localhost
         
