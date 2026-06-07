@@ -50,6 +50,7 @@
           #!/bin/bash
           ls /tmp/pythonlibs/*
           export PATH=$HOME/.local/bin:$PATH:/tmp/pythonlibs:/tmp/pythonlibs/bin
+          export PYTHONPATH=/opt/monapp/pythonlibs
           cd /runner/project
           wazideploy-generate\
             --deploymentMethod ./wazideploy-samples/external-repos/deployment-method/static-deployment-method.yml\
