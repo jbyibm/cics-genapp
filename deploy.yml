@@ -65,22 +65,22 @@
           wd_deployment_plan_file: ./deployment-plan.yml
           wd_package_file: ./package.tar
 
-      - name: Test exact import needed by action plugin
-        shell: |
-          #!/bin/bash
-          ls /root/.local/lib/python3.8/site-packages
-          /usr/bin/python3 -c "from wazideploy.service.utilities import Utilities; print('OK Utilities import')"
-        delegate_to: localhost
-
-
-      - name: Show ansible playbook python
-        debug:
-          msg: "{{ ansible_playbook_python }}"
-          
-      
-      - name: Test import with ansible_playbook_python
-        shell: "{{ ansible_playbook_python }} -c \"import sys; print(sys.executable); from wazideploy.service.utilities import Utilities; print('OK Utilities import')\""
-        delegate_to: localhost
+#      - name: Test exact import needed by action plugin
+#        shell: |
+#          !/bin/bash
+#          ls /root/.local/lib/python3.8/site-packages
+#          /usr/bin/python3 -c "from wazideploy.service.utilities import Utilities; print('OK Utilities import')"
+#        delegate_to: localhost
+#
+#
+#      - name: Show ansible playbook python
+#        debug:
+#          msg: "{{ ansible_playbook_python }}"
+#          
+#      
+#      - name: Test import with ansible_playbook_python
+#        shell: "{{ ansible_playbook_python }} -c \"import sys; print(sys.executable); from wazideploy.service.utilities import Utilities; print('OK Utilities import')\""
+#        delegate_to: localhost
         
       
 #      - name: Show ansible-playbook shebang
