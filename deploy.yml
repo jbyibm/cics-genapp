@@ -41,7 +41,7 @@
       - name: Install Wazi Deploy
         ansible.builtin.pip:
           name: /runner/project/wazideploy-3.0.8-py3-none-any.whl
-          extra_args: "--user"
+          extra_args: "--user  --force-reinstall"
           #extra_args: "--target /tmp/pythonlibs"
         delegate_to: localhost
         
