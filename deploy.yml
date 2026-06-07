@@ -48,7 +48,6 @@
       - name: Generate Package and Deployment Plan
         shell: |
           #!/bin/bash
-          ls /tmp/pythonlibs/*
           export PATH=$HOME/.local/bin:$PATH:/tmp/pythonlibs:/tmp/pythonlibs/bin
           export PYTHONPATH=/tmp/pythonlibs
           cd /runner/project
