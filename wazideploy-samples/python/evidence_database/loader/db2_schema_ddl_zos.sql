@@ -1,27 +1,7 @@
--- *******************************************************************************
--- Licensed Materials - Property of IBM
--- (c) Copyright IBM Corp. 2025. All Rights Reserved.
---
--- Note to U.S. Government Users Restricted Rights:
--- Use, duplication or disclosure restricted by GSA ADP Schedule
--- Contract with IBM Corp.
--- *******************************************************************************
-
--- DB2 Evidence Loader - Database Schema for z/OS
--- This script creates the database structure for storing deployment evidence
-
--- =============================================================================
--- PREREQUISITES
--- Before running this script:
--- 1. Create STOGROUP: CREATE STOGROUP DPYSTG VOLUMES ('*') VCAT <your_vcat>;
--- 2. Create DATABASE: CREATE DATABASE DPYZ001 STOGROUP DPYSTG BUFFERPOOL BP16K0 CCSID UNICODE;
--- 3. Set schema: SET SCHEMA DPYZ;
--- =============================================================================
-
--- DROP DATABASE DPYZ001;
--- DROP STOGROUP DPYSTG;
--- CREATE STOGROUP DPYSTG VOLUMES ('*') VCAT DBD1;
--- CREATE DATABASE DPYZ001 STOGROUP DPYSTG BUFFERPOOL BP16K0 CCSID UNICODE;
+DROP DATABASE DPYZ001;
+DROP STOGROUP DPYSTG;
+CREATE STOGROUP DPYSTG VOLUMES ('*') VCAT DBD1;
+CREATE DATABASE DPYZ001 STOGROUP DPYSTG BUFFERPOOL BP16K0 CCSID UNICODE;
 
 SET SCHEMA DEPLOYZ;
 
@@ -52,20 +32,75 @@ CREATE
       MAXROWS 255;
 
 CREATE TABLE DEPLOYZ.DEPLOY (
-    DEPLOY_ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+    DEPLOY_ID INTEGER
+        NOT NULL
+        GENERATED ALWAYS AS IDENTITY
+        (
+            START WITH 1,
+            INCREMENT BY 1
+        ),
+
     DESCRIPTION VARCHAR(1000),
+
     APPLICATION_NAME VARCHAR(255),
+
     APPLICATION_VERSION VARCHAR(50),
+
     ENVIRONMENT_NAME VARCHAR(255),
+
     DEPLOY_TIMESTAMP TIMESTAMP,
+
     CREATION_TIMESTAMP TIMESTAMP,
+
     STATUS VARCHAR(50),
+
     ENGINE_VERSION VARCHAR(50),
+
     ENGINE_BUILD VARCHAR(50),
+
     ENGINE_DATE TIMESTAMP,
+
     PACKAGE_PATH VARCHAR(500),
-    PACKAGE_SHA256 VARCHAR(64)
-) DATA CAPTURE NONE IN DPYZ001.DPYZ135;
+
+    PACKAGE_SHA256 VARCHAR(64),
+
+    DEPLOY_METADATA_ANNOTATIONS CLOB(16M)
+        INLINE LENGTH 256
+
+)
+DATA CAPTURE NONE
+IN DPYZ001.DPYZ135
+;
+
+-- LOB objects for DEPLOY.DEPLOY_METADATA_ANNOTATIONS
+-- Base tablespace DPYZ135 is PBG (MAXPARTITIONS 16). For partitioned base tables,
+-- Db2 z/OS requires one LOB tablespace + one auxiliary table + one aux index
+-- per existing base partition and per LOB column. Initial PBG partition = PART 1.
+CREATE LOB TABLESPACE DPYZ135L
+  IN DPYZ001
+  USING STOGROUP DPYSTG
+    PRIQTY -1
+    SECQTY -1
+    ERASE NO
+  DSSIZE 4 G
+  BUFFERPOOL BP16K0
+  GBPCACHE CHANGED
+  LOGGED
+  LOCKSIZE LOB
+  CLOSE NO
+;
+
+CREATE AUXILIARY TABLE DEPLOYZ.DEPLOY_AUX_ANNOT
+  IN DPYZ001.DPYZ135L
+  STORES DEPLOYZ.DEPLOY
+  COLUMN DEPLOY_METADATA_ANNOTATIONS
+  PART 1
+;
+
+CREATE UNIQUE INDEX DEPLOYZ.DEPLOY_AUX_ANNOT_IX
+ON DEPLOYZ.DEPLOY_AUX_ANNOT
+;
+
 
 CREATE UNIQUE INDEX DEPLOY_PK_NDX
   ON DEPLOYZ.DEPLOY (DEPLOY_ID);
@@ -869,29 +904,4 @@ LEFT JOIN DEPLOYZ.ACTION_STATE ast ON a.ACTION_ID = ast.ACTION_ID
 LEFT JOIN DEPLOYZ.STATE st ON ast.STATE_ID = st.STATE_ID
 GROUP BY a.ACTION_ID, a.ACTION_NAME, a.SHORT_NAME;
 
--- =============================================================================
--- GRANTS (adjust as needed for your security model)
--- =============================================================================
-
--- =============================================================================
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.DEPLOY TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTIVITY TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STATE TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTION TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTION_STATE TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.TAG TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTIVITY_TAG TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ACTION_TAG TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_TAG TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.ARTIFACT TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_ARTIFACT TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.PROPERTIES TO USER deployer;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON DEPLOYZ.STEP_RESULT_DETAIL TO USER deployer
-
-
 COMMIT;
-
--- =============================================================================
--- END OF SCHEMA
--- =============================================================================

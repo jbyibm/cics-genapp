@@ -135,22 +135,28 @@ class DB2EvidenceLoaderBase(ABC):
     # ------------------------------------------------------------------
     # DEPLOY / ACTIVITY / ACTION / STEP
     # ------------------------------------------------------------------
-
     def insert_deploy(self, evidence: Dict[str, Any]) -> int:
         metadata = evidence.get('metadata', {})
         annotations = metadata.get('annotations', {})
         self.current_application_name = metadata.get('name', 'NONAME')
-
+    
         sql = f"""
         SELECT DEPLOY_ID FROM FINAL TABLE (
             INSERT INTO {self.schema}.DEPLOY (
                 DESCRIPTION, APPLICATION_NAME, APPLICATION_VERSION,
                 ENVIRONMENT_NAME, DEPLOY_TIMESTAMP, CREATION_TIMESTAMP,
-                STATUS
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                STATUS, DEPLOY_METADATA_ANNOTATIONS
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         )
         """
+        
+        annotations_blob = json.dumps(
+    annotations,
+    ensure_ascii=False,
+    default=str
+).encode("utf-8")
 
+    
         rows = self._query(sql, [
             metadata.get('description', ''),
             self.current_application_name,
@@ -158,7 +164,8 @@ class DB2EvidenceLoaderBase(ABC):
             annotations.get('environment_name', ''),
             self.parse_timestamp(annotations.get('deploy_timestamp')),
             self.parse_timestamp(annotations.get('creation_timestamp')),
-            evidence.get('status', '')
+            evidence.get('status', ''),
+            json.dumps(annotations, ensure_ascii=False, default=str).encode("utf-8")
         ])
         self._commit()
         return int(rows[0]['DEPLOY_ID'])

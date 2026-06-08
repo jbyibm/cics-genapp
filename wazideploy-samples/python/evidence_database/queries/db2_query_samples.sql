@@ -506,3 +506,56 @@ ORDER BY
     LAST_ACTION_DATE DESC,
     APPLICATION_NAME,
     ARTIFACT_NAME;
+    
+    
+
+-- =============================================================================
+-- JSON Queries
+-- =============================================================================
+
+SELECT
+    d.DEPLOY_ID,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'environment_name',
+        's:255'
+    ) AS ENVIRONMENT_NAME,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'deploy_timestamp',
+        's:32'
+    ) AS DEPLOY_TIMESTAMP_JSON,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'engine.version',
+        's:50'
+    ) AS ENGINE_VERSION,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'package.path',
+        's:500'
+    ) AS PACKAGE_PATH,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'package.sha256',
+        's:64'
+    ) AS PACKAGE_SHA256,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'runtime_context.zoau_version',
+        's:50'
+    ) AS ZOAU_VERSION,
+
+    JSON_VAL(
+        SYSTOOLS.JSON2BSON(d.DEPLOY_METADATA_ANNOTATIONS),
+        'smf_record.status',
+        's:50'
+    ) AS SMF_STATUS
+
+FROM DEPLOYZ.DEPLOY d
