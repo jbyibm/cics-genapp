@@ -33,11 +33,11 @@ schema: DEPLOYZ
 ibm_db:
   # Connection string format (for z/OS)
   database: "DBD1LOC"
-  hostname: "163.107.84.46"
+  hostname: "XXXXXXX"
   port: "8102"
   protocol: "TCPIP"
-  uid: "IBMUSER"
-  pwd: "SYS1SYS1"
+  uid: "XXX"
+  pwd: "XXX"
   
   # Or use environment variables
   # database: ${DB_NAME}
