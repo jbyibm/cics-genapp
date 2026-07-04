@@ -161,6 +161,7 @@ pipeline {
                             CMD="/u/jenkins/sonar/sonar-scanner-8.0.1.6346/bin/sonar-scanner \
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
+                                        -Dsonar.inclusions="**/*.cbl,**/*.pli,**/*.cpy,**/*.inc" \
                                         -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
                                         -Dsonar.scanner.skipJreProvisioning=true \
                                         -Dsonar.externalIssuesReportPaths=${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json"
