@@ -157,6 +157,7 @@ pipeline {
                             $CMD
                             rc=$?
                             cd ${WORKSPACE}
+                            ls $PWD
                             CMD="/u/jenkins/sonar/sonar-scanner-8.0.1.6346/bin/sonar-scanner \
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
