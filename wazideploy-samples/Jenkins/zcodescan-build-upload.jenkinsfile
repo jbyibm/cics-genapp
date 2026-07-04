@@ -136,7 +136,7 @@ pipeline {
                             exit $rc
                         ''')
                     if ( rc != 0 )
-                        error("DBB build failed!!!")
+                        error("DBB preview build failed!!!")
                     rc = sh (returnStatus: true, script: '''#!/bin/sh
                             cd ${WORKSPACE}
                             . /u/jenkins/python_wazideploy/beta/env/bin/activate
@@ -160,7 +160,7 @@ pipeline {
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
                                         -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
-                                        -Dsonar.externalIssuesReportPaths=${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                                        -Dsonar.externalIssuesReportPaths=${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json"
                             echo "$CMD"
                             $CMD
                             chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
