@@ -1,5 +1,4 @@
 // Agent labels
-def linuxAgent = 'jenkins_genapp'
 def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'wazideploy-e2e-pipeline'
 
 // DBB Git repositories (For DBB 3.x)
@@ -18,7 +17,7 @@ def srcGitBranch = null
 
 pipeline {
 
-    agent { label linuxAgent }
+    agent { label zOsAgentLabel }
     
     environment {
         APP_NAME = "${appName}"
@@ -81,33 +80,31 @@ pipeline {
                                         url: zAppBuildGitRepo,
                             ]]])
                     }
-                    node (zOsAgentLabel) {
-                        dir(appName) {
-                            srcGitRepo = scm.getUserRemoteConfigs()[0].getUrl()
+                    dir(appName) {
+                        srcGitRepo = scm.getUserRemoteConfigs()[0].getUrl()
+                        srcGitBranch = scm.branches[0].name
+                        if ( env.APP_GIT_BRANCH == null || env.APP_GIT_BRANCH == "") {
                             srcGitBranch = scm.branches[0].name
-                            if ( env.APP_GIT_BRANCH == null || env.APP_GIT_BRANCH == "") {
-                                srcGitBranch = scm.branches[0].name
-                                env.GIT_BRANCH = srcGitBranch
-                            } else
-                                srcGitBranch =  env.GIT_BRANCH
-                            def scmVars = null
-                            scmVars = checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
-                                                    doGenerateSubmoduleConfigurations: false,
-                                                    submoduleCfg: [],
-                                                    userRemoteConfigs: [[
-                                                                         url: srcGitRepo, credentialsId: gitCredId
-                                                                         ]]])
-                        }
-                        dir("dbb-zappbuild") {
-                            def scmVars =
-                                checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
-                                        doGenerateSubmoduleConfigurations: false,
-                                        submoduleCfg: [],
-                                        userRemoteConfigs: [[
-                                            url: zAppBuildGitRepo,
-                                ]]])
-                        }
-                     }
+                            env.GIT_BRANCH = srcGitBranch
+                        } else
+                            srcGitBranch =  env.GIT_BRANCH
+                        def scmVars = null
+                        scmVars = checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
+                                                doGenerateSubmoduleConfigurations: false,
+                                                submoduleCfg: [],
+                                                userRemoteConfigs: [[
+                                                                     url: srcGitRepo, credentialsId: gitCredId
+                                                                     ]]])
+                    }
+                    dir("dbb-zappbuild") {
+                        def scmVars =
+                            checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
+                                    doGenerateSubmoduleConfigurations: false,
+                                    submoduleCfg: [],
+                                    userRemoteConfigs: [[
+                                        url: zAppBuildGitRepo,
+                            ]]])
+                    }
               }
             }
         }
@@ -120,113 +117,70 @@ pipeline {
                 script{
                     // DBB Build Preview
                     def buildListContents = []
-                    node (zOsAgentLabel) {
-                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
-                                cd ${WORKSPACE}
-                                rm -rf BUILD-*
-                                export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
-                                export DBB_CONF=${DBB_BUILD}
-                                export PATH=$DBB_HOME/bin:$PATH
-                                cd ${WORKSPACE}/${APP_NAME}
-                                export JAVA_HOME=/usr/lpp/java/J11.0_64
-                                CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
-                                         --config $DBB_BUILD/dbb-app.yaml\
-                                         --dbid db2inst1 --dbpf $HOME/password --preview"
-                                mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                echo "$CMD"
-                                $CMD
-                                rc=$?
-                                mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                exit $rc
-                            ''')
-                        if ( rc != 0 )
-                            error("DBB build failed!!!")
-                        rc = sh (returnStatus: true, script: '''#!/bin/sh
-                                cd ${WORKSPACE}
-                                . /u/jenkins/python_wazideploy/beta/env/bin/activate
-                                export JAVA_HOME=/usr/lpp/java/J21.0_64
-                                CMD="zcodescan \
-                                        -e IBM-1047 \
-                                        -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
-                                        -if $PWD\
-                                        -rfo cics-genapp/zcodescan/rules\
-                                        -crdf cics-genapp/zcodescan/rules-domains\
-                                        -crjf cics-genapp/zcodescan/jars\
-                                        -cf $HOME/config.yml\
-                                        -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
-                                        -et sonarqube,junit"
-                                echo "$CMD"
-                                zcodescan -v
-                                $CMD
-                                rc=$?
-                                chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
-                                chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
-                                chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
-                                if [ $rc -gt 3 ]
-                                then
-                                  exit $rc
-                                elif [ $rc -lt 0 ]
-                                then
-                                  exit $rc
-                                else
-                                 rc=0
-                                fi
-                                exit $rc
-                            ''')
-                        def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
-                        // Do not enter into some steps if nothing in the build list
-                        hasBuildFiles = files.length > 0 && files[0].length > 0
-                        if ( hasBuildFiles ) {
-                            files.each { buildList ->
-                                println "Process file: $buildList.path"
-                                def content = readFile file: buildList.path
-                                buildListContents << content
-                            }
-                        }
-                    }
-                    buildListContents.each { content ->
-                        writeFile file: '/tmp/buildList.txt', text:content
-                            def rc = sh (returnStatus: true, script: '''#!/bin/bash
-                                  cd ${WORKSPACE}
-                                  sed -i "s/cics-genapp.//" /tmp/buildList.txt
-                                  export PATH=/opt/java/jdk-21.0.8/bin:$PATH
-                                  export JAVA_HOME=/opt/java/jdk-21.0.8
-                                  zcodescan -v
-                                  cd cics-genapp
-                                  CMD="zcodescan \
-                                    -sfl /tmp/buildList.txt \
+                    def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                            cd ${WORKSPACE}
+                            rm -rf BUILD-*
+                            export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
+                            export DBB_CONF=${DBB_BUILD}
+                            export PATH=$DBB_HOME/bin:$PATH
+                            cd ${WORKSPACE}/${APP_NAME}
+                            export JAVA_HOME=/usr/lpp/java/J11.0_64
+                            CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
+                                     --config $DBB_BUILD/dbb-app.yaml\
+                                     --dbid db2inst1 --dbpf $HOME/password --preview"
+                            mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                            echo "$CMD"
+                            $CMD
+                            rc=$?
+                            mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                            exit $rc
+                        ''')
+                    if ( rc != 0 )
+                        error("DBB build failed!!!")
+                    rc = sh (returnStatus: true, script: '''#!/bin/sh
+                            cd ${WORKSPACE}
+                            . /u/jenkins/python_wazideploy/beta/env/bin/activate
+                            export JAVA_HOME=/var/imsapp/J21.0_64
+                            export PATH=$JAVA_HOME/bin:$PATH
+                            CMD="zcodescan \
+                                    -e IBM-1047 \
+                                    -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
                                     -if $PWD\
-                                    -rfo zcodescan/rules\
-                                    -crdf zcodescan/rules-domains\
-                                    -crjf zcodescan/jars\
+                                    -rfo cics-genapp/zcodescan/rules\
+                                    -crdf cics-genapp/zcodescan/rules-domains\
+                                    -crjf cics-genapp/zcodescan/jars\
                                     -cf $HOME/config.yml\
                                     -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
                                     -et sonarqube,junit"
-                                  echo "$CMD"
-                                  $CMD
-                                  rc=$?
-                                  CMD="/opt/sonar/sonar-scanner-7.1.0.4889-linux-x64/bin/sonar-scanner \
+                            echo "$CMD"
+                            zcodescan -v
+                            $CMD
+                            rc=$?
+                            CMD="/u/jenkins/sonar/sonar-scanner-8.0.1.6346/bin/sonar-scanner \
                                         -Dsonar.projectKey=genapp \
                                         -Dsonar.sources=. \
                                         -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
-                                        -Dsonar.externalIssuesReportPaths=../BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json"
-                                  echo "$CMD"
-                                  $CMD
-                                  if [ $rc -gt 3 ]
-                                  then
-                                    exit $rc
-                                  elif [ $rc -lt 0 ]
-                                  then
-                                    exit $rc
-                                  else
-                                    rc=0
-                                  fi
-                                  exit $rc
-                            ''')
-                        junit "BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_junit.xml"
-                        if ( rc != 0 )
-                            error("ZCodeScan failed!!!")
-                    }
+                                        -Dsonar.externalIssuesReportPaths=${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                            echo "$CMD"
+                            $CMD
+                            chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                            chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                            chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
+                            if [ $rc -gt 3 ]
+                            then
+                              exit $rc
+                            elif [ $rc -lt 0 ]
+                            then
+                              exit $rc
+                            else
+                             rc=0
+                            fi
+                            exit $rc
+                        ''')
+
+                    junit "BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_junit.xml"
+                    if ( rc != 0 )
+                        error("ZCodeScan failed!!!")
                 }
             }
             post {
@@ -244,40 +198,36 @@ pipeline {
             steps {
                 script{
                   if ( hasBuildFiles ) {
-                    node (zOsAgentLabel) {
-                        // DBB Build
-                        if ( env.DBB_BUILD_TYPE == null )
-                            env.DBB_BUILD_TYPE = "--fullBuild"
-                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
-                                export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
-                                export DBB_CONF=${DBB_BUILD}
-                                export PATH=$DBB_HOME/bin:$PATH
-                                cd ${WORKSPACE}/${APP_NAME}
-                                CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
-                                         --config $DBB_BUILD/dbb-app.yaml\
-                                         --dbid db2inst1 --dbpf $HOME/password"
-                                mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                echo "$CMD"
-                                $CMD
-                                rc=$?
-                                mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
-                                exit $rc
-                            ''')
-                        if ( rc != 0 )
-                            error("DBB build failed!!!")
-                    }
+                    // DBB Build
+                    if ( env.DBB_BUILD_TYPE == null )
+                        env.DBB_BUILD_TYPE = "--fullBuild"
+                    def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                            export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
+                            export DBB_CONF=${DBB_BUILD}
+                            export PATH=$DBB_HOME/bin:$PATH
+                            cd ${WORKSPACE}/${APP_NAME}
+                            CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
+                                     --config $DBB_BUILD/dbb-app.yaml\
+                                     --dbid db2inst1 --dbpf $HOME/password"
+                            mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                            echo "$CMD"
+                            $CMD
+                            rc=$?
+                            mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                            exit $rc
+                        ''')
+                    if ( rc != 0 )
+                        error("DBB build failed!!!")
                   }
                 }
             }
             post {
                 always {
-                    node (zOsAgentLabel) {
-                        dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
-                            archiveArtifacts allowEmptyArchive: true,
-                                            artifacts: '**/*.log,**/*.json,**/*.html',
-                                            excludes: '**/*clist',
-                                            onlyIfSuccessful: false
-                        }
+                    dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
+                        archiveArtifacts allowEmptyArchive: true,
+                                        artifacts: '**/*.log,**/*.json,**/*.html',
+                                        excludes: '**/*clist',
+                                        onlyIfSuccessful: false
                     }
                }
             }

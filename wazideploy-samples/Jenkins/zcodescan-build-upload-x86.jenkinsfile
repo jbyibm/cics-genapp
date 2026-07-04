@@ -1,0 +1,361 @@
+// Agent labels
+def linuxAgent = 'jenkins_genapp'
+def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'wazideploy-e2e-pipeline'
+
+// DBB Git repositories (For DBB 3.x)
+def zAppBuildGitRepo = 'https://github.com/IBM/dbb-zappbuild.git'
+def zAppBuildGitBranch = 'main'
+def dbbGitRepo = 'https://github.com/IBM/dbb.git'
+def dbbGitBranch = 'main'
+def gitCredId = 'jby-git-hub'
+
+// Private
+def appName="cics-genapp"
+def verbose = false
+def hasBuildFiles = true
+def srcGitRepo =  null
+def srcGitBranch = null
+
+pipeline {
+
+    agent { label linuxAgent }
+    
+    environment {
+        APP_NAME = "${appName}"
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
+        DBB_HOME = "${env.DBB_HOME ? env.DBB_HOME : '/var/usr/lpp/IBM/dbb3'}"
+        DBB_HLQ = "${env.DBB_HLQ ? env.DBB_HLQ : 'NAZARE.GENAPP.DBBBUILD.ZCS'}"
+        ARTIFACTORY_URL  = "${env.ARTIFACTORY_URL  ? env.ARTIFACTORY_URL : 'https://example.com/artifactory'}"
+        ARTIFACTORY_CRED_ID = "${env.ARTIFACTORY_CRED_ID ? env.ARTIFACTORY_CRED_ID : 'artifactory_id'}"
+        ARTIFACTORY_REPO = "${env.ARTIFACTORY_REPO  ? env.ARTIFACTORY_REPO : 'repository'}"
+        ARTIFACTORY_REPO_PATH = "${env.ARTIFACTORY_REPO_PATH ? env.ARTIFACTORY_REPO_PATH : 'wazideploy/static' + appName}"
+        ARTIFACTORY_STATIC_BUILD_NAME = "${env.ARTIFACTORY_STATIC_BUILD_NAME ? env.ARTIFACTORY_STATIC_BUILD_NAME : appName + '-wazideploy-static-build'}"
+        SONARQ_CRED_ID = "${env.SONARQ_CRED_ID ? env.SONARQ_CRED_ID : 'sonarqube_id'}"
+     }
+     
+     parameters {
+       string(defaultValue: "1.0", description: 'Release Version.', name: 'RELEASE_VERSION')
+       choice(choices: ["impact", "full"], description: 'DBB Build Type.', name: 'DBB_BUILD_TYPE')
+       booleanParam(defaultValue: false, description: 'Display verbose output', name: 'VERBOSE')
+    }
+
+    options { skipDefaultCheckout(true) }
+
+    stages {
+        stage('Initialization') {
+            steps {
+                script {
+                    verbose = env.VERBOSE && env.VERBOSE == 'true' ? true : false
+                    env.BUILD_VERBOSE = verbose ? '-v' : ''
+                    if ( verbose ) {
+                        echo sh(script: 'env|sort', returnStdout: true)
+                    }
+                }
+            }
+        }
+        stage('Git Clone/Refresh') {
+            steps {
+                script {
+                    dir(appName) {
+                        srcGitRepo = scm.getUserRemoteConfigs()[0].getUrl()
+                        srcGitBranch = scm.branches[0].name
+                        if ( env.APP_GIT_BRANCH == null || env.APP_GIT_BRANCH == "") {
+                            srcGitBranch = scm.branches[0].name
+                            env.GIT_BRANCH = srcGitBranch
+                        } else
+                            srcGitBranch =  env.GIT_BRANCH
+                        def scmVars = null
+                        scmVars = checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
+                                                doGenerateSubmoduleConfigurations: false,
+                                                submoduleCfg: [],
+                                                userRemoteConfigs: [[
+                                                                     url: srcGitRepo, credentialsId: gitCredId
+                                                                     ]]])
+                    }
+                    dir("dbb-zappbuild") {
+                        def scmVars =
+                            checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
+                                    doGenerateSubmoduleConfigurations: false,
+                                    submoduleCfg: [],
+                                    userRemoteConfigs: [[
+                                        url: zAppBuildGitRepo,
+                            ]]])
+                    }
+                    node (zOsAgentLabel) {
+                        dir(appName) {
+                            srcGitRepo = scm.getUserRemoteConfigs()[0].getUrl()
+                            srcGitBranch = scm.branches[0].name
+                            if ( env.APP_GIT_BRANCH == null || env.APP_GIT_BRANCH == "") {
+                                srcGitBranch = scm.branches[0].name
+                                env.GIT_BRANCH = srcGitBranch
+                            } else
+                                srcGitBranch =  env.GIT_BRANCH
+                            def scmVars = null
+                            scmVars = checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
+                                                    doGenerateSubmoduleConfigurations: false,
+                                                    submoduleCfg: [],
+                                                    userRemoteConfigs: [[
+                                                                         url: srcGitRepo, credentialsId: gitCredId
+                                                                         ]]])
+                        }
+                        dir("dbb-zappbuild") {
+                            def scmVars =
+                                checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
+                                        doGenerateSubmoduleConfigurations: false,
+                                        submoduleCfg: [],
+                                        userRemoteConfigs: [[
+                                            url: zAppBuildGitRepo,
+                                ]]])
+                        }
+                     }
+              }
+            }
+        }
+
+        stage('ZCodeScan COBOL Static Scan') {
+           environment {
+              SONARQ_CREDS = credentials("$SONARQ_CRED_ID")
+            }
+            steps {
+                script{
+                    // DBB Build Preview
+                    def buildListContents = []
+                    node (zOsAgentLabel) {
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                cd ${WORKSPACE}
+                                rm -rf BUILD-*
+                                export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
+                                export DBB_CONF=${DBB_BUILD}
+                                export PATH=$DBB_HOME/bin:$PATH
+                                cd ${WORKSPACE}/${APP_NAME}
+                                export JAVA_HOME=/usr/lpp/java/J11.0_64
+                                CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
+                                         --config $DBB_BUILD/dbb-app.yaml\
+                                         --dbid db2inst1 --dbpf $HOME/password --preview"
+                                mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                echo "$CMD"
+                                $CMD
+                                rc=$?
+                                mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                exit $rc
+                            ''')
+                        if ( rc != 0 )
+                            error("DBB build failed!!!")
+                        rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                cd ${WORKSPACE}
+                                . /u/jenkins/python_wazideploy/beta/env/bin/activate
+                                export JAVA_HOME=/usr/lpp/java/J21.0_64
+                                CMD="zcodescan \
+                                        -e IBM-1047 \
+                                        -sfl ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/buildList.txt \
+                                        -if $PWD\
+                                        -rfo cics-genapp/zcodescan/rules\
+                                        -crdf cics-genapp/zcodescan/rules-domains\
+                                        -crjf cics-genapp/zcodescan/jars\
+                                        -cf $HOME/config.yml\
+                                        -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
+                                        -et sonarqube,junit"
+                                echo "$CMD"
+                                zcodescan -v
+                                $CMD
+                                rc=$?
+                                chtag -t -c UTF-8 ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                                chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json
+                                chtag -r ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml
+                                if [ $rc -gt 3 ]
+                                then
+                                  exit $rc
+                                elif [ $rc -lt 0 ]
+                                then
+                                  exit $rc
+                                else
+                                 rc=0
+                                fi
+                                exit $rc
+                            ''')
+                        def files = findFiles(glob: "**BUILD-${BUILD_NUMBER}/**/buildList.txt")
+                        // Do not enter into some steps if nothing in the build list
+                        hasBuildFiles = files.length > 0 && files[0].length > 0
+                        if ( hasBuildFiles ) {
+                            files.each { buildList ->
+                                println "Process file: $buildList.path"
+                                def content = readFile file: buildList.path
+                                buildListContents << content
+                            }
+                        }
+                    }
+                    buildListContents.each { content ->
+                        writeFile file: '/tmp/buildList.txt', text:content
+                            def rc = sh (returnStatus: true, script: '''#!/bin/bash
+                                  cd ${WORKSPACE}
+                                  sed -i "s/cics-genapp.//" /tmp/buildList.txt
+                                  export PATH=/opt/java/jdk-21.0.8/bin:$PATH
+                                  export JAVA_HOME=/opt/java/jdk-21.0.8
+                                  zcodescan -v
+                                  cd cics-genapp
+                                  CMD="zcodescan \
+                                    -sfl /tmp/buildList.txt \
+                                    -if $PWD\
+                                    -rfo zcodescan/rules\
+                                    -crdf zcodescan/rules-domains\
+                                    -crjf zcodescan/jars\
+                                    -cf $HOME/config.yml\
+                                    -of ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp.yml\
+                                    -et sonarqube,junit"
+                                  echo "$CMD"
+                                  $CMD
+                                  rc=$?
+                                  CMD="/opt/sonar/sonar-scanner-7.1.0.4889-linux-x64/bin/sonar-scanner \
+                                        -Dsonar.projectKey=genapp \
+                                        -Dsonar.sources=. \
+                                        -Dsonar.host.url=http://wazi-deploy.rpp.hur.hdclab.intranet.ibm.com:9000 \
+                                        -Dsonar.externalIssuesReportPaths=../BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/zcodescan-cics-genapp_sonarqube.json"
+                                  echo "$CMD"
+                                  $CMD
+                                  if [ $rc -gt 3 ]
+                                  then
+                                    exit $rc
+                                  elif [ $rc -lt 0 ]
+                                  then
+                                    exit $rc
+                                  else
+                                    rc=0
+                                  fi
+                                  exit $rc
+                            ''')
+                        junit "BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}/*_junit.xml"
+                        if ( rc != 0 )
+                            error("ZCodeScan failed!!!")
+                    }
+                }
+            }
+            post {
+                always {
+                        dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
+                            archiveArtifacts allowEmptyArchive: true,
+                                            artifacts: '**/zcodescan-cics*',
+                                            onlyIfSuccessful: false
+                    }
+                }
+            }
+        }
+        
+        stage('DBB Build') {
+            steps {
+                script{
+                  if ( hasBuildFiles ) {
+                    node (zOsAgentLabel) {
+                        // DBB Build
+                        if ( env.DBB_BUILD_TYPE == null )
+                            env.DBB_BUILD_TYPE = "--fullBuild"
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                                export DBB_BUILD=${WORKSPACE}/${APP_NAME}/dbb-build
+                                export DBB_CONF=${DBB_BUILD}
+                                export PATH=$DBB_HOME/bin:$PATH
+                                cd ${WORKSPACE}/${APP_NAME}
+                                CMD="dbb -cp $HOME/db2/db2jcc4.jar build ${DBB_BUILD_TYPE} --log-encoding UTF-8 --hlq ${DBB_HLQ}\
+                                         --config $DBB_BUILD/dbb-app.yaml\
+                                         --dbid db2inst1 --dbpf $HOME/password"
+                                mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                echo "$CMD"
+                                $CMD
+                                rc=$?
+                                mv logs/* ${WORKSPACE}/BUILD-${BUILD_NUMBER}/build.${BUILD_NUMBER}
+                                exit $rc
+                            ''')
+                        if ( rc != 0 )
+                            error("DBB build failed!!!")
+                    }
+                  }
+                }
+            }
+            post {
+                always {
+                    node (zOsAgentLabel) {
+                        dir("${WORKSPACE}/BUILD-${BUILD_NUMBER}") {
+                            archiveArtifacts allowEmptyArchive: true,
+                                            artifacts: '**/*.log,**/*.json,**/*.html',
+                                            excludes: '**/*clist',
+                                            onlyIfSuccessful: false
+                        }
+                    }
+               }
+            }
+        }
+
+        stage('Package & Artifactory Upload') {
+           environment {
+              ARTI_CREDS = credentials("$ARTIFACTORY_CRED_ID")
+            }
+            steps {
+                script {
+                    if ( hasBuildFiles ) {
+                        writeFile file: "${WORKSPACE}/BUILD-${BUILD_NUMBER}/config.yml", encoding: "UTF-8",
+                        text:"""artifact_repository:
+   # The type of the artifactory manager [artifactory|nexus]]
+   type: 'artifactory'
+   # The URL to the Artifactory Server
+   url: ${ARTIFACTORY_URL}
+   # Artifactory credentials
+   user: ${ARTI_CREDS_USR}
+   password: ${ARTI_CREDS_PSW}
+                             """
+                        if ( env.PYTHON_VIRTUAL_ENV_COMMAND == null  ){
+                            env.PYTHON_VIRTUAL_ENV_COMMAND = ""
+                        }
+
+                        if ( env.RELEASE_VERSION == null )
+                            env.RELEASE_VERSION = "1.0.0"
+                        def rc = sh (returnStatus: true, script: '''#!/bin/sh
+                            if [ "$PYTHON_VIRTUAL_ENV_COMMAND" != "" ]
+                            then
+                               echo "Use a virtual env $PYTHON_VIRTUAL_ENV_COMMAND"
+                               . $PYTHON_VIRTUAL_ENV_COMMAND
+                               export PYTHON_INTERPRETER="python3"
+                            else
+                               export PATH=$PATH:$HOME/.local/bin
+                            fi
+                            
+                            BUILD_OUTPUT_FOLDER=$(ls ${WORKSPACE}/BUILD-${BUILD_NUMBER} | grep "build.*[0-9]$" | tail -n 1)
+                            mkdir -p ${WORKSPACE}/BUILD-${BUILD_NUMBER}/package
+                            
+                            cd ${WORKSPACE}
+                            CMD="${PYTHON_INTERPRETER}\
+                                   ${WORKSPACE}/${APP_NAME}/wazideploy-samples/python/dbb/dbb_prepare_local_folder.py\
+                                   --dbbBuildResult ${WORKSPACE}/BUILD-${BUILD_NUMBER}/${BUILD_OUTPUT_FOLDER}/BuildReport.json\
+                                   --workingFolder ${WORKSPACE}/BUILD-${BUILD_NUMBER}/package"
+                            echo $CMD
+                            $CMD
+                            if [ $? -ne 0 ]
+                            then
+                              exit $?
+                            fi
+                            
+                            CMD="wazideploy-package\
+                                    --configFile ${WORKSPACE}/BUILD-${BUILD_NUMBER}/config.yml\
+                                    --localFolder ${WORKSPACE}/BUILD-${BUILD_NUMBER}/package\
+                                    --repository  ${ARTIFACTORY_REPO}\
+                                    --repositoryPath  ${ARTIFACTORY_REPO_PATH}/${RELEASE_VERSION}.${BUILD_NUMBER}\
+                                    --buildName ${ARTIFACTORY_STATIC_BUILD_NAME}\
+                                    --buildNumber ${BUILD_NUMBER}\
+                                    --buildUrl "${BUILD_URL}"\
+                                    --manifestVersion "${RELEASE_VERSION}.${BUILD_NUMBER}"\
+                                    --manifestName "${APP_NAME}"\
+                                    --manifestDescription "${APP_NAME}"\
+                                    --manifest ${WORKSPACE}/BUILD-${BUILD_NUMBER}/package/wazideploy_manifest.yml\
+                                    --uploadType archive"
+                            echo $CMD
+                            $CMD
+                            if [ $? -ne 0 ]
+                            then
+                              exit $?
+                            fi
+                        ''')
+                        if ( rc != 0 )
+                            error("Uploading Package failed!!!")
+                     }
+                }
+            }
+        }
+    }
+}
