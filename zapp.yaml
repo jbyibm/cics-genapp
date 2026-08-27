@@ -16,13 +16,17 @@ profiles:
       rules:
         - type: local
           locations:
-          - "**/rules/zcodescan-genapp-rules.yaml"
+          - "zcodescan/rules/zcodescan-genapp-rules.yaml"
       customRuleModels:
         - type: local
           locations:
-          - "**/rules-domains/rules*domains.yaml"
+          - "zcodescan/rules-domains/rules*domains.yaml"
       customRuleJars:
         - type: local
           locations:
-          - "zcodescan/**/*.jar"          
+          - "zcodescan/**/*.jar"
+      baselines:
+        - type: local
+          locations:
+            - "zcodescan/baseline.json"     
      
